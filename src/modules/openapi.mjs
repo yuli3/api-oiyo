@@ -437,7 +437,81 @@ export const OPENAPI_SPEC = {
           }
         }
       }
+    },
+    "/v1/finance/cagr": {
+      get: {
+        summary: "Compound Annual Growth Rate (CAGR 연평균 복합 성장률 계산기)",
+        description: "Calculates CAGR, total return, multiplier, and Rule of 72 doubling years.",
+        parameters: [
+          { name: "initialValue", in: "query", required: true, schema: { type: "number" }, description: "Initial investment or base value (> 0)" },
+          { name: "finalValue", in: "query", required: true, schema: { type: "number" }, description: "Final asset value (>= 0)" },
+          { name: "years", in: "query", required: true, schema: { type: "number" }, description: "Investment duration in years (> 0)" }
+        ],
+        responses: {
+          "200": {
+            description: "CAGR metrics and yearly trajectory",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    initialValue: { type: "number" },
+                    finalValue: { type: "number" },
+                    years: { type: "number" },
+                    cagr: { type: "number" },
+                    cagrPercent: { type: "number" },
+                    totalReturn: { type: "number" },
+                    totalReturnPercent: { type: "number" },
+                    multiplier: { type: "number" },
+                    ruleOf72Years: { type: "number", nullable: true },
+                    annualBreakdown: { type: "array" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/finance/compound-interest": {
+      get: {
+        summary: "Compound Interest & Savings Simulator (복리 계산기)",
+        description: "Simulates compound interest growth with optional monthly contributions and annual breakdown.",
+        parameters: [
+          { name: "principal", in: "query", schema: { type: "number", default: 10000000 }, description: "Initial principal amount" },
+          { name: "rate", in: "query", schema: { type: "number", default: 7 }, description: "Annual return / interest rate in percent (%)" },
+          { name: "years", in: "query", schema: { type: "number", default: 10 }, description: "Investment duration in years" },
+          { name: "monthlyContribution", in: "query", schema: { type: "number", default: 0 }, description: "Recurring monthly deposit" },
+          { name: "compoundingFrequency", in: "query", schema: { type: "string", enum: ["monthly", "annually"], default: "monthly" }, description: "Compounding cycle" }
+        ],
+        responses: {
+          "200": {
+            description: "Compound growth summary and year-by-year progression",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    principal: { type: "number" },
+                    annualRatePercent: { type: "number" },
+                    years: { type: "number" },
+                    monthlyContribution: { type: "number" },
+                    compoundingFrequency: { type: "string" },
+                    finalBalance: { type: "integer" },
+                    totalPrincipal: { type: "integer" },
+                    totalInterest: { type: "integer" },
+                    returnOnInvestmentPercent: { type: "number" },
+                    ruleOf72Years: { type: "number", nullable: true },
+                    annualBreakdown: { type: "array" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 };
+
 

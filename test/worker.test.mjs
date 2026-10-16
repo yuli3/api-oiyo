@@ -213,5 +213,46 @@ test("annual-leave endpoint computes statutory entitlement and cash-out allowanc
   assert.equal(data.unusedLeaveAllowance, 5 * 12000 * 8);
 });
 
+test("tools.json endpoint returns AI agent tool definitions", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/tools.json"));
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("Content-Type"), "application/json; charset=utf-8");
+  const data = await res.json();
+  assert.ok(Array.isArray(data.tools));
+  assert.ok(data.tools.length >= 14);
+  const toolNames = data.tools.map((t) => t.function.name);
+  assert.ok(toolNames.includes("calculate_cagr"));
+  assert.ok(toolNames.includes("calculate_compound_interest"));
+});
+
+test("llms-full.txt endpoint returns comprehensive documentation", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/llms-full.txt"));
+  assert.equal(res.status, 200);
+  const text = await res.text();
+  assert.ok(text.includes("OIYO API - Complete AI Agent Reference Manual"));
+  assert.ok(text.includes("/v1/finance/cagr"));
+});
+
+test("finance cagr endpoint calculates compound annual growth rate", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/cagr?initialValue=10000000&finalValue=20000000&years=5"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.initialValue, 10000000);
+  assert.equal(data.finalValue, 20000000);
+  assert.equal(data.cagrPercent, 14.87);
+  assert.equal(data.multiplier, 2.0);
+});
+
+test("finance compound-interest endpoint calculates interest and balance", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/compound-interest?principal=10000000&rate=7&years=10&monthlyContribution=500000"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.principal, 10000000);
+  assert.equal(data.totalPrincipal, 70000000);
+  assert.ok(data.finalBalance > 70000000);
+  assert.ok(data.totalInterest > 0);
+});
+
+
 
 

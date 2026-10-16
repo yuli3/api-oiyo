@@ -11,12 +11,15 @@ import {
 import { convertUnits } from "./modules/units.mjs";
 import { calculateMilitaryService } from "./modules/military.mjs";
 import { calculateCityGasBill } from "./modules/energy.mjs";
+import { calculateCAGR, calculateCompoundInterest } from "./modules/finance.mjs";
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
+import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import {
   DOCS_HTML,
   ROBOTS_TXT,
   SITEMAP_XML,
   LLMS_TXT,
+  LLMS_FULL_TXT,
   ADS_TXT,
   FAVICON_SVG,
   NAVER_VERIFICATION_HTML,
@@ -106,6 +109,30 @@ export default {
       });
     }
 
+    // llms-full.txt
+    if (path === "/llms-full.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : LLMS_FULL_TXT, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // tools.json (Agent function-calling definitions)
+    if (path === "/tools.json" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : JSON.stringify(TOOLS_SPEC), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
     // ads.txt
     if (path === "/ads.txt" && (method === "GET" || method === "HEAD")) {
       return new Response(method === "HEAD" ? null : ADS_TXT, {
@@ -159,13 +186,17 @@ export default {
         stage: "production-mvp",
         documentation: "/docs",
         openapi: "/openapi.json",
+        tools: "/tools.json",
         llms: "/llms.txt",
+        llmsFull: "/llms-full.txt",
         sitemap: "/sitemap.xml",
         endpoints: [
           "GET /health",
           "GET /docs",
           "GET /openapi.json",
+          "GET /tools.json",
           "GET /llms.txt",
+          "GET /llms-full.txt",
           "GET /sitemap.xml",
           "GET /v1/kr/calendar/holidays?year=2026",
           "GET /v1/kr/calendar/is-business-day?date=2026-10-16",
@@ -179,6 +210,8 @@ export default {
           "GET /v1/military/kr/service-calculator?enlistmentDate=2026-03-02&branch=army",
           "GET /v1/energy/kr/gas-bill?usageM3=50&type=heating",
           "GET /v1/math/units/convert?value=100&from=m2&to=pyeong",
+          "GET /v1/finance/cagr?initialValue=10000000&finalValue=20000000&years=5",
+          "GET /v1/finance/compound-interest?principal=10000000&rate=7&years=10&monthlyContribution=500000",
         ],
       };
       return new Response(method === "HEAD" ? null : JSON.stringify(info), {
@@ -519,6 +552,67 @@ export default {
           hourlyWage: Number(hourlyWage),
           dailyHours: Number(dailyHours),
           unusedDays: Number(unusedDays),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 15. Finance: Compound Annual Growth Rate (CAGR)
+    if (path === "/v1/finance/cagr") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const initialValue = url.searchParams.get("initialValue");
+      const finalValue = url.searchParams.get("finalValue");
+      const years = url.searchParams.get("years");
+
+      if (initialValue === null || finalValue === null || years === null) {
+        return Response.json(
+          { error: "Missing required query parameters: initialValue, finalValue, years" },
+          { status: 400, headers: commonHeaders }
+        );
+      }
+
+      try {
+        const res = calculateCAGR({
+          initialValue: Number(initialValue),
+          finalValue: Number(finalValue),
+          years: Number(years),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 16. Finance: Compound Interest & Savings
+    if (path === "/v1/finance/compound-interest") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const principal = url.searchParams.get("principal") || 10000000;
+      const rate = url.searchParams.get("rate") || 7;
+      const years = url.searchParams.get("years") || 10;
+      const monthlyContribution = url.searchParams.get("monthlyContribution") || 0;
+      const compoundingFrequency = url.searchParams.get("compoundingFrequency") || "monthly";
+
+      try {
+        const res = calculateCompoundInterest({
+          principal: Number(principal),
+          rate: Number(rate),
+          years: Number(years),
+          monthlyContribution: Number(monthlyContribution),
+          compoundingFrequency,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

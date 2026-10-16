@@ -8,7 +8,7 @@ export const DOCS_HTML = `<!doctype html>
     <title>OIYO API Reference (B2A Compute Gateway)</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="OIYO API: LLM 토큰 0개, 외부 의존 0개의 결정적 연산 전용 B2A 게이트웨이. 달력, 노동, 공과금, 단위변환, 사주 OpenAPI 명세." />
+    <meta name="description" content="OIYO API: LLM 토큰 0개, 외부 의존 0개의 결정적 연산 전용 B2A 게이트웨이. 달력, 노동, 금융, 공과금, 단위변환, 사주 OpenAPI 명세." />
     <meta name="naver-site-verification" content="e1043bad51e3be143affbe491f12354fa985fa6a" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href="https://api.oiyo.net/docs" />
@@ -23,7 +23,9 @@ export const ROBOTS_TXT = `User-agent: *
 Allow: /
 Allow: /docs
 Allow: /openapi.json
+Allow: /tools.json
 Allow: /llms.txt
+Allow: /llms-full.txt
 Allow: /health
 Disallow: /v1/
 
@@ -48,7 +50,17 @@ export const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://api.oiyo.net/tools.json</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://api.oiyo.net/llms.txt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://api.oiyo.net/llms-full.txt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -60,13 +72,17 @@ export const LLMS_TXT = `# OIYO API (api.oiyo.net)
 ## Base URL
 https://api.oiyo.net
 
-## OpenAPI 3.0 Specification
-- Schema: https://api.oiyo.net/openapi.json
-- Interactive Reference: https://api.oiyo.net/docs
+## Specifications
+- OpenAPI 3.0: https://api.oiyo.net/openapi.json
+- Agent Tool Schemas: https://api.oiyo.net/tools.json
+- Interactive Docs: https://api.oiyo.net/docs
+- Full Agent Guide: https://api.oiyo.net/llms-full.txt
 
 ## Endpoints
 - GET /health: Health status check
 - GET /openapi.json: OpenAPI 3.0.3 specification
+- GET /tools.json: OpenAI/Claude function-calling tool declarations
+- GET /llms-full.txt: Full reference with parameter details & curl samples
 - GET /v1/kr/calendar/holidays?year=2026: South Korea statutory public and substitute holidays
 - GET /v1/kr/calendar/is-business-day?date=YYYY-MM-DD: Working day vs holiday determination
 - POST /v1/astrology/saju/calculate: Sexagenary cycle (60 Gapja) four pillars and five elements distribution
@@ -79,11 +95,178 @@ https://api.oiyo.net
 - GET /v1/military/kr/service-calculator?enlistmentDate=...&branch=...: South Korea military service milestones & promotion dates
 - GET /v1/energy/kr/gas-bill?usageM3=...&type=...: City gas heating/cooking bill calculator
 - GET /v1/math/units/convert?value=...&from=...&to=...: Exact engineering unit converter (length, area, mass, temperature)
+- GET /v1/finance/cagr?initialValue=...&finalValue=...&years=...: Compound Annual Growth Rate (CAGR) calculation
+- GET /v1/finance/compound-interest?principal=...&rate=...&years=...&monthlyContribution=...: Compound interest & savings simulator
 
 ## Operational Guarantees
 - All responses are UTF-8 JSON.
 - CORS enabled (Access-Control-Allow-Origin: *).
 - Deterministic output without server storage or tracking.
+`;
+
+export const LLMS_FULL_TXT = `# OIYO API - Complete AI Agent Reference Manual (llms-full.txt)
+> Host: https://api.oiyo.net
+> Protocol: HTTPS REST / JSON
+> Purpose: Deterministic business & scientific computation gateway for autonomous LLM agents (B2A). Zero hallucinations, pure mathematical and statutory accuracy.
+
+## Standard Error Response
+All endpoints return standard HTTP error status codes (400, 404, 405) with JSON payload:
+\`\`\`json
+{ "error": "Human readable error description" }
+\`\`\`
+
+---
+
+## 1. Calendar Services
+
+### GET /v1/kr/calendar/holidays
+Returns statutory public holidays, substitute holidays, and solar terms for South Korea.
+- Query Parameters:
+  - \`year\` (integer, optional, default: current year): e.g. 2026
+- Example:
+  \`curl "https://api.oiyo.net/v1/kr/calendar/holidays?year=2026"\`
+
+### GET /v1/kr/calendar/is-business-day
+Checks if a date is a South Korea working business day or a public holiday/weekend.
+- Query Parameters:
+  - \`date\` (string, required, format YYYY-MM-DD): e.g. 2026-10-16
+- Response:
+  \`\`\`json
+  { "date": "2026-10-16", "isBusinessDay": true, "isWeekend": false, "isHoliday": false, "dayOfWeek": "금요일" }
+  \`\`\`
+
+---
+
+## 2. Astrology & Four Pillars
+
+### POST /v1/astrology/saju/calculate
+Computes the traditional Korean sexagenary cycle (60 Gapja) four pillars and five elements balance.
+- Request Body (JSON):
+  \`\`\`json
+  { "year": 1995, "month": 5, "day": 12, "hour": 14, "isLunar": false }
+  \`\`\`
+- Response:
+  Contains yearPillar, monthPillar, dayPillar, hourPillar, and fiveElementsDistribution.
+
+---
+
+## 3. Statutory Labor Standards (South Korea)
+
+### GET /v1/labor/kr/unemployment-benefits
+- Query Parameters:
+  - \`wage\` (number, monthly wage in KRW)
+  - \`age\` ("under" | "over")
+  - \`period\` ("p1" | "p3" | "p5" | "p10" | "p10plus")
+  - \`hours\` (number, daily working hours, default 8)
+
+### GET /v1/labor/kr/weekly-allowance
+- Query Parameters:
+  - \`hourlyWage\` (number, KRW)
+  - \`hours\` (number, weekly contractual hours >= 15)
+  - \`tax\` ("none" | "income33" | "fourMajor", optional)
+
+### GET /v1/labor/kr/overtime-pay
+- Query Parameters:
+  - \`hourlyWage\` (number, KRW)
+  - \`overtimeHours\` (number, hours > 8h/day or 40h/week, 1.5x)
+  - \`nightHours\` (number, 22:00-06:00, 0.5x)
+  - \`holidayHours8orLess\` (number, 1.5x)
+  - \`holidayHoursOver8\` (number, 2.0x)
+
+### GET /v1/labor/kr/net-salary
+- Query Parameters:
+  - \`salary\` (number, monthly or annual salary in KRW)
+  - \`isAnnual\` (boolean, default false)
+  - \`nonTaxable\` (number, non-taxable allowance in KRW, default 200,000)
+  - \`dependents\` (integer, number of dependents, default 1)
+
+### GET /v1/labor/kr/severance-pay
+- Query Parameters:
+  - \`startDate\` (YYYY-MM-DD)
+  - \`endDate\` (YYYY-MM-DD)
+  - \`threeMonthSalary\` (number, total 3-month salary in KRW)
+  - \`annualBonus\` (number, optional)
+  - \`annualLeaveAllowance\` (number, optional)
+
+### GET /v1/labor/kr/annual-leave
+- Query Parameters:
+  - \`yearsOfService\` (number, continuous service years)
+  - \`hourlyWage\` (number, default 10,030 KRW)
+  - \`unusedDays\` (number, optional)
+
+---
+
+## 4. Military Service Milestones
+
+### GET /v1/military/kr/service-calculator
+- Query Parameters:
+  - \`enlistmentDate\` (YYYY-MM-DD, required)
+  - \`branch\` ("army" | "marines" | "navy" | "airforce" | "public", default army)
+  - \`currentDate\` (YYYY-MM-DD, optional)
+
+---
+
+## 5. Utilities & Energy
+
+### GET /v1/energy/kr/gas-bill
+- Query Parameters:
+  - \`usageM3\` (number, volume in m³, default 50)
+  - \`type\` ("heating" | "cooking", default heating)
+  - \`calorific\` (number, optional MJ/m³, default 42.8)
+
+---
+
+## 6. Unit Conversion
+
+### GET /v1/math/units/convert
+Universal deterministic conversion for area, length, mass, and temperature.
+- Query Parameters:
+  - \`value\` (number, required)
+  - \`from\` (string, e.g. "pyeong", "m2", "sqft", "ha", "cm", "inch", "ft", "kg", "lb", "c", "f")
+  - \`to\` (string, e.g. "m2", "pyeong", "sqft", "ft", "inch", "lb", "kg", "f", "c")
+- Example:
+  \`curl "https://api.oiyo.net/v1/math/units/convert?value=33&from=pyeong&to=m2"\`
+
+---
+
+## 7. Finance & Investment
+
+### GET /v1/finance/cagr
+Calculates Compound Annual Growth Rate (CAGR) and Rule of 72 doubling horizon.
+- Query Parameters:
+  - \`initialValue\` (number, required, > 0): Beginning asset or investment value
+  - \`finalValue\` (number, required, >= 0): Ending asset value
+  - \`years\` (number, required, > 0): Investment duration in years
+- Example:
+  \`curl "https://api.oiyo.net/v1/finance/cagr?initialValue=10000000&finalValue=20000000&years=5"\`
+- Response:
+  \`\`\`json
+  {
+    "initialValue": 10000000,
+    "finalValue": 20000000,
+    "years": 5,
+    "cagr": 0.1487,
+    "cagrPercent": 14.87,
+    "totalReturn": 1.0,
+    "totalReturnPercent": 100.0,
+    "multiplier": 2.0,
+    "ruleOf72Years": 4.84,
+    "annualBreakdown": [...]
+  }
+  \`\`\`
+
+### GET /v1/finance/compound-interest
+Simulates compound interest growth with optional monthly recurring contributions.
+- Query Parameters:
+  - \`principal\` (number, default 10,000,000): Initial lump sum
+  - \`rate\` (number, default 7): Annual yield / interest rate in percent (%)
+  - \`years\` (number, default 10): Duration in years
+  - \`monthlyContribution\` (number, default 0): Additional monthly savings
+  - \`compoundingFrequency\` ("monthly" | "annually", default "monthly")
+- Example:
+  \`curl "https://api.oiyo.net/v1/finance/compound-interest?principal=10000000&rate=8&years=10&monthlyContribution=500000"\`
+- Response:
+  Returns final balance, total principal, total interest earned, ROI percentage, Rule of 72, and annual progress chart data.
 `;
 
 export const ADS_TXT = `google.com, pub-9541920090543312, DIRECT, f08c47fec0942fa0
