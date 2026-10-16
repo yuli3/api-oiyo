@@ -4,6 +4,9 @@ import {
   calculateUnemploymentBenefits,
   calculateWeeklyAllowance,
   calculateOvertimePay,
+  calculateNetSalary,
+  calculateSeverancePay,
+  calculateAnnualLeave,
 } from "./modules/labor.mjs";
 import { convertUnits } from "./modules/units.mjs";
 import { calculateMilitaryService } from "./modules/military.mjs";
@@ -170,6 +173,9 @@ export default {
           "GET /v1/labor/kr/unemployment-benefits?wage=3000000&age=under&period=p3&hours=8",
           "GET /v1/labor/kr/weekly-allowance?hourlyWage=10030&hours=20&tax=none",
           "GET /v1/labor/kr/overtime-pay?hourlyWage=10030&overtimeHours=10&nightHours=5",
+          "GET /v1/labor/kr/net-salary?salary=3500000&isAnnual=false&nonTaxable=200000&dependents=1",
+          "GET /v1/labor/kr/severance-pay?startDate=2024-01-01&endDate=2026-01-01&threeMonthSalary=9000000",
+          "GET /v1/labor/kr/annual-leave?yearsOfService=2&hourlyWage=10030&unusedDays=5",
           "GET /v1/military/kr/service-calculator?enlistmentDate=2026-03-02&branch=army",
           "GET /v1/energy/kr/gas-bill?usageM3=50&type=heating",
           "GET /v1/math/units/convert?value=100&from=m2&to=pyeong",
@@ -429,6 +435,99 @@ export default {
       }
     }
 
+    // 12. Labor: Net Salary & 4 Major Insurances
+    if (path === "/v1/labor/kr/net-salary") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const salary = url.searchParams.get("salary") || 3500000;
+      const isAnnual = url.searchParams.get("isAnnual") === "true";
+      const nonTaxable = url.searchParams.get("nonTaxable") || 200000;
+      const dependents = url.searchParams.get("dependents") || 1;
+
+      try {
+        const res = calculateNetSalary({
+          salary: Number(salary),
+          isAnnual,
+          nonTaxable: Number(nonTaxable),
+          dependents: Number(dependents),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 13. Labor: Statutory Severance Pay
+    if (path === "/v1/labor/kr/severance-pay") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const startDate = url.searchParams.get("startDate");
+      const endDate = url.searchParams.get("endDate");
+      const threeMonthSalary = url.searchParams.get("threeMonthSalary") || 9000000;
+      const annualBonus = url.searchParams.get("annualBonus") || 0;
+      const annualLeaveAllowance = url.searchParams.get("annualLeaveAllowance") || 0;
+      const hourlyWage = url.searchParams.get("hourlyWage") || 10030;
+      const dailyHours = url.searchParams.get("dailyHours") || 8;
+
+      if (!startDate || !endDate) {
+        return Response.json(
+          { error: "Missing required query parameters: startDate, endDate (YYYY-MM-DD)" },
+          { status: 400, headers: commonHeaders }
+        );
+      }
+
+      try {
+        const res = calculateSeverancePay({
+          startDate,
+          endDate,
+          threeMonthSalary: Number(threeMonthSalary),
+          annualBonus: Number(annualBonus),
+          annualLeaveAllowance: Number(annualLeaveAllowance),
+          hourlyWage: Number(hourlyWage),
+          dailyHours: Number(dailyHours),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 14. Labor: Annual Leave Entitlement & Unused Allowance
+    if (path === "/v1/labor/kr/annual-leave") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const yearsOfService = url.searchParams.get("yearsOfService") || 1;
+      const hourlyWage = url.searchParams.get("hourlyWage") || 10030;
+      const dailyHours = url.searchParams.get("dailyHours") || 8;
+      const unusedDays = url.searchParams.get("unusedDays") || 0;
+
+      try {
+        const res = calculateAnnualLeave({
+          yearsOfService: Number(yearsOfService),
+          hourlyWage: Number(hourlyWage),
+          dailyHours: Number(dailyHours),
+          unusedDays: Number(unusedDays),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
 
     // 404 Fallback
     return new Response(

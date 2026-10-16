@@ -73,6 +73,9 @@ https://api.oiyo.net
 - GET /v1/labor/kr/unemployment-benefits?wage=...&age=...&period=...&hours=...: Statutory unemployment benefits simulation
 - GET /v1/labor/kr/weekly-allowance?hourlyWage=...&hours=...&tax=...: Weekly holiday allowance computation
 - GET /v1/labor/kr/overtime-pay?hourlyWage=...&overtimeHours=...&nightHours=...: Overtime & night wage premiums
+- GET /v1/labor/kr/net-salary?salary=...&isAnnual=...&nonTaxable=...&dependents=...: 2026 Net salary & 4 major insurances calculation
+- GET /v1/labor/kr/severance-pay?startDate=...&endDate=...&threeMonthSalary=...: Statutory severance pay calculation
+- GET /v1/labor/kr/annual-leave?yearsOfService=...&hourlyWage=...&unusedDays=...: Statutory annual leave days & unused leave pay
 - GET /v1/military/kr/service-calculator?enlistmentDate=...&branch=...: South Korea military service milestones & promotion dates
 - GET /v1/energy/kr/gas-bill?usageM3=...&type=...: City gas heating/cooking bill calculator
 - GET /v1/math/units/convert?value=...&from=...&to=...: Exact engineering unit converter (length, area, mass, temperature)

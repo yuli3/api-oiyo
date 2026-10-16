@@ -21,6 +21,9 @@
 - `GET /v1/labor/kr/unemployment-benefits`: 고용보험 구직급여(실업급여) 모의계산
 - `GET /v1/labor/kr/weekly-allowance`: 주휴수당 계산
 - `GET /v1/labor/kr/overtime-pay`: 연장·야간·휴일 가산수당 계산
+- `GET /v1/labor/kr/net-salary`: 2026 실수령액 및 4대보험·근로소득세 계산
+- `GET /v1/labor/kr/severance-pay`: 법정 퇴직금 및 계속근로일수 계산
+- `GET /v1/labor/kr/annual-leave`: 근속연수별 법정 연차일수 및 미사용 연차수당 계산
 - `GET /v1/military/kr/service-calculator`: 군 복무기간 및 계급 진급일 계산
 - `GET /v1/energy/kr/gas-bill`: 도시가스 요금 계산
 - `GET /v1/math/units/convert`: 단위 변환 (길이, 넓이, 무게, 온도)

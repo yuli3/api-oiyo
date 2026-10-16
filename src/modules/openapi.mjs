@@ -197,6 +197,98 @@ export const OPENAPI_SPEC = {
         }
       }
     },
+    "/v1/labor/kr/net-salary": {
+      get: {
+        summary: "South Korea 2026 Net Salary & 4 Major Insurances",
+        description: "Calculates statutory 4 major public insurances (national pension, health, care, employment) and progressive income tax to compute take-home pay.",
+        parameters: [
+          { name: "salary", in: "query", required: false, schema: { type: "number", default: 3500000 }, description: "Gross salary in KRW" },
+          { name: "isAnnual", in: "query", required: false, schema: { type: "boolean", default: false }, description: "True if salary is annual, false if monthly" },
+          { name: "nonTaxable", in: "query", required: false, schema: { type: "number", default: 200000 }, description: "Non-taxable monthly allowance (e.g. meals 200k)" },
+          { name: "dependents", in: "query", required: false, schema: { type: "integer", default: 1 }, description: "Number of dependents including earner" }
+        ],
+        responses: {
+          "200": {
+            description: "Detailed net pay and deduction breakdown",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    grossMonthly: { type: "number" },
+                    taxable: { type: "number" },
+                    totalDeductions: { type: "number" },
+                    netPayMonthly: { type: "number" },
+                    deductionRatePercentage: { type: "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/labor/kr/severance-pay": {
+      get: {
+        summary: "South Korea Statutory Severance Pay Calculator",
+        description: "Calculates legal retirement benefits under Act on the Guarantee of Employees' Retirement Benefits Art. 8.",
+        parameters: [
+          { name: "startDate", in: "query", required: true, schema: { type: "string", format: "date" }, description: "Start date (YYYY-MM-DD)" },
+          { name: "endDate", in: "query", required: true, schema: { type: "string", format: "date" }, description: "End date (YYYY-MM-DD)" },
+          { name: "threeMonthSalary", in: "query", required: false, schema: { type: "number", default: 9000000 }, description: "Total salary for the last 3 months" },
+          { name: "annualBonus", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Total annual bonus" },
+          { name: "annualLeaveAllowance", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Unused annual leave allowance" }
+        ],
+        responses: {
+          "200": {
+            description: "Severance pay calculation and tenure days",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    serviceDays: { type: "integer" },
+                    isEligible: { type: "boolean" },
+                    effectiveDailyWage: { type: "number" },
+                    severancePay: { type: "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/labor/kr/annual-leave": {
+      get: {
+        summary: "South Korea Statutory Annual Leave & Allowance Calculator",
+        description: "Calculates statutory annual leave days under Labor Standards Act Art. 60 and cash-out allowance for unused days.",
+        parameters: [
+          { name: "yearsOfService", in: "query", required: false, schema: { type: "number", default: 1 }, description: "Completed years of service" },
+          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10030 }, description: "Ordinary hourly wage" },
+          { name: "dailyHours", in: "query", required: false, schema: { type: "number", default: 8 }, description: "Daily working hours" },
+          { name: "unusedDays", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Remaining unused leave days" }
+        ],
+        responses: {
+          "200": {
+            description: "Statutory leave days and unused leave pay",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    statutoryLeaveDays: { type: "integer" },
+                    dailyOrdinaryWage: { type: "number" },
+                    unusedDays: { type: "number" },
+                    unusedLeaveAllowance: { type: "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/math/units/convert": {
       get: {
         summary: "Universal Unit Converter",

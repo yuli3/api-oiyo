@@ -186,4 +186,32 @@ test("search engine verification routes return tokens", async () => {
   assert.match(indexnowBody, /0f2131ccadd8edf19887c99ca7aa9f4795a4cae4/);
 });
 
+test("net-salary endpoint computes monthly net wage and insurance breakdown", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/net-salary?salary=4000000&isAnnual=false&nonTaxable=200000&dependents=1"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.grossMonthly, 4000000);
+  assert.equal(data.taxable, 3800000);
+  assert.ok(data.netPayMonthly > 3300000 && data.netPayMonthly < 3600000);
+  assert.ok(data.insurances.nationalPension > 0);
+  assert.ok(data.taxes.incomeTax > 0);
+});
+
+test("severance-pay endpoint computes statutory retirement pay", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/severance-pay?startDate=2024-01-01&endDate=2026-01-01&threeMonthSalary=9000000"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.isEligible, true);
+  assert.ok(data.severancePay > 5500000);
+});
+
+test("annual-leave endpoint computes statutory entitlement and cash-out allowance", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/annual-leave?yearsOfService=3&hourlyWage=12000&dailyHours=8&unusedDays=5"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.statutoryLeaveDays, 16);
+  assert.equal(data.unusedLeaveAllowance, 5 * 12000 * 8);
+});
+
+
 
