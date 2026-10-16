@@ -125,3 +125,65 @@ test("404 fallback for undefined routes", async () => {
   assert.equal(data.error, "not_found");
 });
 
+test("interactive docs returns HTML documentation", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/docs"));
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("Content-Type"), /text\/html/);
+  const body = await res.text();
+  assert.match(body, /@scalar\/api-reference/);
+  assert.match(body, /e1043bad51e3be143affbe491f12354fa985fa6a/);
+});
+
+test("robots.txt returns correct crawl policy and sitemap link", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/robots.txt"));
+  assert.equal(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /Sitemap: https:\/\/api\.oiyo\.net\/sitemap\.xml/);
+  assert.match(body, /Allow: \/docs/);
+  assert.match(body, /Disallow: \/v1\//);
+});
+
+test("sitemap.xml returns valid urlset", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/sitemap.xml"));
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("Content-Type"), /application\/xml/);
+  const body = await res.text();
+  assert.match(body, /<loc>https:\/\/api\.oiyo\.net\/docs<\/loc>/);
+});
+
+test("llms.txt returns agent reference guide", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/llms.txt"));
+  assert.equal(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /# OIYO API/);
+  assert.match(body, /Deterministic/i);
+});
+
+test("ads.txt returns official publisher record", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/ads.txt"));
+  assert.equal(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /pub-9541920090543312/);
+});
+
+test("favicon endpoints return valid SVG icon", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/favicon.svg"));
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("Content-Type"), /image\/svg\+xml/);
+  const body = await res.text();
+  assert.match(body, /<svg/);
+});
+
+test("search engine verification routes return tokens", async () => {
+  const naver = await worker.fetch(new Request("https://api.oiyo.net/naverfeb1d8514db116d06b5d11e882ee9d1c.html"));
+  assert.equal(naver.status, 200);
+  const naverBody = await naver.text();
+  assert.match(naverBody, /naverfeb1d8514db116d06b5d11e882ee9d1c/);
+
+  const indexnow = await worker.fetch(new Request("https://api.oiyo.net/0f2131ccadd8edf19887c99ca7aa9f4795a4cae4.txt"));
+  assert.equal(indexnow.status, 200);
+  const indexnowBody = await indexnow.text();
+  assert.match(indexnowBody, /0f2131ccadd8edf19887c99ca7aa9f4795a4cae4/);
+});
+
+

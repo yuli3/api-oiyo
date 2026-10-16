@@ -9,6 +9,16 @@ import { convertUnits } from "./modules/units.mjs";
 import { calculateMilitaryService } from "./modules/military.mjs";
 import { calculateCityGasBill } from "./modules/energy.mjs";
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
+import {
+  DOCS_HTML,
+  ROBOTS_TXT,
+  SITEMAP_XML,
+  LLMS_TXT,
+  ADS_TXT,
+  FAVICON_SVG,
+  NAVER_VERIFICATION_HTML,
+  INDEXNOW_TXT,
+} from "./modules/assets.mjs";
 
 const commonHeaders = {
   "Content-Type": "application/json; charset=utf-8",
@@ -42,14 +52,118 @@ export default {
       );
     }
 
+    // Interactive Docs (Scalar UI)
+    if (
+      (path === "/docs" || (path === "/" && request.headers.get("accept")?.includes("text/html"))) &&
+      (method === "GET" || method === "HEAD")
+    ) {
+      return new Response(method === "HEAD" ? null : DOCS_HTML, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // Robots.txt
+    if (path === "/robots.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : ROBOTS_TXT, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // Sitemap.xml
+    if (path === "/sitemap.xml" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : SITEMAP_XML, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/xml; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // llms.txt
+    if (path === "/llms.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : LLMS_TXT, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // ads.txt
+    if (path === "/ads.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : ADS_TXT, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // Favicon
+    if ((path === "/favicon.svg" || path === "/favicon.ico") && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : FAVICON_SVG, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/svg+xml; charset=utf-8",
+          "Cache-Control": "public, max-age=604800",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // Search Engine Verifications
+    if (path === "/naverfeb1d8514db116d06b5d11e882ee9d1c.html" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : NAVER_VERIFICATION_HTML, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    if (path === "/0f2131ccadd8edf19887c99ca7aa9f4795a4cae4.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : INDEXNOW_TXT, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
     if (path === "/" && (method === "GET" || method === "HEAD")) {
       const info = {
         service: "oiyo-api",
         stage: "production-mvp",
-        documentation: "/openapi.json",
+        documentation: "/docs",
+        openapi: "/openapi.json",
+        llms: "/llms.txt",
+        sitemap: "/sitemap.xml",
         endpoints: [
           "GET /health",
+          "GET /docs",
           "GET /openapi.json",
+          "GET /llms.txt",
+          "GET /sitemap.xml",
           "GET /v1/kr/calendar/holidays?year=2026",
           "GET /v1/kr/calendar/is-business-day?date=2026-10-16",
           "POST /v1/astrology/saju/calculate",
@@ -70,7 +184,14 @@ export default {
     if (path === "/openapi.json" && (method === "GET" || method === "HEAD")) {
       return new Response(
         method === "HEAD" ? null : JSON.stringify(OPENAPI_SPEC),
-        { status: 200, headers: commonHeaders }
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "public, max-age=3600",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
       );
     }
 

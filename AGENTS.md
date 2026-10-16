@@ -6,7 +6,15 @@
 
 ## 엔드포인트
 - `GET /health`: 상태 체크
+- `GET /docs`: 대화형 OpenAPI 명세 문서 (Scalar UI)
 - `GET /openapi.json`: OpenAPI 3.0 스키마 명세
+- `GET /robots.txt`: 검색엔진 크롤러 정책
+- `GET /sitemap.xml`: XML 사이트맵
+- `GET /llms.txt`: AI 에이전트 인터페이스 명세
+- `GET /ads.txt`: Google AdSense 게시자 인증
+- `GET /favicon.svg`: SVG 파비콘
+- `GET /naverfeb1d8514db116d06b5d11e882ee9d1c.html`: 네이버 서치어드바이저 소유권 확인
+- `GET /0f2131ccadd8edf19887c99ca7aa9f4795a4cae4.txt`: Bing IndexNow 소유권 확인
 - `GET /v1/kr/calendar/holidays`: 법정공휴일 및 대체공휴일
 - `GET /v1/kr/calendar/is-business-day`: 영업일/휴일 판정
 - `POST /v1/astrology/saju/calculate`: 음양오행 및 사주 원국 계산
