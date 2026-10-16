@@ -215,10 +215,32 @@ export const OPENAPI_SPEC = {
                 schema: {
                   type: "object",
                   properties: {
+                    year: { type: "integer" },
                     grossMonthly: { type: "number" },
+                    grossAnnual: { type: "number" },
+                    nonTaxable: { type: "number" },
                     taxable: { type: "number" },
+                    insurances: {
+                      type: "object",
+                      properties: {
+                        nationalPension: { type: "number" },
+                        healthInsurance: { type: "number" },
+                        longTermCare: { type: "number" },
+                        employmentInsurance: { type: "number" },
+                        totalInsurance: { type: "number" }
+                      }
+                    },
+                    taxes: {
+                      type: "object",
+                      properties: {
+                        incomeTax: { type: "number" },
+                        localTax: { type: "number" },
+                        totalTax: { type: "number" }
+                      }
+                    },
                     totalDeductions: { type: "number" },
                     netPayMonthly: { type: "number" },
+                    netPayAnnual: { type: "number" },
                     deductionRatePercentage: { type: "number" }
                   }
                 }
@@ -233,8 +255,8 @@ export const OPENAPI_SPEC = {
         summary: "South Korea Statutory Severance Pay Calculator",
         description: "Calculates legal retirement benefits under Act on the Guarantee of Employees' Retirement Benefits Art. 8.",
         parameters: [
-          { name: "startDate", in: "query", required: true, schema: { type: "string", format: "date" }, description: "Start date (YYYY-MM-DD)" },
-          { name: "endDate", in: "query", required: true, schema: { type: "string", format: "date" }, description: "End date (YYYY-MM-DD)" },
+          { name: "startDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2023-01-01" }, description: "Start date (YYYY-MM-DD)" },
+          { name: "endDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2026-01-01" }, description: "End date (YYYY-MM-DD)" },
           { name: "threeMonthSalary", in: "query", required: false, schema: { type: "number", default: 9000000 }, description: "Total salary for the last 3 months" },
           { name: "annualBonus", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Total annual bonus" },
           { name: "annualLeaveAllowance", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Unused annual leave allowance" }
@@ -249,6 +271,8 @@ export const OPENAPI_SPEC = {
                   properties: {
                     serviceDays: { type: "integer" },
                     isEligible: { type: "boolean" },
+                    dailyAverageWage: { type: "number" },
+                    dailyOrdinaryWage: { type: "number" },
                     effectiveDailyWage: { type: "number" },
                     severancePay: { type: "number" }
                   }
@@ -277,6 +301,7 @@ export const OPENAPI_SPEC = {
                 schema: {
                   type: "object",
                   properties: {
+                    yearsOfService: { type: "number" },
                     statutoryLeaveDays: { type: "integer" },
                     dailyOrdinaryWage: { type: "number" },
                     unusedDays: { type: "number" },
