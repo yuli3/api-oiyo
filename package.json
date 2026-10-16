@@ -1,0 +1,10 @@
+{
+  "name": "oiyo-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/worker.mjs",
+    "deploy": "npm run check && npm test && python3 scripts/deploy.py"
+  }
+}
