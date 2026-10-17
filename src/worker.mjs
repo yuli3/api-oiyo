@@ -1308,7 +1308,10 @@ export default {
       const hasVoluntaryReporting = flag(payload.hasVoluntaryReporting ?? url.searchParams.get("hasVoluntaryReporting"), true);
       const minorRaw = payload.isMinorRecipient ?? url.searchParams.get("isMinorRecipient");
       const isMinorRecipient = minorRaw === undefined || minorRaw === null ? undefined : flag(minorRaw, false);
-      const marriageBirthDeduction = payload.marriageBirthDeduction ?? url.searchParams.get("marriageBirthDeduction") ?? 0;
+      const marriageBirthRaw = payload.marriageBirthDeduction ?? url.searchParams.get("marriageBirthDeduction") ?? 0;
+      // WHY: true/"true"를 Number()로 바꾸면 1원이 된다. 불리언은 법정 한도(1억) 적용 여부로 해석한다.
+      const marriageBirthDeduction =
+        marriageBirthRaw === true || marriageBirthRaw === "true" ? 100000000 : marriageBirthRaw === false || marriageBirthRaw === "false" ? 0 : marriageBirthRaw;
       const spouseDeduction = payload.spouseDeduction ?? url.searchParams.get("spouseDeduction") ?? undefined;
 
       try {

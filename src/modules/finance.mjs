@@ -1,6 +1,6 @@
 // Finance & Investment calculation module for South Korea & Global B2A
 // Pure mathematical financial formulas for CAGR and compound interest
-import { inheritanceGiftTax2026, cardDeduction2026 } from "./kr-rates-2026.mjs";
+import { inheritanceGiftTax2026, cardDeduction2026, progressiveIncomeTax, KR_RATES_2026 } from "./kr-rates-2026.mjs";
 
 /**
  * Calculates Compound Annual Growth Rate (CAGR, 연평균 복합 성장률)
@@ -562,24 +562,14 @@ export function calculateFreelancerTax({
   const recognizedExpense = Math.round(rev * expenseRate);
   const incomeAmount = Math.max(0, rev - recognizedExpense);
 
-  // 3. Income deductions (1.5M KRW basic deduction per person)
-  const personalDeduction = depCount * 1500000;
+  // 3. Income deductions (기본공제 1인당 150만 원, 소득세법 제50조 — SSOT)
+  const personalDeduction = depCount * KR_RATES_2026.incomeTax.personalDeductionPerPerson;
   const totalDeductions = personalDeduction + extraDeduction;
   const taxBase = Math.max(0, incomeAmount - totalDeductions);
 
-  // 4. Progressive Tax Brackets (2026 South Korea Income Tax)
-  let calculatedIncomeTax = 0;
-  if (taxBase <= 14000000) {
-    calculatedIncomeTax = Math.round(taxBase * 0.06);
-  } else if (taxBase <= 50000000) {
-    calculatedIncomeTax = Math.round(taxBase * 0.14 - 1120000);
-  } else if (taxBase <= 88000000) {
-    calculatedIncomeTax = Math.round(taxBase * 0.24 - 6120000);
-  } else if (taxBase <= 150000000) {
-    calculatedIncomeTax = Math.round(taxBase * 0.35 - 15800000);
-  } else {
-    calculatedIncomeTax = Math.round(taxBase * 0.38 - 20300000);
-  }
+  // 4. 소득세법 제55조 기본세율(2023 귀속~, 8단계 6~45%)을 kr-rates-2026 정본에서 계산한다.
+  // WHY: 이전 코드는 2022년 이전 누진공제(14%−112만, 24%−612만…)와 38% 상한을 하드코딩해 15% 이상 구간을 과다 계산했다.
+  const calculatedIncomeTax = progressiveIncomeTax(taxBase);
 
   // 5. Tax credits (Standard 70,000 KRW + Electronic Filing 20,000 KRW)
   const taxCredits = Math.min(calculatedIncomeTax, 90000);

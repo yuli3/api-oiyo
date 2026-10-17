@@ -752,3 +752,41 @@ test("card-deduction: 2026 child-based base limit, transit 40%, culture over 7�
   assert.equal(high.creditDeduction, 150000); // (2,100만 − 2,000만) × 15%
   assert.equal(high.isEstimate, true);
 });
+
+test("tax freelancer uses 소득세법 제55조 2023~ brackets from the SSOT (15% − 126만 등)", async () => {
+  // [revenue, jobCode, expected taxBase, expected calculatedIncomeTax]
+  const vectors = [
+    [100000000, "general", 34500000, 3915000], // 34.5M × 15% − 1,260,000
+    [400000000, "developer", 142100000, 34295000], // 142.1M × 35% − 15,440,000
+    [600000000, "general", 214500000, 61570000], // 214.5M × 38% − 19,940,000 (구 코드: −20,300,000)
+    [30000000, "general", 9300000, 558000], // 6% 구간
+  ];
+  for (const [revenue, jobCode, taxBase, tax] of vectors) {
+    const res = await worker.fetch(new Request(`https://api.oiyo.net/v1/tax/freelancer?revenue=${revenue}&jobCode=${jobCode}&dependents=1`));
+    const data = await res.json();
+    assert.equal(data.taxBase, taxBase, `taxBase for ${revenue}`);
+    assert.equal(data.calculatedIncomeTax, tax, `tax for ${revenue}`);
+  }
+  const data = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/freelancer?revenue=100000000&jobCode=general"))).json();
+  assert.equal(data.finalIncomeTax, 3825000); // − 표준 7만 − 전자신고 2만
+  assert.equal(data.finalTotalTax, 4207500);
+  assert.equal(data.isRefund, false);
+  assert.equal(data.refundAmount, 907500); // 4,207,500 − 3,300,000
+});
+
+test("inheritance-gift treats marriageBirthDeduction=true as the full 1억, not 1원", async () => {
+  const data = await (
+    await worker.fetch(new Request("https://api.oiyo.net/v1/tax/inheritance-gift?mode=gift&assetValue=300000000&relationship=child_adult&marriageBirthDeduction=true"))
+  ).json();
+  assert.equal(data.marriageBirthDeductionApplied, 100000000);
+  assert.equal(data.taxableBase, 150000000);
+});
+
+test("openapi documents the inheritance-gift, loan-refinance and card-deduction endpoints", async () => {
+  const openapi = await (await worker.fetch(new Request("https://api.oiyo.net/openapi.json"))).json();
+  for (const path of ["/v1/tax/inheritance-gift", "/v1/finance/loan-refinance", "/v1/tax/card-deduction"]) {
+    assert.ok(openapi.paths[path]?.get, `${path} missing`);
+    assert.ok(openapi.paths[path].get.parameters.length > 0);
+  }
+  assert.ok(openapi.paths["/v1/tax/inheritance-gift"].post);
+});
