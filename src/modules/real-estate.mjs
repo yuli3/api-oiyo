@@ -300,3 +300,122 @@ export function calculatePropertyTax({
     totalAnnualHoldingTax,
   };
 }
+
+/**
+ * Diagnoses HUG Jeonse Deposit Return Guarantee (HUG 전세보증금 반환보증 126% 룰 진단 및 보증료 산출)
+ * Based on Korea Housing & Urban Guarantee Corporation (HUG) statutory criteria (공시가 140% × 전세가율 90% = 126%)
+ * @param {Object} params
+ * @param {number} params.officialPrice - Publicly declared housing price (공시가격) in KRW
+ * @param {number} params.jeonseDeposit - Jeonse deposit amount (전세보증금) in KRW
+ * @param {number} [params.seniorDebt=0] - Senior lien / mortgage amount (선순위 채권액) in KRW
+ * @param {string} [params.propertyType="apartment"] - "apartment" or "villa" (includes officetel/multi-family)
+ * @param {string} [params.discountType="none"] - "none", "youth" (50%), "newlywed" (40%), "multi-child" (40%)
+ * @param {number} [params.termMonths=24] - Lease term in months (default 24)
+ * @returns {Object} Diagnosis results and guarantee fee breakdown
+ */
+export function diagnoseHugGuarantee({
+  officialPrice,
+  jeonseDeposit,
+  seniorDebt = 0,
+  propertyType = "apartment",
+  discountType = "none",
+  termMonths = 24,
+}) {
+  const p = Number(officialPrice);
+  const dep = Number(jeonseDeposit);
+  const senior = Math.max(0, Number(seniorDebt) || 0);
+  const months = Math.max(1, Number(termMonths) || 24);
+
+  if (isNaN(p) || p <= 0) {
+    throw new Error("officialPrice must be a positive number");
+  }
+  if (isNaN(dep) || dep <= 0) {
+    throw new Error("jeonseDeposit must be a positive number");
+  }
+
+  // 1. 산정 주택가격 = 공시가격 × 140%
+  const calculatedHousePrice = Math.round(p * 1.4);
+
+  // 2. 최대 보증가능 전세금 = 공시가격 × 126% (주택가격 × 90%)
+  const maxAllowedDeposit = Math.round(p * 1.26);
+
+  // 3. 선순위 채권 한도 = 주택가격 × 60%
+  const seniorDebtLimit = Math.round(calculatedHousePrice * 0.6);
+
+  // 4. 비율 계산
+  const depositRatio = (dep / p) * 100;
+  const debtRatio = calculatedHousePrice > 0 ? ((senior + dep) / calculatedHousePrice) * 100 : 0;
+  const seniorRatio = calculatedHousePrice > 0 ? (senior / calculatedHousePrice) * 100 : 0;
+
+  // 5. 적격성 판정
+  const rejectReasons = [];
+  if (dep > maxAllowedDeposit) {
+    rejectReasons.push(
+      `전세보증금이 공시가격의 126%(${maxAllowedDeposit.toLocaleString()}원)를 초과했습니다.`
+    );
+  }
+  if (senior > seniorDebtLimit) {
+    rejectReasons.push(
+      `선순위 채권(${senior.toLocaleString()}원)이 주택가격의 60%(${seniorDebtLimit.toLocaleString()}원)를 초과했습니다.`
+    );
+  }
+  if (debtRatio > 90) {
+    rejectReasons.push(
+      `선순위 채권과 전세보증금 합산 부채비율(${debtRatio.toFixed(1)}%)이 90%를 초과했습니다.`
+    );
+  }
+
+  const isEligible = rejectReasons.length === 0;
+
+  // 6. 보증료율 계산
+  const isApt = propertyType === "apartment";
+  let annualFeeRate = 0.00128; // default
+  if (isApt) {
+    annualFeeRate = debtRatio <= 80 ? 0.00115 : 0.00128;
+  } else {
+    annualFeeRate = debtRatio <= 80 ? 0.00139 : 0.00154;
+  }
+
+  // 감면율
+  let discountRate = 0;
+  if (discountType === "youth") {
+    discountRate = 0.5; // 청년 50% 감면
+  } else if (discountType === "newlywed" || discountType === "multi-child") {
+    discountRate = 0.4; // 신혼부부/다자녀 40% 감면
+  }
+
+  const annualFee = Math.round(dep * annualFeeRate * (1 - discountRate));
+  const totalGuaranteeFee = Math.round(dep * annualFeeRate * (months / 12) * (1 - discountRate));
+
+  return {
+    officialPrice: p,
+    jeonseDeposit: dep,
+    seniorDebt: senior,
+    propertyType,
+    calculatedHousePrice,
+    maxAllowedDeposit,
+    seniorDebtLimit,
+    depositRatio: Number(depositRatio.toFixed(2)),
+    debtRatio: Number(debtRatio.toFixed(2)),
+    seniorRatio: Number(seniorRatio.toFixed(2)),
+    isEligible,
+    verdict: isEligible ? "eligible" : "ineligible",
+    rejectReasons,
+    guaranteeFee: {
+      termMonths: months,
+      baseAnnualFeeRate: annualFeeRate,
+      discountType,
+      discountRate,
+      annualFee,
+      totalGuaranteeFee,
+    },
+    criteria: {
+      housePriceMultiplier: 1.4,
+      maxJeonseRatio: 0.9,
+      effectiveJeonseRule: 1.26,
+      seniorDebtMaxRatio: 0.6,
+      totalDebtMaxRatio: 0.9,
+    },
+  };
+}
+

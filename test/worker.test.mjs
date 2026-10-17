@@ -465,6 +465,62 @@ test("tax freelancer endpoint calculates 3.3% withholding and May refund accurat
   assert.ok(data.refundAmount >= 0);
 });
 
+test("insurance health endpoint calculates monthly regional premium and evaluates dependent eligibility", async () => {
+  // Case 1: High income & disqualified dependent
+  const res1 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/insurance/health?businessIncome=25000000&propertyTaxBase=100000000&hasBusinessRegistration=true")
+  );
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.ok(data1.monthlyIncomePremium > 0);
+  assert.ok(data1.monthlyPropertyPremium > 0);
+  assert.equal(data1.monthlyTotal, data1.monthlyHealthPremium + data1.monthlyCarePremium);
+  assert.equal(data1.dependentEligibility.isEligible, false);
+  assert.equal(data1.dependentEligibility.status, "disqualified");
+  assert.ok(data1.dependentEligibility.reasons.length > 0);
+
+  // Case 2: Low income, no property, dependent retained
+  const res2 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/insurance/health?businessIncome=3000000&propertyTaxBase=30000000&hasBusinessRegistration=false")
+  );
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.dependentEligibility.isEligible, true);
+  assert.equal(data2.dependentEligibility.status, "eligible");
+  assert.equal(data2.monthlyHealthPremium, 19780); // Min premium floor applied
+});
+
+test("real-estate hug-guarantee endpoint diagnoses 126% rule and calculates guarantee fee", async () => {
+  // Case 1: Eligible apartment within 126% rule and debt limit
+  const res1 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/real-estate/hug-guarantee?officialPrice=300000000&jeonseDeposit=350000000&seniorDebt=20000000&propertyType=apartment&discountType=youth")
+  );
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.equal(data1.calculatedHousePrice, 420000000); // 300M * 1.4
+  assert.equal(data1.maxAllowedDeposit, 378000000); // 300M * 1.26
+  assert.equal(data1.isEligible, true);
+  assert.equal(data1.verdict, "eligible");
+  assert.equal(data1.guaranteeFee.discountRate, 0.5); // youth 50%
+  assert.ok(data1.guaranteeFee.totalGuaranteeFee > 0);
+
+  // Case 2: Ineligible (over 126% limit)
+  const res2 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/real-estate/hug-guarantee?officialPrice=200000000&jeonseDeposit=260000000&propertyType=villa")
+  );
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.maxAllowedDeposit, 252000000); // 200M * 1.26
+  assert.equal(data2.isEligible, false);
+  assert.equal(data2.verdict, "ineligible");
+  assert.ok(data2.rejectReasons.length > 0);
+
+  // Case 3: Missing required params
+  const res3 = await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/hug-guarantee"));
+  assert.equal(res3.status, 400);
+});
+
+
 
 
 

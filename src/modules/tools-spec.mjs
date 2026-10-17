@@ -243,5 +243,41 @@ export const TOOLS_SPEC = {
         },
       },
     },
+    {
+      type: "function",
+      function: {
+        name: "calculate_health_insurance",
+        description: "Calculates South Korea regional health insurance premiums and evaluates dependent (피부양자) eligibility under 2024-2026 statutory rules.",
+        parameters: {
+          type: "object",
+          properties: {
+            businessIncome: { type: "number", description: "Annual business income (사업소득금액) in KRW" },
+            financialIncome: { type: "number", description: "Annual financial income (이자/배당소득) in KRW" },
+            otherIncome: { type: "number", description: "Other annual income (근로/연금 등) in KRW" },
+            propertyTaxBase: { type: "number", description: "Property tax base (재산세 과세표준) in KRW" },
+            hasBusinessRegistration: { type: "boolean", description: "Whether registered as a business owner" },
+          },
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "diagnose_hug_guarantee",
+        description: "Diagnoses HUG Jeonse Deposit Return Guarantee eligibility (126% rule, 60% senior debt limit, 90% debt ratio limit) and calculates statutory guarantee fee.",
+        parameters: {
+          type: "object",
+          properties: {
+            officialPrice: { type: "number", description: "Publicly declared housing price (공시가격) in KRW" },
+            jeonseDeposit: { type: "number", description: "Jeonse deposit amount (전세보증금) in KRW" },
+            seniorDebt: { type: "number", description: "Senior lien / mortgage amount (선순위 채권액) in KRW" },
+            propertyType: { type: "string", enum: ["apartment", "villa"], description: "Type of property" },
+            discountType: { type: "string", enum: ["none", "youth", "newlywed", "multi-child"], description: "Statutory fee discount type" },
+            termMonths: { type: "number", description: "Lease term in months (default 24)" },
+          },
+          required: ["officialPrice", "jeonseDeposit"],
+        },
+      },
+    },
   ],
 };

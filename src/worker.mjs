@@ -27,7 +27,9 @@ import {
   calculateBrokerageFee,
   calculateAcquisitionTax,
   calculatePropertyTax,
+  diagnoseHugGuarantee,
 } from "./modules/real-estate.mjs";
+import { calculateHealthInsurance } from "./modules/insurance.mjs";
 import {
   calculateCarTax,
   calculateCarRegistration,
@@ -1103,6 +1105,73 @@ export default {
           jobCode,
           dependents: parseInt(dependents, 10),
           additionalDeduction: Number(additionalDeduction),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 28. Insurance: Regional Health Insurance & Dependent Eligibility (지역건강보험료 및 피부양자 자격 판정)
+    if (path === "/v1/insurance/health") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const businessIncome = url.searchParams.get("businessIncome") || 0;
+      const financialIncome = url.searchParams.get("financialIncome") || 0;
+      const otherIncome = url.searchParams.get("otherIncome") || 0;
+      const propertyTaxBase = url.searchParams.get("propertyTaxBase") || 0;
+      const hasBusinessRegistration = url.searchParams.get("hasBusinessRegistration") === "true";
+
+      try {
+        const res = calculateHealthInsurance({
+          businessIncome: Number(businessIncome),
+          financialIncome: Number(financialIncome),
+          otherIncome: Number(otherIncome),
+          propertyTaxBase: Number(propertyTaxBase),
+          hasBusinessRegistration,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 29. Real Estate: HUG Jeonse Deposit Return Guarantee (HUG 전세보증금 반환보증 126% 룰 진단)
+    if (path === "/v1/real-estate/hug-guarantee") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const officialPrice = url.searchParams.get("officialPrice");
+      const jeonseDeposit = url.searchParams.get("jeonseDeposit");
+      const seniorDebt = url.searchParams.get("seniorDebt") || 0;
+      const propertyType = url.searchParams.get("propertyType") || "apartment";
+      const discountType = url.searchParams.get("discountType") || "none";
+      const termMonths = url.searchParams.get("termMonths") || 24;
+
+      if (!officialPrice || !jeonseDeposit) {
+        return Response.json(
+          { error: "Missing required query parameters: officialPrice, jeonseDeposit" },
+          { status: 400, headers: commonHeaders }
+        );
+      }
+
+      try {
+        const res = diagnoseHugGuarantee({
+          officialPrice: Number(officialPrice),
+          jeonseDeposit: Number(jeonseDeposit),
+          seniorDebt: Number(seniorDebt),
+          propertyType,
+          discountType,
+          termMonths: parseInt(termMonths, 10),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
