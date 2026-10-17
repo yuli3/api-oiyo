@@ -1,5 +1,5 @@
 {
-  "name": "oiyo-api",
+  "name": "api-oiyo",
   "main": "src/worker.mjs",
   "compatibility_date": "2026-10-12",
   "workers_dev": false,
