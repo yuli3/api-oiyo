@@ -22,12 +22,14 @@ import {
   calculateYouthSavings,
   calculateDepositMaturity,
   calculateFreelancerTax,
+  calculateVatComparison,
 } from "./modules/finance.mjs";
 import {
   calculateBrokerageFee,
   calculateAcquisitionTax,
   calculatePropertyTax,
   diagnoseHugGuarantee,
+  calculateCapitalGainsTax,
 } from "./modules/real-estate.mjs";
 import { calculateHealthInsurance } from "./modules/insurance.mjs";
 import {
@@ -1172,6 +1174,80 @@ export default {
           propertyType,
           discountType,
           termMonths: parseInt(termMonths, 10),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 30. Tax: Capital Gains Tax (부동산 양도소득세 1세대 1주택 비과세 및 장특공 산출)
+    if (path === "/v1/tax/capital-gains") {
+      if (method !== "GET" && method !== "POST" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      let payload = {};
+      if (method === "POST") {
+        try {
+          payload = await request.json();
+        } catch {
+          payload = {};
+        }
+      }
+
+      const transferPrice = payload.transferPrice ?? url.searchParams.get("transferPrice") ?? 1500000000;
+      const acquisitionPrice = payload.acquisitionPrice ?? url.searchParams.get("acquisitionPrice") ?? 900000000;
+      const expenses = payload.expenses ?? url.searchParams.get("expenses") ?? 30000000;
+      const houseType = payload.houseType ?? url.searchParams.get("houseType") ?? "1home_exempt";
+      const holdingYears = payload.holdingYears ?? url.searchParams.get("holdingYears") ?? 10;
+      const residenceYears = payload.residenceYears ?? url.searchParams.get("residenceYears") ?? 10;
+
+      try {
+        const res = calculateCapitalGainsTax({
+          transferPrice: Number(transferPrice),
+          acquisitionPrice: Number(acquisitionPrice),
+          expenses: Number(expenses),
+          houseType,
+          holdingYears: Number(holdingYears),
+          residenceYears: Number(residenceYears),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 31. Tax: Value Added Tax Comparison (개인사업자 일반과세 vs 간이과세 부가세 비교)
+    if (path === "/v1/tax/vat-comparison") {
+      if (method !== "GET" && method !== "POST" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      let payload = {};
+      if (method === "POST") {
+        try {
+          payload = await request.json();
+        } catch {
+          payload = {};
+        }
+      }
+
+      const revenue = payload.revenue ?? url.searchParams.get("revenue") ?? 80000000;
+      const purchase = payload.purchase ?? url.searchParams.get("purchase") ?? 45000000;
+      const industryType = payload.industryType ?? url.searchParams.get("industryType") ?? "food_retail";
+
+      try {
+        const res = calculateVatComparison({
+          revenue: Number(revenue),
+          purchase: Number(purchase),
+          industryType,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

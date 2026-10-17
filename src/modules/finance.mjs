@@ -615,4 +615,130 @@ export function calculateFreelancerTax({
   };
 }
 
+/**
+ * Compares South Korea Value Added Tax (VAT) between General and Simplified Taxpayer status
+ * Based on Value-Added Tax Act Art. 61~69 (Simplified taxation rules and statutory rates)
+ * @param {Object} params
+ * @param {number} params.revenue - Annual gross revenue (공급대가, VAT-inclusive) in KRW (>= 0)
+ * @param {number} params.purchase - Annual gross purchases with tax invoices (매입액) in KRW (>= 0)
+ * @param {string} [params.industryType="food_retail"] - "food_retail" (15%), "manufacturing" (20%), "construction_logistics" (30%), "service" (30%), "real_estate_professional" (40%)
+ */
+export function calculateVatComparison({
+  revenue,
+  purchase,
+  industryType = "food_retail",
+}) {
+  const rev = Number(revenue);
+  const pur = Number(purchase);
+
+  if (isNaN(rev) || rev < 0) {
+    throw new Error("Revenue must be a non-negative number");
+  }
+  if (isNaN(pur) || pur < 0) {
+    throw new Error("Purchase must be a non-negative number");
+  }
+
+  // Statutory value-added rates for simplified taxation (2026)
+  const RATE_MAP = {
+    food_retail: 0.15,
+    retail: 0.15,
+    food: 0.15,
+    manufacturing: 0.20,
+    agriculture_fishery: 0.20,
+    construction_logistics: 0.30,
+    transportation: 0.30,
+    telecommunication: 0.30,
+    service: 0.30,
+    real_estate_professional: 0.40,
+    real_estate_rent: 0.40,
+  };
+
+  const vatRate = RATE_MAP[industryType] ?? 0.15;
+
+  // 1. General Taxpayer (일반과세자: 세율 10%, 세금계산서 매입세액 10% 전액 공제)
+  // 공급가액 = 공급대가 / 1.1, 세액 = 공급가액 * 0.1
+  const genSupplyPrice = Math.round(rev / 1.1);
+  const genPurchaseSupplyPrice = Math.round(pur / 1.1);
+  const genSalesVat = Math.round(genSupplyPrice * 0.1);
+  const genPurchaseVat = Math.round(genPurchaseSupplyPrice * 0.1);
+  const genBalance = genSalesVat - genPurchaseVat;
+  const isGenRefund = genBalance < 0;
+  const genPayableVat = isGenRefund ? 0 : genBalance;
+  const genRefundVat = isGenRefund ? Math.abs(genBalance) : 0;
+
+  // 2. Simplified Taxpayer (간이과세자: 매출 공급대가 * 부가율 * 10%, 매입 공급대가 * 0.5% 공제)
+  const simpSalesVat = Math.round(rev * vatRate * 0.1);
+  const simpPurchaseDeduction = Math.round(pur * 0.005);
+  const simpCalculatedVat = Math.max(0, simpSalesVat - simpPurchaseDeduction);
+  
+  // Exemption threshold: < 48,000,000 KRW
+  const isExempt = rev < 48000000;
+  const simpFinalPayable = isExempt ? 0 : simpCalculatedVat;
+  
+  // Tax invoice issuance obligation: 48,000,000 ~ 104,000,000 KRW
+  const canIssueTaxInvoice = rev >= 48000000 && rev < 104000000;
+  // Threshold for simplified status: 104,000,000 KRW (real estate rent 48,000,000 KRW)
+  const threshold = industryType.includes("real_estate_rent") ? 48000000 : 104000000;
+  const exceedsThreshold = rev >= threshold;
+
+  // Verdict & Recommendation
+  let recommendation = "simplified_better";
+  let advantageAmount = 0;
+  let explanation = "";
+
+  if (exceedsThreshold) {
+    recommendation = "mandatory_general";
+    advantageAmount = 0;
+    explanation = "연간 매출액이 기준금액(1억 400만 원) 이상이므로 일반과세자로 의무 분류됩니다.";
+  } else if (isGenRefund && genRefundVat > 0) {
+    recommendation = "general_better_refund";
+    advantageAmount = genRefundVat + (simpFinalPayable > 0 ? simpFinalPayable : 0);
+    explanation = "설비·인테리어 등 매입세액이 커 일반과세자가 부가가치세를 직접 환급받으므로 현금흐름상 유리합니다.";
+  } else if (genPayableVat > simpFinalPayable) {
+    recommendation = "simplified_better";
+    advantageAmount = genPayableVat - simpFinalPayable;
+    explanation = isExempt
+      ? "연 매출 4,800만 원 미만으로 납부의무가 전액 면제되어 간이과세자가 압도적으로 유리합니다."
+      : `낮은 부가가치율(${Math.round(vatRate * 100)}%) 적용으로 간이과세자 세부담이 연간 약 ${advantageAmount.toLocaleString()}원 더 적습니다.`;
+  } else {
+    recommendation = "general_similar";
+    advantageAmount = Math.abs(genPayableVat - simpFinalPayable);
+    explanation = "양 과세유형 간 세액 차이가 미미하며, B2B 거래 상대방의 세금계산서 수취 선호도를 고려해야 합니다.";
+  }
+
+  return {
+    revenue: rev,
+    purchase: pur,
+    industryType,
+    vatRatePercent: Number((vatRate * 100).toFixed(1)),
+    general: {
+      supplyPrice: genSupplyPrice,
+      purchaseSupplyPrice: genPurchaseSupplyPrice,
+      salesTax: genSalesVat,
+      purchaseTaxDeduction: genPurchaseVat,
+      netTaxBalance: genBalance,
+      isRefund: isGenRefund,
+      payableTax: genPayableVat,
+      refundTax: genRefundVat,
+      canIssueTaxInvoice: true,
+    },
+    simplified: {
+      salesTax: simpSalesVat,
+      purchaseTaxDeduction: simpPurchaseDeduction,
+      calculatedTax: simpCalculatedVat,
+      isExempt,
+      payableTax: simpFinalPayable,
+      canIssueTaxInvoice,
+      exceedsThreshold,
+      threshold,
+      canRefund: false,
+    },
+    verdict: {
+      recommendation,
+      advantageAmount,
+      explanation,
+    },
+  };
+}
+
 

@@ -419,3 +419,124 @@ export function diagnoseHugGuarantee({
   };
 }
 
+/**
+ * Calculates South Korea Capital Gains Tax for real estate (양도소득세 및 비과세·장특공)
+ * Based on Income Tax Act Art. 89 (Non-taxable), Art. 95 (Deductions), Art. 104 (Rates)
+ * @param {Object} params
+ * @param {number} params.transferPrice - Transfer/selling price in KRW (> 0)
+ * @param {number} params.acquisitionPrice - Acquisition/buying price in KRW (>= 0)
+ * @param {number} [params.expenses=0] - Necessary capital expenses in KRW (>= 0)
+ * @param {string} [params.houseType="1home_exempt"] - "1home_exempt", "1home_non_exempt", "multi_general"
+ * @param {number} [params.holdingYears=1] - Holding period in years (>= 0)
+ * @param {number} [params.residenceYears=0] - Residence period in years (>= 0)
+ */
+export function calculateCapitalGainsTax({
+  transferPrice,
+  acquisitionPrice,
+  expenses = 0,
+  houseType = "1home_exempt",
+  holdingYears = 1,
+  residenceYears = 0,
+}) {
+  const tp = Number(transferPrice);
+  const ap = Number(acquisitionPrice);
+  const exp = Number(expenses);
+  const hy = Number(holdingYears);
+  const ry = Number(residenceYears);
+
+  if (isNaN(tp) || tp <= 0) {
+    throw new Error("Transfer price must be a positive number greater than 0");
+  }
+  if (isNaN(ap) || ap < 0) {
+    throw new Error("Acquisition price must be a non-negative number");
+  }
+
+  const totalProfit = Math.max(0, tp - ap - exp);
+  const EXEMPT_THRESHOLD = 1200000000; // 12억 원
+
+  let isFullyExempt = false;
+  let taxableProfit = totalProfit;
+  let highValueRatio = 1;
+  let specialDeductionRate = 0;
+
+  if (houseType === "1home_exempt") {
+    if (tp <= EXEMPT_THRESHOLD) {
+      isFullyExempt = true;
+      taxableProfit = 0;
+      highValueRatio = 0;
+      specialDeductionRate = 0;
+    } else {
+      isFullyExempt = false;
+      highValueRatio = (tp - EXEMPT_THRESHOLD) / tp;
+      taxableProfit = Math.round(totalProfit * highValueRatio);
+      // Table 2 Special Deduction: Holding 4%/yr (max 40%) + Residence 4%/yr (max 40%)
+      if (hy >= 3 && ry >= 2) {
+        const holdingRate = Math.min(0.40, hy * 0.04);
+        const residenceRate = Math.min(0.40, ry * 0.04);
+        specialDeductionRate = holdingRate + residenceRate;
+      } else if (hy >= 3) {
+        // Under 2 years residence applies Table 1 (2%/yr, max 30%)
+        specialDeductionRate = Math.min(0.30, hy * 0.02);
+      }
+    }
+  } else {
+    // Non-exempt or multi-home: full profit taxable, Table 1 applies if held >= 3 yrs
+    taxableProfit = totalProfit;
+    if (hy >= 3) {
+      specialDeductionRate = Math.min(0.30, hy * 0.02);
+    }
+  }
+
+  const specialDeductionAmount = Math.round(taxableProfit * specialDeductionRate);
+  const incomeAmount = Math.max(0, taxableProfit - specialDeductionAmount);
+  const basicDeduction = 2500000;
+  const taxBase = Math.max(0, incomeAmount - basicDeduction);
+
+  function calculateTax(tb) {
+    if (tb <= 0) return 0;
+    if (tb <= 14000000) return Math.round(tb * 0.06);
+    if (tb <= 50000000) return Math.round(tb * 0.15 - 1260000);
+    if (tb <= 88000000) return Math.round(tb * 0.24 - 5760000);
+    if (tb <= 150000000) return Math.round(tb * 0.35 - 15440000);
+    if (tb <= 300000000) return Math.round(tb * 0.38 - 19940000);
+    if (tb <= 500000000) return Math.round(tb * 0.40 - 25940000);
+    if (tb <= 1000000000) return Math.round(tb * 0.42 - 35940000);
+    return Math.round(tb * 0.45 - 65940000);
+  }
+
+  const incomeTax = calculateTax(taxBase);
+  const localTax = Math.floor(incomeTax * 0.1);
+  const totalTax = incomeTax + localTax;
+
+  // Calculate non-exempt benchmark for comparison
+  const benchmarkRate = hy >= 3 ? Math.min(0.30, hy * 0.02) : 0;
+  const benchmarkDeduction = Math.round(totalProfit * benchmarkRate);
+  const benchmarkTaxBase = Math.max(0, totalProfit - benchmarkDeduction - basicDeduction);
+  const benchmarkIncomeTax = calculateTax(benchmarkTaxBase);
+  const benchmarkTotalTax = Math.round(benchmarkIncomeTax * 1.1);
+  const taxSavings = Math.max(0, benchmarkTotalTax - totalTax);
+
+  return {
+    transferPrice: tp,
+    acquisitionPrice: ap,
+    expenses: exp,
+    totalProfit,
+    houseType,
+    holdingYears: hy,
+    residenceYears: ry,
+    isFullyExempt,
+    highValueRatio: Number(highValueRatio.toFixed(4)),
+    taxableProfit,
+    specialDeductionRatePercent: Number((specialDeductionRate * 100).toFixed(1)),
+    specialDeductionAmount,
+    incomeAmount,
+    basicDeduction,
+    taxBase,
+    incomeTax,
+    localTax,
+    totalTax,
+    effectiveTaxRatePercent: tp > 0 ? Number(((totalTax / tp) * 100).toFixed(2)) : 0,
+    taxSavingsComparedToGeneral: taxSavings,
+  };
+}
+

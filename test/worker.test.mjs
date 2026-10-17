@@ -520,6 +520,79 @@ test("real-estate hug-guarantee endpoint diagnoses 126% rule and calculates guar
   assert.equal(res3.status, 400);
 });
 
+test("tax capital-gains endpoint calculates 1-home exemption, apportionment and 80% deduction", async () => {
+  // Case 1: 1-home under 1.2 billion KRW (fully exempt)
+  const res1 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/capital-gains?transferPrice=1100000000&acquisitionPrice=700000000&houseType=1home_exempt")
+  );
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.equal(data1.isFullyExempt, true);
+  assert.equal(data1.taxableProfit, 0);
+  assert.equal(data1.totalTax, 0);
+
+  // Case 2: 1-home high value (1.5 billion KRW, 10 yrs holding + 10 yrs residence = 80% special deduction)
+  const res2 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/capital-gains?transferPrice=1500000000&acquisitionPrice=900000000&expenses=30000000&houseType=1home_exempt&holdingYears=10&residenceYears=10")
+  );
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.isFullyExempt, false);
+  assert.equal(data2.totalProfit, 570000000); // 1.5B - 900M - 30M
+  assert.equal(data2.taxableProfit, 114000000); // 570M * (300M / 1500M) = 114M
+  assert.equal(data2.specialDeductionRatePercent, 80); // 40% + 40%
+  assert.equal(data2.specialDeductionAmount, 91200000); // 114M * 0.8
+  assert.equal(data2.taxBase, 20300000); // 114M - 91.2M - 2.5M
+  assert.ok(data2.totalTax > 0);
+  assert.ok(data2.taxSavingsComparedToGeneral > 0);
+
+  // Case 3: POST payload
+  const res3 = await worker.fetch(new Request("https://api.oiyo.net/v1/tax/capital-gains", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      transferPrice: 800000000,
+      acquisitionPrice: 500000000,
+      houseType: "1home_exempt",
+    }),
+  }));
+  assert.equal(res3.status, 200);
+  const data3 = await res3.json();
+  assert.equal(data3.isFullyExempt, true);
+});
+
+test("tax vat-comparison endpoint accurately contrasts general and simplified taxation", async () => {
+  // Case 1: Standard retail business with 80M revenue, 45M purchase (Simplified better)
+  const res1 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/vat-comparison?revenue=80000000&purchase=45000000&industryType=food_retail")
+  );
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.equal(data1.vatRatePercent, 15);
+  assert.equal(data1.general.isRefund, false);
+  assert.ok(data1.general.payableTax > data1.simplified.payableTax);
+  assert.equal(data1.verdict.recommendation, "simplified_better");
+
+  // Case 2: Heavy initial purchase resulting in general VAT refund
+  const res2 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/vat-comparison?revenue=30000000&purchase=100000000&industryType=service")
+  );
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.general.isRefund, true);
+  assert.ok(data2.general.refundTax > 0);
+  assert.equal(data2.verdict.recommendation, "general_better_refund");
+
+  // Case 3: Under 48M revenue (full exemption for simplified)
+  const res3 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/vat-comparison?revenue=40000000&purchase=10000000&industryType=food_retail")
+  );
+  assert.equal(res3.status, 200);
+  const data3 = await res3.json();
+  assert.equal(data3.simplified.isExempt, true);
+  assert.equal(data3.simplified.payableTax, 0);
+});
+
 
 
 

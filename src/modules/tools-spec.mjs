@@ -279,5 +279,40 @@ export const TOOLS_SPEC = {
         },
       },
     },
+    {
+      type: "function",
+      function: {
+        name: "calculate_capital_gains_tax",
+        description: "Calculates South Korea Real Estate Capital Gains Tax with 1-home 1.2 billion KRW exemption, high-value house apportionment, and up to 80% special long-term holding deduction.",
+        parameters: {
+          type: "object",
+          properties: {
+            transferPrice: { type: "number", description: "Selling / transfer price in KRW" },
+            acquisitionPrice: { type: "number", description: "Buying / acquisition price in KRW" },
+            expenses: { type: "number", description: "Necessary capital expenses (brokerage, remodel, acquisition tax) in KRW" },
+            houseType: { type: "string", enum: ["1home_exempt", "1home_non_exempt", "multi_general"], description: "Taxation category" },
+            holdingYears: { type: "number", description: "Holding period in years" },
+            residenceYears: { type: "number", description: "Actual residence period in years" },
+          },
+          required: ["transferPrice", "acquisitionPrice"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "compare_vat_tax",
+        description: "Compares South Korea Value-Added Tax (VAT) between General Taxpayer (10% with full deduction/refund) and Simplified Taxpayer (15-40% value-added rate, 48M exemption, no refund).",
+        parameters: {
+          type: "object",
+          properties: {
+            revenue: { type: "number", description: "Annual gross revenue (공급대가, VAT-inclusive) in KRW" },
+            purchase: { type: "number", description: "Annual gross purchases with tax invoices in KRW" },
+            industryType: { type: "string", enum: ["food_retail", "manufacturing", "construction_logistics", "service", "real_estate_professional"], description: "Industry classification" },
+          },
+          required: ["revenue"],
+        },
+      },
+    },
   ],
 };
