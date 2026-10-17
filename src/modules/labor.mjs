@@ -229,7 +229,7 @@ export function calculateNetSalary({
  * Statutory reference: Act on the Guarantee of Employees' Retirement Benefits Art. 8
  * @param {Object} params
  * @param {string} params.startDate - Enlistment / join date (YYYY-MM-DD)
- * @param {string} params.endDate - Resignation / leave date (YYYY-MM-DD)
+ * @param {string} params.endDate - First date no longer employed, after last workday (YYYY-MM-DD)
  * @param {number} [params.threeMonthSalary=9000000] - Total base salary of last 3 months
  * @param {number} [params.annualBonus=0] - Total annual bonuses (연간 상여금 총액)
  * @param {number} [params.annualLeaveAllowance=0] - Unused annual leave allowance paid in past year
@@ -245,10 +245,19 @@ export function calculateSeverancePay({
   hourlyWage = MIN_WAGE_2026,
   dailyHours = 8,
 }) {
-  const start = new Date(startDate || "2024-01-01");
-  const end = new Date(endDate || "2026-01-01");
+  // 2026-10-18: recover MOEL civil-date semantics lost during worktree cleanup.
+  // Date otherwise silently normalizes February 30 or accepts time-of-day values.
+  const parseDate = (value) => {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new RangeError("Dates must use YYYY-MM-DD");
+    const date = new Date(`${value}T00:00:00Z`);
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0,10) !== value) throw new RangeError("Date does not exist");
+    return date;
+  };
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+  if (end < start) throw new RangeError("End date precedes start date");
   const diffTime = end.getTime() - start.getTime();
-  const serviceDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
+  const serviceDays = Math.floor(diffTime / 86400000);
 
   const isEligible = serviceDays >= 365;
 
@@ -257,9 +266,12 @@ export function calculateSeverancePay({
   const leaveShare = Math.floor((Number(annualLeaveAllowance) || 0) * (3 / 12));
   const totalThreeMonthWage = (Number(threeMonthSalary) || 0) + bonusShare + leaveShare;
 
-  // Standard 3-month day count: approx 91~92 days
-  const threeMonthDays = 92;
-  const dailyAverageWage = totalThreeMonthWage > 0 ? Math.floor(totalThreeMonthWage / threeMonthDays) : 0;
+  // Calendar months differ in length; UTC avoids host timezone/DST drift.
+  const month = end.getUTCMonth() - 3;
+  const lastDay = new Date(Date.UTC(end.getUTCFullYear(), month + 1, 0)).getUTCDate();
+  const periodStart = new Date(Date.UTC(end.getUTCFullYear(), month, Math.min(lastDay, end.getUTCDate())));
+  const threeMonthDays = (end - periodStart) / 86400000;
+  const dailyAverageWage = totalThreeMonthWage > 0 ? totalThreeMonthWage / threeMonthDays : 0;
 
   // Ordinary daily wage check (통상임금 비교: 근로기준법 제2조 제2항)
   const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
@@ -276,6 +288,7 @@ export function calculateSeverancePay({
   return {
     year: 2026,
     serviceDays,
+    threeMonthDays,
     isEligible,
     dailyAverageWage,
     dailyOrdinaryWage,
@@ -299,7 +312,9 @@ export function calculateAnnualLeave({
   hourlyWage = MIN_WAGE_2026,
   dailyHours = 8,
   unusedDays = 0,
+  completedPerfectMonths,
 }) {
+  if (!Number.isFinite(yearsOfService) || yearsOfService < 0) throw new RangeError("Invalid yearsOfService");
   const years = Math.max(0, Number(yearsOfService) || 0);
   const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
   const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
@@ -307,7 +322,11 @@ export function calculateAnnualLeave({
 
   let statutoryDays = 0;
   if (years < 1) {
-    statutoryDays = 11; // 1년 미만 매월 1일 개근 시 최대 11일
+    // 2026-10-18: 11 is a maximum, not an entitlement inferred from tenure.
+    if (!Number.isInteger(completedPerfectMonths) || completedPerfectMonths < 0 || completedPerfectMonths > 11) {
+      throw new RangeError("completedPerfectMonths is required (integer 0 to 11) for first-year accrual");
+    }
+    statutoryDays = completedPerfectMonths;
   } else {
     // 1년 이상: 기본 15일 + 3년차부터 매 2년마다 1일 가산, 최대 25일
     const additionalDays = Math.floor((years - 1) / 2);

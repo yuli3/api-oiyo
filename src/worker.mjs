@@ -727,6 +727,7 @@ export default {
       }
 
       const yearsOfService = url.searchParams.get("yearsOfService") || 1;
+      const completedPerfectMonths = url.searchParams.get("completedPerfectMonths");
       const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
       const dailyHours = url.searchParams.get("dailyHours") || 8;
       const unusedDays = url.searchParams.get("unusedDays") || 0;
@@ -734,6 +735,7 @@ export default {
       try {
         const res = calculateAnnualLeave({
           yearsOfService: Number(yearsOfService),
+          completedPerfectMonths: completedPerfectMonths === null ? undefined : completedPerfectMonths.trim() === "" ? NaN : Number(completedPerfectMonths),
           hourlyWage: Number(hourlyWage),
           dailyHours: Number(dailyHours),
           unusedDays: Number(unusedDays),
