@@ -63,7 +63,7 @@ test("labor unemployment-benefits endpoint returns accurate calculation", async 
   const data = await res.json();
   assert.equal(data.year, 2026);
   assert.equal(data.scheduledDays, 180);
-  assert.equal(data.dailyBenefit, 66048);
+  assert.equal(data.dailyBenefit, 66048); // 2026 floor (before: 64,192)
   assert.ok(data.totalBenefit > 0);
 });
 
@@ -95,8 +95,8 @@ test("labor overtime-pay endpoint calculates correct premiums", async () => {
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.baseHourlyWage, 10320);
-  assert.equal(data.overtime.pay, Math.floor(10 * 10320 * 1.5));
-  assert.equal(data.night.pay, Math.floor(5 * 10320 * 0.5));
+  assert.equal(data.overtime.pay, 154800); // 10 × 10,320 × 1.5
+  assert.equal(data.night.pay, 25800); // 5 × 10,320 × 0.5
 });
 
 test("military service-calculator endpoint returns milestones", async () => {
@@ -387,7 +387,7 @@ test("labor unemployment-benefits endpoint calculates scheduled days and benefit
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.scheduledDays, 180);
-  assert.equal(data.dailyBenefit, 68100); // capped at 68,100 (2026)
+  assert.equal(data.dailyBenefit, 68100); // 2026 cap (before: 66,000)
   assert.equal(data.totalBenefit, 68100 * 180);
 });
 
@@ -398,7 +398,7 @@ test("labor parental-leave endpoint calculates standard and 6+6 special rates", 
   const data1 = await res1.json();
   assert.equal(data1.leaveMonths, 12);
   assert.ok(data1.totalBenefit > 20000000);
-  assert.ok(data1.totalDeferred > 0);
+  assert.equal(data1.totalDeferred, 0); // 25% deferred payment abolished 2025-01-01
 
   // 2. 6+6 special scheme mode
   const res2 = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/parental-leave?monthlyWage=4000000&leaveMonths=6&is6Plus6=true"));
@@ -468,7 +468,7 @@ test("tax freelancer endpoint calculates 3.3% withholding and May refund accurat
 test("insurance health endpoint calculates monthly regional premium and evaluates dependent eligibility", async () => {
   // Case 1: High income & disqualified dependent
   const res1 = await worker.fetch(
-    new Request("https://api.oiyo.net/v1/insurance/health?businessIncome=25000000&propertyTaxBase=100000000&hasBusinessRegistration=true")
+    new Request("https://api.oiyo.net/v1/insurance/health?businessIncome=25000000&propertyTaxBase=200000000&hasBusinessRegistration=true")
   );
   assert.equal(res1.status, 200);
   const data1 = await res1.json();
@@ -487,7 +487,7 @@ test("insurance health endpoint calculates monthly regional premium and evaluate
   const data2 = await res2.json();
   assert.equal(data2.dependentEligibility.isEligible, true);
   assert.equal(data2.dependentEligibility.status, "eligible");
-  assert.equal(data2.monthlyHealthPremium, 19780); // Min premium floor applied
+  assert.equal(data2.monthlyHealthPremium, 20160); // 2026 floor (before: 19,780)
 });
 
 test("real-estate hug-guarantee endpoint diagnoses 126% rule and calculates guarantee fee", async () => {
@@ -674,9 +674,43 @@ test("tax card-deduction endpoint calculates 25% threshold, card deductions, and
   assert.ok(data.goldenRuleRecommendation.includes("25%"));
 });
 
+// 2026-10-17 index policy: only /docs is indexable (webmaster decision doc §5).
+test("seo: sitemap lists only /docs and machine files are noindex but crawlable", async () => {
+  const sitemap = await (await worker.fetch(new Request("https://api.oiyo.net/sitemap.xml"))).text();
+  assert.deepEqual([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]), ["https://api.oiyo.net/docs"]);
 
+  for (const path of ["/openapi.json", "/tools.json", "/llms.txt", "/llms-full.txt"]) {
+    const res = await worker.fetch(new Request(`https://api.oiyo.net${path}`));
+    assert.equal(res.status, 200, path);
+    assert.equal(res.headers.get("X-Robots-Tag"), "noindex", path);
+  }
 
+  const docs = await worker.fetch(new Request("https://api.oiyo.net/docs", { headers: { accept: "text/html" } }));
+  assert.equal(docs.headers.get("X-Robots-Tag"), null);
+  const rootHtml = await worker.fetch(new Request("https://api.oiyo.net/", { headers: { accept: "text/html" } }));
+  assert.equal(rootHtml.headers.get("X-Robots-Tag"), "noindex");
+  const rootJson = await worker.fetch(new Request("https://api.oiyo.net/"));
+  assert.match(rootJson.headers.get("X-Robots-Tag"), /noindex/);
 
+  const robots = await (await worker.fetch(new Request("https://api.oiyo.net/robots.txt"))).text();
+  assert.match(robots, /^Disallow: \/v1\/$/m);
+  for (const allowed of ["/openapi.json", "/tools.json", "/llms.txt", "/llms-full.txt", "/docs"]) {
+    assert.match(robots, new RegExp(`^Allow: ${allowed.replace(".", "\\.")}$`, "m"));
+  }
+});
 
+test("net-salary endpoint returns 2026 vector and rejects malformed payMonth", async () => {
+  const data = await (await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/net-salary?salary=3500000&nonTaxable=200000"))).json();
+  assert.equal(data.insurances.nationalPension, 156750); // before: 148,500
+  assert.equal(data.insurances.healthInsurance, 118635); // before: 116,985
+  assert.equal(data.taxes.isEstimate, true);
+  const bad = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/net-salary?payMonth=2026-3"));
+  assert.equal(bad.status, 400);
+});
 
-
+test("regional health endpoint: 과표 9천만 is fully covered by the 1억 deduction (audit S-3)", async () => {
+  const data = await (await worker.fetch(new Request("https://api.oiyo.net/v1/insurance/health?propertyTaxBase=90000000"))).json();
+  assert.equal(data.propertyScore, 0); // before: 117 points
+  assert.equal(data.monthlyHealthPremium, 20160);
+  assert.equal(data.monthlyCarePremium, 2640);
+});

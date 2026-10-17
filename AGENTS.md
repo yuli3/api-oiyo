@@ -28,6 +28,16 @@
 - `GET /v1/energy/kr/gas-bill`: 도시가스 요금 계산
 - `GET /v1/math/units/convert`: 단위 변환 (길이, 넓이, 무게, 온도)
 
+## 2026 요율 단일 정본 (2026-10-17)
+- 급여·4대보험·구직급여·육아휴직·지역건보 요율과 공식은 `src/modules/kr-rates-2026.mjs` 하나에만 둔다. labor·insurance 모듈에 숫자 요율을 새로 쓰지 않는다.
+- tools는 같은 파일을 `src/lib/kr-rates-2026.mjs`로 바이트 동일하게 복사해 쓴다(tools `npm run sync:kr-rates`). 이 파일을 고치면 tools에도 같은 PR을 연다.
+- blog `src/lib/kr-payroll-2026.ts`와의 값 일치는 `test/kr-rates-2026.test.mjs`가 확인한다(blog 체크아웃이 없으면 live 비교만 skip, 고정 스냅샷은 항상 실행).
+- 근로소득세는 국세청 간이세액표가 아닌 연간 환산 **추정**이다. 응답 `taxes.isEstimate=true`를 유지한다.
+
+## 색인 정책 (2026-10-17)
+- 색인 대상은 `/docs` 하나다. sitemap에는 `/docs`만 둔다. `/`(HTML·JSON)는 noindex.
+- `/openapi.json`·`/tools.json`·`/llms.txt`·`/llms-full.txt`는 robots Allow + `X-Robots-Tag: noindex`. `/v1/`는 Disallow 유지.
+
 ## 검증 명령
 - 테스트: `npm test`
 - 문법 검사: `npm run check`

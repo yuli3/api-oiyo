@@ -171,7 +171,7 @@ export const OPENAPI_SPEC = {
         summary: "South Korea Weekly Holiday Allowance Calculator",
         description: "Calculates statutory weekly holiday allowance under Labor Standards Act Art. 55.",
         parameters: [
-          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Hourly wage in KRW (min 10,320)" },
+          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Hourly wage in KRW (min 10,320, 2026 minimum wage)" },
           { name: "hours", in: "query", required: false, schema: { type: "number", default: 20 }, description: "Weekly contractual working hours" },
           { name: "tax", in: "query", required: false, schema: { type: "string", enum: ["none", "freelance", "four"], default: "none" }, description: "Tax deduction mode" }
         ],
@@ -200,12 +200,13 @@ export const OPENAPI_SPEC = {
     "/v1/labor/kr/net-salary": {
       get: {
         summary: "South Korea 2026 Net Salary & 4 Major Insurances",
-        description: "Calculates statutory 4 major public insurances (national pension, health, care, employment) and progressive income tax to compute take-home pay.",
+        description: "Employee share of the 4 public insurances at 2026 statutory rates (pension 4.75%, health 3.595%, long-term care 13.14% of health, employment 0.9%; rates effective 2026-01-01). Income tax is an annualized ESTIMATE, not the NTS simplified withholding table (taxes.isEstimate=true).",
         parameters: [
           { name: "salary", in: "query", required: false, schema: { type: "number", default: 3500000 }, description: "Gross salary in KRW" },
           { name: "isAnnual", in: "query", required: false, schema: { type: "boolean", default: false }, description: "True if salary is annual, false if monthly" },
           { name: "nonTaxable", in: "query", required: false, schema: { type: "number", default: 200000 }, description: "Non-taxable monthly allowance (e.g. meals 200k)" },
-          { name: "dependents", in: "query", required: false, schema: { type: "integer", default: 1 }, description: "Number of dependents including earner" }
+          { name: "dependents", in: "query", required: false, schema: { type: "integer", default: 1 }, description: "Number of dependents including earner" },
+          { name: "payMonth", in: "query", required: false, schema: { type: "string", pattern: "^\\d{4}-\\d{2}$", default: "2026-07" }, description: "Pay month (YYYY-MM). Selects pension base bounds: 2025-07~2026-06 400,000~6,370,000; 2026-07~2027-06 410,000~6,590,000" }
         ],
         responses: {
           "200": {
