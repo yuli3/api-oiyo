@@ -1301,9 +1301,15 @@ export default {
       const assetValue = payload.assetValue ?? url.searchParams.get("assetValue") ?? 500000000;
       const debtValue = payload.debtValue ?? url.searchParams.get("debtValue") ?? 0;
       const relationship = payload.relationship ?? url.searchParams.get("relationship") ?? "spouse";
-      const hasSpouse = payload.hasSpouse ?? (url.searchParams.get("hasSpouse") !== "false");
-      const isGenerationSkipping = payload.isGenerationSkipping ?? (url.searchParams.get("isGenerationSkipping") === "true");
-      const hasVoluntaryReporting = payload.hasVoluntaryReporting ?? (url.searchParams.get("hasVoluntaryReporting") !== "false");
+      // WHY: POST bodies may carry "false" as a string; Boolean("false") is true.
+      const flag = (value, fallback) => (value === undefined || value === null ? fallback : value === true || value === "true");
+      const hasSpouse = flag(payload.hasSpouse ?? url.searchParams.get("hasSpouse"), true);
+      const isGenerationSkipping = flag(payload.isGenerationSkipping ?? url.searchParams.get("isGenerationSkipping"), false);
+      const hasVoluntaryReporting = flag(payload.hasVoluntaryReporting ?? url.searchParams.get("hasVoluntaryReporting"), true);
+      const minorRaw = payload.isMinorRecipient ?? url.searchParams.get("isMinorRecipient");
+      const isMinorRecipient = minorRaw === undefined || minorRaw === null ? undefined : flag(minorRaw, false);
+      const marriageBirthDeduction = payload.marriageBirthDeduction ?? url.searchParams.get("marriageBirthDeduction") ?? 0;
+      const spouseDeduction = payload.spouseDeduction ?? url.searchParams.get("spouseDeduction") ?? undefined;
 
       try {
         const res = calculateInheritanceGiftTax({
@@ -1311,9 +1317,12 @@ export default {
           assetValue: Number(assetValue),
           debtValue: Number(debtValue),
           relationship,
-          hasSpouse: Boolean(hasSpouse),
-          isGenerationSkipping: Boolean(isGenerationSkipping),
-          hasVoluntaryReporting: Boolean(hasVoluntaryReporting),
+          hasSpouse,
+          spouseDeduction: spouseDeduction === undefined ? undefined : Number(spouseDeduction),
+          marriageBirthDeduction: Number(marriageBirthDeduction),
+          isGenerationSkipping,
+          isMinorRecipient,
+          hasVoluntaryReporting,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
@@ -1366,6 +1375,8 @@ export default {
       const checkCardSpend = url.searchParams.get("checkCardSpend") ?? 10000000;
       const cultureSpend = url.searchParams.get("cultureSpend") ?? 1000000;
       const traditionalMarketSpend = url.searchParams.get("traditionalMarketSpend") ?? 1200000;
+      const publicTransitSpend = url.searchParams.get("publicTransitSpend") ?? 0;
+      const children = url.searchParams.get("children") ?? 0;
 
       try {
         const res = calculateCardTaxDeduction({
@@ -1374,6 +1385,8 @@ export default {
           checkCardSpend: Number(checkCardSpend),
           cultureSpend: Number(cultureSpend),
           traditionalMarketSpend: Number(traditionalMarketSpend),
+          publicTransitSpend: Number(publicTransitSpend),
+          children: Number(children),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

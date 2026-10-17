@@ -139,6 +139,56 @@ export const KR_RATES_2026 = deepFreeze({
     standardTaxCredit: 130_000, // 제59조의4⑨ 근로자 표준세액공제
     localIncomeTaxRate: 0.1, // 지방세법 제103조의3: 소득세의 10%
   },
+
+  // 2026-10-17 추가(Gemini 상속·증여·카드공제 계산기 정본 이관). 페이지·엔드포인트가 숫자를 따로 쓰지 않게 한다.
+  inheritanceGift: {
+    // 상속세 및 증여세법 제26조 세율(시행 2026-01-02, 법률 제21065호). 2024·2025 정부안(최고세율 40%, 자녀공제 5억)은
+    // 국회에서 통과되지 않아 2026에도 10~50% 5단계다. 국세청 증여세 개요 cntntsId=7728, 상속세 항목별 설명 cntntsId=7957.
+    // [과세표준 상한, 세율, 누진공제]
+    brackets: [
+      [100_000_000, 0.1, 0],
+      [500_000_000, 0.2, 10_000_000],
+      [1_000_000_000, 0.3, 60_000_000],
+      [3_000_000_000, 0.4, 160_000_000],
+      [Infinity, 0.5, 460_000_000],
+    ],
+    // 제53조 증여재산공제(10년 합산 한도). relationship = 수증자가 증여자에게 어떤 관계인지.
+    giftDeductions: {
+      spouse: 600_000_000, // 배우자로부터
+      child_adult: 50_000_000, // 직계존속으로부터(성년)
+      child_minor: 20_000_000, // 직계존속으로부터(미성년)
+      parent: 50_000_000, // 직계비속으로부터
+      other_relative: 10_000_000, // 6촌 이내 혈족·4촌 이내 인척
+      other: 0,
+    },
+    // 제53조의2 혼인·출산 증여재산공제: 직계존속으로부터 혼인신고일 전후 2년·출생일 2년 이내, 둘을 합쳐 평생 1억.
+    marriageBirthDeduction: 100_000_000,
+    // 제21조 일괄공제 5억, 제19조 배우자상속공제 최소 5억~최대 30억(법정상속분 한도).
+    inheritanceLumpSum: 500_000_000,
+    spouseInheritanceMin: 500_000_000,
+    spouseInheritanceMax: 3_000_000_000,
+    // 제27조·제57조 세대생략 할증 30%, 미성년자가 20억 초과를 받으면 40%.
+    generationSkipSurcharge: 0.3,
+    generationSkipSurchargeMinorLarge: 0.4,
+    generationSkipMinorThreshold: 2_000_000_000,
+    // 제69조 신고세액공제 3%.
+    filingCredit: 0.03,
+  },
+
+  cardDeduction: {
+    // 조세특례제한법 제126조의2(2025-12-23 개정, 2026-01-01 이후 지출분). 재정경제부 "이렇게 달라집니다" 2026 상반기.
+    // https://www.law.go.kr/lsLinkCommonInfo.do?lsJoLnkSeq=1032251007
+    thresholdRatio: 0.25,
+    rates: { credit: 0.15, debitCash: 0.3, culture: 0.3, market: 0.4, transit: 0.4 },
+    // 문화체육 사용분 30%는 총급여 7천만원 이하만. 초과자는 결제수단별 공제율에 포함된다.
+    salaryTier: 70_000_000,
+    // 기본한도 [자녀 0명, 1명, 2명 이상] — 2026 지출분부터 자녀 수에 따라 상향(~2028-12-31).
+    baseLimitUpToTier: [3_000_000, 3_500_000, 4_000_000],
+    baseLimitOverTier: [2_500_000, 2_750_000, 3_000_000],
+    // 전통시장·대중교통·문화체육 추가한도(합산).
+    extraLimitUpToTier: 3_000_000,
+    extraLimitOverTier: 2_000_000,
+  },
 });
 
 // ---------------------------------------------------------------------------
@@ -345,5 +395,184 @@ export function regionalHealthPremium2026({ businessIncome = 0, financialIncome 
     healthPremium,
     carePremium,
     totalMonthly: healthPremium + carePremium,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 상속·증여세, 카드 소득공제 (2026-10-17). 모의계산이며 10년 합산·평가·감정·가업상속 등은 넣지 않았다.
+
+/** 상증세법 제26조 산출세액. 누진공제 방식. */
+export function inheritanceGiftProgressiveTax(taxableBase) {
+  const base = Math.max(0, num(taxableBase));
+  if (base <= 0) return { tax: 0, rate: 0, progressiveDeduction: 0 };
+  const [, rate, progressiveDeduction] = KR_RATES_2026.inheritanceGift.brackets.find(([upper]) => base <= upper);
+  return { tax: Math.max(0, Math.floor(base * rate - progressiveDeduction)), rate, progressiveDeduction };
+}
+
+/**
+ * 상속세·증여세 모의계산.
+ * gift: 관계별 증여재산공제(+선택 시 혼인·출산 공제, 직계존속→자녀만). 10년 내 기존 증여는 반영하지 않는다.
+ * inheritance: 일괄공제 5억 + 배우자상속공제(입력이 없으면 최소 5억). 기초·인적공제 선택, 금융재산공제 등은 제외.
+ * @param {{ mode?: string, assetValue?: number, debtValue?: number, relationship?: string, marriageBirthDeduction?: number,
+ *   hasSpouse?: boolean, spouseDeduction?: number, isGenerationSkipping?: boolean, isMinorRecipient?: boolean,
+ *   hasVoluntaryReporting?: boolean }} params
+ */
+export function inheritanceGiftTax2026({
+  mode = "gift",
+  assetValue = 0,
+  debtValue = 0,
+  relationship = "spouse",
+  marriageBirthDeduction = 0,
+  hasSpouse = true,
+  spouseDeduction,
+  isGenerationSkipping = false,
+  isMinorRecipient,
+  hasVoluntaryReporting = true,
+} = {}) {
+  const G = KR_RATES_2026.inheritanceGift;
+  const asset = num(assetValue, NaN);
+  if (!Number.isFinite(asset) || asset < 0) throw new Error("assetValue must be a non-negative number");
+  const debt = Math.max(0, num(debtValue));
+  const netAssetValue = Math.max(0, asset - debt);
+  const isGift = mode !== "inheritance";
+  let deduction;
+  let marriageBirthApplied = 0;
+  if (isGift) {
+    deduction = G.giftDeductions[relationship] ?? 0;
+    if (relationship === "child_adult" || relationship === "child_minor") {
+      marriageBirthApplied = Math.min(G.marriageBirthDeduction, Math.max(0, num(marriageBirthDeduction)));
+      deduction += marriageBirthApplied;
+    }
+  } else {
+    const spouse = hasSpouse
+      ? Math.min(G.spouseInheritanceMax, Math.max(G.spouseInheritanceMin, num(spouseDeduction, G.spouseInheritanceMin)))
+      : 0;
+    deduction = G.inheritanceLumpSum + spouse;
+  }
+  const taxableBase = Math.max(0, netAssetValue - deduction);
+  const { tax: calculatedTax, rate, progressiveDeduction } = inheritanceGiftProgressiveTax(taxableBase);
+  const minor = isMinorRecipient ?? relationship === "child_minor";
+  const surchargeRate = !isGenerationSkipping
+    ? 0
+    : minor && netAssetValue > G.generationSkipMinorThreshold
+      ? G.generationSkipSurchargeMinorLarge
+      : G.generationSkipSurcharge;
+  const generationSkipSurcharge = Math.floor(calculatedTax * surchargeRate);
+  const subtotalTax = calculatedTax + generationSkipSurcharge;
+  const voluntaryReportCredit = hasVoluntaryReporting ? Math.floor(subtotalTax * G.filingCredit) : 0;
+  const finalTax = Math.max(0, subtotalTax - voluntaryReportCredit);
+  return {
+    mode: isGift ? "gift" : "inheritance",
+    netAssetValue,
+    statutoryMaxDeduction: deduction,
+    deductionAmount: Math.min(netAssetValue, deduction),
+    marriageBirthDeductionApplied: marriageBirthApplied,
+    taxableBase,
+    bracketRate: rate,
+    progressiveDeduction,
+    calculatedTax,
+    generationSkipSurchargeRate: surchargeRate,
+    generationSkipSurcharge,
+    voluntaryReportCredit,
+    finalTax,
+  };
+}
+
+/** 근로소득 과세표준 근사(총급여 − 근로소득공제 − 본인 기본공제). 카드공제 절세액 "추정"에만 쓴다. */
+export function approxEarnedIncomeTaxBase(annualGross, dependents = 1) {
+  const g = Math.max(0, num(annualGross));
+  const people = Math.max(1, Math.floor(num(dependents, 1)));
+  return Math.max(0, g - earnedIncomeDeduction(g) - people * KR_RATES_2026.incomeTax.personalDeductionPerPerson);
+}
+
+/** 소득세법 제55조 한계세율. */
+export function marginalIncomeTaxRate(taxBase) {
+  const base = Math.max(0, num(taxBase));
+  return KR_RATES_2026.incomeTax.brackets.find(([upper]) => base <= upper)[1];
+}
+
+/**
+ * 신용카드 등 소득공제(조특법 제126조의2) 모의계산. 국세청 소득공제신청서 별지 제74호의6 산식 순서를 따른다:
+ * 최저사용금액(총급여 25%)은 신용카드 → 체크·현금·문화 → 전통시장·대중교통 순으로 채운다.
+ * 총급여 7천만원 초과자의 문화체육 사용분은 결제수단을 모르므로 신용카드(15%)로 본다(보수적).
+ * @param {{ annualSalary: number, creditCardSpend?: number, checkCardSpend?: number, cultureSpend?: number,
+ *   traditionalMarketSpend?: number, publicTransitSpend?: number, children?: number }} params
+ */
+export function cardDeduction2026({
+  annualSalary,
+  creditCardSpend = 0,
+  checkCardSpend = 0,
+  cultureSpend = 0,
+  traditionalMarketSpend = 0,
+  publicTransitSpend = 0,
+  children = 0,
+} = {}) {
+  const C = KR_RATES_2026.cardDeduction;
+  const salary = num(annualSalary, NaN);
+  if (!Number.isFinite(salary) || salary <= 0) throw new Error("annualSalary must be a positive number");
+  const pos = (v) => Math.max(0, num(v));
+  const upToTier = salary <= C.salaryTier;
+  const culture = pos(cultureSpend);
+  const credit = pos(creditCardSpend) + (upToTier ? 0 : culture);
+  const debit = pos(checkCardSpend);
+  const cultureEligible = upToTier ? culture : 0;
+  const market = pos(traditionalMarketSpend);
+  const transit = pos(publicTransitSpend);
+
+  // 최저사용금액은 공제율이 낮은 순서로 채운다(별지 제74호의6 공제제외금액 산식과 같은 결과).
+  const threshold = Math.floor(salary * C.thresholdRatio);
+  let remaining = threshold;
+  const takeAboveThreshold = (amount) => {
+    const used = Math.min(amount, remaining);
+    remaining -= used;
+    return amount - used;
+  };
+  const creditEligible = takeAboveThreshold(credit);
+  const checkEligible = takeAboveThreshold(debit);
+  const cultureAbove = takeAboveThreshold(cultureEligible);
+  const marketEligible = takeAboveThreshold(market);
+  const transitEligible = takeAboveThreshold(transit);
+
+  const creditDeduction = Math.floor(creditEligible * C.rates.credit);
+  const checkDeduction = Math.floor(checkEligible * C.rates.debitCash);
+  const cultureDeduction = Math.floor(cultureAbove * C.rates.culture);
+  const marketDeduction = Math.floor(marketEligible * C.rates.market);
+  const transitDeduction = Math.floor(transitEligible * C.rates.transit);
+  const grossDeduction = creditDeduction + checkDeduction + cultureDeduction + marketDeduction + transitDeduction;
+  const kids = Math.max(0, Math.min(2, Math.floor(num(children))));
+  const baseLimit = (upToTier ? C.baseLimitUpToTier : C.baseLimitOverTier)[kids];
+  const extraLimit = upToTier ? C.extraLimitUpToTier : C.extraLimitOverTier;
+  const actualBaseDeduction = Math.min(grossDeduction, baseLimit);
+  // 추가공제는 기본한도를 넘은 금액 중 문화·전통시장·대중교통 공제분까지만(최저사용금액 차감 후 금액으로 보수적 계산).
+  const actualExtraDeduction = Math.min(
+    grossDeduction - actualBaseDeduction,
+    cultureDeduction + marketDeduction + transitDeduction,
+    extraLimit,
+  );
+  const totalDeduction = actualBaseDeduction + actualExtraDeduction;
+  const approxTaxBase = approxEarnedIncomeTaxBase(salary);
+  const marginalRate = marginalIncomeTaxRate(approxTaxBase);
+  const estimatedTaxRefund = Math.floor(totalDeduction * marginalRate * (1 + KR_RATES_2026.incomeTax.localIncomeTaxRate));
+  return {
+    threshold25Percent: threshold,
+    totalSpend: credit + debit + cultureEligible + market + transit,
+    cultureCountedAsCredit: !upToTier && culture > 0,
+    thresholdMet: remaining === 0,
+    creditDeduction,
+    checkDeduction,
+    cultureDeduction,
+    marketDeduction,
+    transitDeduction,
+    grossDeduction,
+    children: kids,
+    baseLimit,
+    extraLimit,
+    actualBaseDeduction,
+    actualExtraDeduction,
+    totalDeduction,
+    approxTaxBase,
+    marginalRate,
+    estimatedTaxRefund,
+    isEstimate: true,
   };
 }

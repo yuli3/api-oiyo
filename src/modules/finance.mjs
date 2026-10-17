@@ -1,5 +1,6 @@
 // Finance & Investment calculation module for South Korea & Global B2A
 // Pure mathematical financial formulas for CAGR and compound interest
+import { inheritanceGiftTax2026, cardDeduction2026 } from "./kr-rates-2026.mjs";
 
 /**
  * Calculates Compound Annual Growth Rate (CAGR, 연평균 복합 성장률)
@@ -743,118 +744,44 @@ export function calculateVatComparison({
 
 /**
  * Calculates South Korea 2026 Inheritance and Gift Tax (상속세 및 증여세 모의계산)
- * Statutory reference: Inheritance and Gift Tax Act (상속세 및 증여세법) Art. 13, 19, 21, 24, 26, 53, 56
+ * Statutory reference: 상속세 및 증여세법 제19·21·26·27·53·53조의2·57·69조.
+ * WHY delegate (2026-10-17): rates/deductions live only in kr-rates-2026.mjs (SSOT); this wrapper keeps the
+ * response shape Gemini shipped (7bf3378) so existing callers do not break.
  * @param {Object} params
- * @param {'gift'|'inheritance'} [params.mode='gift'] - Calculation mode
+ * @param {'gift'|'inheritance'} [params.mode='gift']
  * @param {number} params.assetValue - Gross market value of gifted/inherited assets
- * @param {number} [params.debtValue=0] - Transferred liabilities / debt deducted
- * @param {'spouse'|'child_adult'|'child_minor'|'parent'|'other_relative'|'other'} [params.relationship='spouse'] - Beneficiary relationship
- * @param {boolean} [params.hasSpouse=true] - (Inheritance only) Surviving spouse deduction eligibility
- * @param {boolean} [params.isGenerationSkipping=false] - Grandchild or skipped generation surcharge (30%)
- * @param {boolean} [params.hasVoluntaryReporting=true] - Statutory voluntary filing credit (3%)
+ * @param {number} [params.debtValue=0] - Assumed debt deducted
+ * @param {'spouse'|'child_adult'|'child_minor'|'parent'|'other_relative'|'other'} [params.relationship='spouse'] - Recipient's relation to donor
+ * @param {number} [params.marriageBirthDeduction=0] - (Gift from lineal ascendant only) 혼인·출산 공제 to apply, max 100,000,000
+ * @param {boolean} [params.hasSpouse=true] - (Inheritance) surviving spouse
+ * @param {number} [params.spouseDeduction] - (Inheritance) spouse deduction, clamped to 5억~30억 (default 5억)
+ * @param {boolean} [params.isGenerationSkipping=false] - 세대생략 할증 30% (minor recipient over 20억: 40%)
+ * @param {boolean} [params.isMinorRecipient] - defaults to relationship === 'child_minor'
+ * @param {boolean} [params.hasVoluntaryReporting=true] - 신고세액공제 3%
  */
-export function calculateInheritanceGiftTax({
-  mode = "gift",
-  assetValue,
-  debtValue = 0,
-  relationship = "spouse",
-  hasSpouse = true,
-  isGenerationSkipping = false,
-  hasVoluntaryReporting = true,
-}) {
-  const asset = Number(assetValue);
-  const debt = Math.max(0, Number(debtValue) || 0);
-
-  if (isNaN(asset) || asset < 0) {
-    throw new Error("assetValue must be a non-negative number");
-  }
-
-  const netAssetValue = Math.max(0, asset - debt);
-
-  let deductionAmount = 0;
-  if (mode === "gift") {
-    switch (relationship) {
-      case "spouse":
-        deductionAmount = 600000000; // 6억 원
-        break;
-      case "child_adult":
-      case "parent":
-        deductionAmount = 50000000; // 5,000만 원
-        break;
-      case "child_minor":
-        deductionAmount = 20000000; // 2,000만 원
-        break;
-      case "other_relative":
-        deductionAmount = 10000000; // 1,000만 원
-        break;
-      case "other":
-      default:
-        deductionAmount = 0;
-        break;
-    }
-  } else {
-    // Inheritance: Basic lump sum deduction 500M + spouse min 500M
-    const lumpSum = 500000000;
-    const spouseDeduction = hasSpouse ? 500000000 : 0;
-    deductionAmount = lumpSum + spouseDeduction;
-  }
-
-  const taxableBase = Math.max(0, netAssetValue - deductionAmount);
-
-  // 5-bracket progressive tax rates
-  let bracketRate = 0.1;
-  let progressiveDeduction = 0;
-  if (taxableBase <= 100000000) {
-    bracketRate = 0.1;
-    progressiveDeduction = 0;
-  } else if (taxableBase <= 500000000) {
-    bracketRate = 0.2;
-    progressiveDeduction = 10000000;
-  } else if (taxableBase <= 1000000000) {
-    bracketRate = 0.3;
-    progressiveDeduction = 60000000;
-  } else if (taxableBase <= 3000000000) {
-    bracketRate = 0.4;
-    progressiveDeduction = 160000000;
-  } else {
-    bracketRate = 0.5;
-    progressiveDeduction = 460000000;
-  }
-
-  const calculatedTax = taxableBase > 0 ? Math.max(0, Math.floor(taxableBase * bracketRate - progressiveDeduction)) : 0;
-
-  let generationSkipSurcharge = 0;
-  if (isGenerationSkipping && calculatedTax > 0) {
-    generationSkipSurcharge = Math.floor(calculatedTax * 0.3);
-  }
-
-  const subtotalTax = calculatedTax + generationSkipSurcharge;
-
-  let voluntaryReportCredit = 0;
-  if (hasVoluntaryReporting && subtotalTax > 0) {
-    voluntaryReportCredit = Math.floor(subtotalTax * 0.03); // 3%
-  }
-
-  const finalTax = Math.max(0, subtotalTax - voluntaryReportCredit);
-  const effectiveRatePercent = asset > 0 ? Number(((finalTax / asset) * 100).toFixed(2)) : 0;
-
+export function calculateInheritanceGiftTax(params = {}) {
+  const asset = Number(params.assetValue);
+  const r = inheritanceGiftTax2026({ ...params, assetValue: asset });
   return {
     year: 2026,
-    mode,
+    mode: r.mode,
     assetValue: asset,
-    debtValue: debt,
-    netAssetValue,
-    relationship,
-    deductionAmount: Math.min(netAssetValue, deductionAmount),
-    statutoryMaxDeduction: deductionAmount,
-    taxableBase,
-    bracketRatePercent: Math.round(bracketRate * 100),
-    progressiveDeduction,
-    calculatedTax,
-    generationSkipSurcharge,
-    voluntaryReportCredit,
-    finalTax,
-    effectiveRatePercent,
+    debtValue: Math.max(0, Number(params.debtValue) || 0),
+    netAssetValue: r.netAssetValue,
+    relationship: params.relationship ?? "spouse",
+    deductionAmount: r.deductionAmount,
+    statutoryMaxDeduction: r.statutoryMaxDeduction,
+    marriageBirthDeductionApplied: r.marriageBirthDeductionApplied,
+    taxableBase: r.taxableBase,
+    bracketRatePercent: Math.round(r.bracketRate * 100),
+    progressiveDeduction: r.progressiveDeduction,
+    calculatedTax: r.calculatedTax,
+    generationSkipSurchargeRatePercent: Math.round(r.generationSkipSurchargeRate * 100),
+    generationSkipSurcharge: r.generationSkipSurcharge,
+    voluntaryReportCredit: r.voluntaryReportCredit,
+    finalTax: r.finalTax,
+    effectiveRatePercent: asset > 0 ? Number(((r.finalTax / asset) * 100).toFixed(2)) : 0,
+    notIncluded: ["10년 내 기존 증여 합산", "재산 평가(시가·보충적 평가)", "기초·인적·금융재산·동거주택 공제", "가업·영농상속공제"],
   };
 }
 
@@ -865,7 +792,8 @@ export function calculateInheritanceGiftTax({
  * @param {number} params.loanBalance - Remaining loan balance to refinance in KRW
  * @param {number} params.currentRate - Existing annual interest rate in %
  * @param {number} params.newRate - New annual interest rate in %
- * @param {number} [params.penaltyRate=1.2] - Prepayment penalty rate in % (default 1.2%, 2026 guidelines)
+ * @param {number} [params.penaltyRate=1.2] - Prepayment penalty rate in % from the loan contract. 1.2 is only an example default:
+ *   since 2025-01-13 banks set fees from actual costs (금융소비자보호법 감독규정), so rates differ by product (2026-10-17).
  * @param {number} [params.elapsedMonths=12] - Elapsed months since loan origination (0~36)
  * @param {number} [params.incidentalCosts=75000] - Refinancing incidental fees (stamp duty, mortgage filing, etc.)
  */
@@ -958,97 +886,29 @@ export function calculateLoanRefinance({
 
 /**
  * Calculates South Korea 2026 Year-End Card Tax Deduction & Golden Ratio (연말정산 신용/체크카드 소득공제 및 황금비율 산출)
- * Statutory reference: Income Tax Act (소득세법) Art. 126-2
+ * Statutory reference: 조세특례제한법 제126조의2 (2025-12-23 개정: 자녀 수별 기본한도 상향, 2026 지출분부터).
+ * WHY delegate (2026-10-17): rates/limits and the marginal-rate estimate come from kr-rates-2026.mjs (SSOT).
  * @param {Object} params
- * @param {number} params.annualSalary - Annual gross salary (비과세 제외 총급여) in KRW
- * @param {number} [params.creditCardSpend=0] - Annual credit card spending
- * @param {number} [params.checkCardSpend=0] - Annual check/debit card and cash receipt spending
- * @param {number} [params.cultureSpend=0] - Book, performing arts, museum, cinema spending
- * @param {number} [params.traditionalMarketSpend=0] - Traditional market and public transport spending
+ * @param {number} params.annualSalary - 총급여(비과세 제외)
+ * @param {number} [params.creditCardSpend=0]
+ * @param {number} [params.checkCardSpend=0] - 체크카드·현금영수증·선불
+ * @param {number} [params.cultureSpend=0] - 도서·공연·박물관·영화·수영장·체력단련장 (총급여 7천만원 이하만 30%)
+ * @param {number} [params.traditionalMarketSpend=0] - 전통시장 (40%)
+ * @param {number} [params.publicTransitSpend=0] - 대중교통 (40%)
+ * @param {number} [params.children=0] - 기본공제 대상 자녀·손자녀 수 (0, 1, 2+)
  */
-export function calculateCardTaxDeduction({
-  annualSalary,
-  creditCardSpend = 0,
-  checkCardSpend = 0,
-  cultureSpend = 0,
-  traditionalMarketSpend = 0,
-}) {
-  const salary = Number(annualSalary);
-  const credit = Math.max(0, Number(creditCardSpend) || 0);
-  const check = Math.max(0, Number(checkCardSpend) || 0);
-  const culture = Math.max(0, Number(cultureSpend) || 0);
-  const market = Math.max(0, Number(traditionalMarketSpend) || 0);
-
-  if (isNaN(salary) || salary <= 0) {
-    throw new Error("annualSalary must be a positive number");
-  }
-
-  const threshold25Percent = Math.floor(salary * 0.25);
-  const totalSpend = credit + check + culture + market;
-  const excessSpend = Math.max(0, totalSpend - threshold25Percent);
-
-  // Threshold consumption logic: credit card first (lowest rate 15%)
-  let remainingThreshold = threshold25Percent;
-
-  const creditToThreshold = Math.min(credit, remainingThreshold);
-  remainingThreshold -= creditToThreshold;
-  const eligibleCredit = credit - creditToThreshold;
-  const creditDeduction = Math.floor(eligibleCredit * 0.15);
-
-  const checkToThreshold = Math.min(check, remainingThreshold);
-  remainingThreshold -= checkToThreshold;
-  const eligibleCheck = check - checkToThreshold;
-  const checkDeduction = Math.floor(eligibleCheck * 0.30);
-
-  const isUnder70M = salary <= 70000000;
-  const cultureToThreshold = Math.min(culture, remainingThreshold);
-  remainingThreshold -= cultureToThreshold;
-  const eligibleCulture = isUnder70M ? (culture - cultureToThreshold) : 0;
-  const cultureDeduction = Math.floor(eligibleCulture * 0.30);
-
-  const marketToThreshold = Math.min(market, remainingThreshold);
-  remainingThreshold -= marketToThreshold;
-  const eligibleMarket = market - marketToThreshold;
-  const marketDeduction = Math.floor(eligibleMarket * 0.40);
-
-  // Statutory Limits
-  const baseLimit = isUnder70M ? 3000000 : 2500000;
-  const actualBaseDeduction = Math.min(baseLimit, creditDeduction + checkDeduction);
-
-  const extraLimit = isUnder70M ? 3000000 : 2000000;
-  const actualExtraDeduction = Math.min(extraLimit, cultureDeduction + marketDeduction);
-
-  const totalDeduction = actualBaseDeduction + actualExtraDeduction;
-
-  // Marginal income tax rate estimation
-  let marginalRate = 0.15;
-  if (salary <= 14000000) marginalRate = 0.06;
-  else if (salary <= 50000000) marginalRate = 0.15;
-  else if (salary <= 88000000) marginalRate = 0.24;
-  else marginalRate = 0.35;
-
-  const estimatedTaxRefund = Math.floor(totalDeduction * marginalRate * 1.1); // With 10% local tax
-
-  const goldenRuleRecommendation = `총급여의 25%인 ${threshold25Percent.toLocaleString()}원까지는 혜택이 풍부한 신용카드로 결제하고, 초과분은 공제율이 2배인 체크카드·현금영수증(30%)으로 결제하여 기본 한도(${baseLimit.toLocaleString()}원)를 달성하는 것이 최적입니다.`;
-
+export function calculateCardTaxDeduction(params = {}) {
+  const salary = Number(params.annualSalary);
+  const r = cardDeduction2026({ ...params, annualSalary: salary });
+  const goldenRuleRecommendation = `총급여의 25%인 ${r.threshold25Percent.toLocaleString("ko-KR")}원까지는 공제와 무관하니 혜택이 큰 신용카드로 쓰고, 넘는 금액은 공제율이 2배인 체크카드·현금영수증(30%)으로 쓰면 기본 한도(${r.baseLimit.toLocaleString("ko-KR")}원)를 더 빨리 채워요.`;
   return {
     year: 2026,
     annualSalary: salary,
-    threshold25Percent,
-    totalSpend,
-    excessSpend,
-    creditDeduction,
-    checkDeduction,
-    cultureDeduction,
-    marketDeduction,
-    baseLimit,
-    extraLimit,
-    actualBaseDeduction,
-    actualExtraDeduction,
-    totalDeduction,
-    marginalTaxRatePercent: Math.round(marginalRate * 100),
-    estimatedTaxRefund,
+    ...r,
+    excessSpend: Math.max(0, r.totalSpend - r.threshold25Percent),
+    marginalTaxRatePercent: Math.round(r.marginalRate * 100),
     goldenRuleRecommendation,
+    notIncluded: ["전년 대비 소비증가분 추가공제", "도서·공연 등 문화비의 결제수단 구분(7천만원 초과자는 신용카드로 계산)"],
   };
 }
 
