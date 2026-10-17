@@ -290,6 +290,7 @@ export const OPENAPI_SPEC = {
         description: "Calculates statutory annual leave days under Labor Standards Act Art. 60 and cash-out allowance for unused days.",
         parameters: [
           { name: "yearsOfService", in: "query", required: false, schema: { type: "number", default: 1 }, description: "Completed years of service" },
+          { name: "completedPerfectMonths", in: "query", required: false, schema: { type: "integer", minimum: 0, maximum: 11 }, description: "Required when yearsOfService is less than 1: actual completed perfect-attendance months, not the maximum first-year allowance" },
           { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Ordinary hourly wage" },
           { name: "dailyHours", in: "query", required: false, schema: { type: "number", default: 8 }, description: "Daily working hours" },
           { name: "unusedDays", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Remaining unused leave days" }

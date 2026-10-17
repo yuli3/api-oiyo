@@ -148,8 +148,8 @@ test("calculateSeverancePay returns zero when under 1 year", () => {
 });
 
 test("calculateAnnualLeave determines statutory days based on service", () => {
-  const firstYear = calculateAnnualLeave({ yearsOfService: 0.5, unusedDays: 5 });
-  assert.equal(firstYear.statutoryLeaveDays, 11);
+  const firstYear = calculateAnnualLeave({ yearsOfService: 0.5, completedPerfectMonths: 6, unusedDays: 5 });
+  assert.equal(firstYear.statutoryLeaveDays, 6);
   assert.equal(firstYear.unusedLeaveAllowance, 5 * 10320 * 8);
 
   const thirdYear = calculateAnnualLeave({ yearsOfService: 3, unusedDays: 10 });
