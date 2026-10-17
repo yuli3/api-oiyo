@@ -364,4 +364,79 @@ export function calculateAnnualLeave({
   };
 }
 
+/**
+ * Calculates South Korea Parental Leave Benefit & 6+6 Parent Special Scheme (육아휴직 급여 및 6+6 부모육아휴직제)
+ * Statutory reference: Employment Insurance Act Art. 70, Enforcement Decree Art. 95
+ * @param {Object} params
+ * @param {number} [params.monthlyWage=3500000] - Pre-tax monthly ordinary wage in KRW
+ * @param {number} [params.leaveMonths=12] - Number of leave months (1~12)
+ * @param {boolean} [params.isParental6Plus6=false] - Whether 6+6 parent special scheme applies
+ */
+export function calculateParentalLeave({
+  monthlyWage = 3500000,
+  leaveMonths = 12,
+  isParental6Plus6 = false,
+}) {
+  const wage = Math.max(0, Number(monthlyWage) || 3500000);
+  const months = Math.max(1, Math.min(12, Number(leaveMonths) || 12));
+  const is6Plus6 = Boolean(isParental6Plus6);
+
+  const BONUS_CAPS = [2000000, 2500000, 3000000, 3500000, 4000000, 4500000];
+  const monthlyBreakdown = [];
+
+  let totalBenefit = 0;
+  let totalUpfront = 0;
+  let totalDeferred = 0;
+
+  for (let m = 0; m < months; m++) {
+    let gross = 0;
+    let upfront = 0;
+    let deferred = 0;
+
+    if (is6Plus6 && m < 6) {
+      const cap = BONUS_CAPS[m];
+      gross = Math.min(wage, cap);
+      upfront = gross;
+      deferred = 0;
+    } else {
+      let cap = 1600000;
+      let rate = 0.8;
+      if (m < 3) {
+        cap = 2500000;
+        rate = 1.0;
+      } else if (m < 6) {
+        cap = 2000000;
+        rate = 1.0;
+      }
+      gross = Math.min(Math.max(wage * rate, 700000), cap);
+      upfront = Math.round(gross * 0.75);
+      deferred = gross - upfront;
+    }
+
+    monthlyBreakdown.push({
+      month: m + 1,
+      grossAmount: gross,
+      upfrontPaid: upfront,
+      deferredAmount: deferred,
+    });
+
+    totalBenefit += gross;
+    totalUpfront += upfront;
+    totalDeferred += deferred;
+  }
+
+  return {
+    year: 2026,
+    monthlyOrdinaryWage: wage,
+    leaveMonths: months,
+    isParental6Plus6: is6Plus6,
+    totalBenefit,
+    totalUpfront,
+    totalDeferred,
+    monthlyAverage: Math.round(totalBenefit / months),
+    monthlyBreakdown,
+  };
+}
+
+
 

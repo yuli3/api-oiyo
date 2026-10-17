@@ -382,6 +382,33 @@ test("auto registration endpoint calculates vehicle acquisition tax and eco disc
   assert.equal(data.netAcquisitionTax, 2050000);
 });
 
+test("labor unemployment-benefits endpoint calculates scheduled days and benefit amount", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/unemployment-benefits?wage=3500000&age=under&period=p3&hours=8"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.scheduledDays, 180);
+  assert.equal(data.dailyBenefit, 66000); // capped at 66,000
+  assert.equal(data.totalBenefit, 66000 * 180);
+});
+
+test("labor parental-leave endpoint calculates standard and 6+6 special rates", async () => {
+  // 1. Standard mode
+  const res1 = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/parental-leave?monthlyWage=3500000&leaveMonths=12&is6Plus6=false"));
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.equal(data1.leaveMonths, 12);
+  assert.ok(data1.totalBenefit > 20000000);
+  assert.ok(data1.totalDeferred > 0);
+
+  // 2. 6+6 special scheme mode
+  const res2 = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/parental-leave?monthlyWage=4000000&leaveMonths=6&is6Plus6=true"));
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.isParental6Plus6, true);
+  assert.equal(data2.totalDeferred, 0); // 100% upfront in first 6 months
+  assert.ok(data2.totalBenefit >= 18000000);
+});
+
 
 
 

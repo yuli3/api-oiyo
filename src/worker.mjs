@@ -7,6 +7,7 @@ import {
   calculateNetSalary,
   calculateSeverancePay,
   calculateAnnualLeave,
+  calculateParentalLeave,
 } from "./modules/labor.mjs";
 import { convertUnits } from "./modules/units.mjs";
 import { calculateMilitaryService } from "./modules/military.mjs";
@@ -383,7 +384,7 @@ export default {
     }
 
     // 6. Labor: Unemployment Benefits
-    if (path === "/v1/labor/kr/unemployment-benefits") {
+    if (path === "/v1/labor/kr/unemployment-benefits" || path === "/v1/labor/unemployment-benefits") {
       if (method !== "GET" && method !== "HEAD") {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
@@ -399,6 +400,31 @@ export default {
           ageGroup,
           periodCode,
           hoursPerDay: Number(hoursPerDay),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 6-2. Labor: Parental Leave & 6+6 Benefit
+    if (path === "/v1/labor/kr/parental-leave" || path === "/v1/labor/parental-leave") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const monthlyWage = url.searchParams.get("monthlyWage") || url.searchParams.get("wage") || 3500000;
+      const leaveMonths = url.searchParams.get("leaveMonths") || url.searchParams.get("months") || 12;
+      const isParental6Plus6 = url.searchParams.get("is6Plus6") === "true" || url.searchParams.get("isParental6Plus6") === "true";
+
+      try {
+        const res = calculateParentalLeave({
+          monthlyWage: Number(monthlyWage),
+          leaveMonths: Number(leaveMonths),
+          isParental6Plus6,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
