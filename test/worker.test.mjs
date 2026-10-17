@@ -337,6 +337,52 @@ test("real-estate acquisition-tax endpoint calculates tax and first-home discoun
   assert.equal(data.totalTax, 3500000);
 });
 
+test("finance youth-savings endpoint calculates government contribution and tax savings", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/youth-savings?monthlyDeposit=700000&annualIncome=30000000&bankRate=5.5&months=60"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.monthlyDeposit, 700000);
+  assert.equal(data.principal, 42000000);
+  assert.equal(data.monthlyGovContribution, 23000); // capped at 23,000 for 30M income
+  assert.equal(data.totalGovContribution, 23000 * 60);
+  assert.ok(data.totalPayout > 48000000);
+  assert.ok(data.effectiveYieldPercent > 15);
+});
+
+test("finance deposit-maturity endpoint calculates interest and net payout", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/deposit-maturity?type=lumpSum&amount=10000000&annualRate=4.0&months=12&taxType=normal"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.principal, 10000000);
+  assert.equal(data.grossInterest, 400000);
+  assert.equal(data.taxAmount, 61600); // 15.4% of 400k
+  assert.equal(data.netInterest, 338400);
+  assert.equal(data.netPayout, 10338400);
+});
+
+test("auto tax endpoint calculates vehicle annual tax and prepayment discount", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/auto/tax?powerType=ice&engineCc=1998&vehicleAgeYears=0&prepaymentMonth=jan"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.powerType, "ice");
+  assert.equal(data.baseTax, 1998 * 200); // 399,600
+  assert.equal(data.eduTax, Math.round(399600 * 0.3)); // 119,880
+  assert.equal(data.prepaymentDiscountRate, 4.6);
+  assert.ok(data.annualTax < 519480);
+});
+
+test("auto registration endpoint calculates vehicle acquisition tax and eco discount", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/auto/registration?price=35000000&vehicleType=sedan&ecoType=hybrid"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.price, 35000000);
+  assert.equal(data.taxRatePercent, 7);
+  assert.equal(data.grossTax, 2450000); // 35M * 7%
+  assert.equal(data.ecoDiscount, 400000); // Hybrid 400k discount
+  assert.equal(data.netAcquisitionTax, 2050000);
+});
+
+
 
 
 

@@ -18,11 +18,17 @@ import {
   calculateLoanRepayment,
   calculateStockAverage,
   calculateDividendYield,
+  calculateYouthSavings,
+  calculateDepositMaturity,
 } from "./modules/finance.mjs";
 import {
   calculateBrokerageFee,
   calculateAcquisitionTax,
 } from "./modules/real-estate.mjs";
+import {
+  calculateCarTax,
+  calculateCarRegistration,
+} from "./modules/auto.mjs";
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import {
@@ -850,6 +856,114 @@ export default {
           houseCount,
           areaOver85,
           isFirstHome,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 23. Finance: Youth Savings (청년도약계좌)
+    if (path === "/v1/finance/youth-savings") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const monthlyDeposit = url.searchParams.get("monthlyDeposit") || 700000;
+      const annualIncome = url.searchParams.get("annualIncome") || 36000000;
+      const bankRate = url.searchParams.get("bankRate") || 5.5;
+      const months = url.searchParams.get("months") || 60;
+
+      try {
+        const res = calculateYouthSavings({
+          monthlyDeposit: Number(monthlyDeposit),
+          annualIncome: Number(annualIncome),
+          bankRate: Number(bankRate),
+          months: parseInt(months, 10),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 24. Finance: Deposit Maturity (예적금 만기 수령액)
+    if (path === "/v1/finance/deposit-maturity") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const type = url.searchParams.get("type") || "installment";
+      const amount = url.searchParams.get("amount") || 500000;
+      const annualRate = url.searchParams.get("annualRate") || 4.0;
+      const months = url.searchParams.get("months") || 12;
+      const taxType = url.searchParams.get("taxType") || "normal";
+
+      try {
+        const res = calculateDepositMaturity({
+          type,
+          amount: Number(amount),
+          annualRate: Number(annualRate),
+          months: parseInt(months, 10),
+          taxType,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 25. Auto: Annual Vehicle Tax (자동차세 및 연납 할인)
+    if (path === "/v1/auto/tax") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const powerType = url.searchParams.get("powerType") || "ice";
+      const engineCc = url.searchParams.get("engineCc") || 1998;
+      const vehicleAgeYears = url.searchParams.get("vehicleAgeYears") || 0;
+      const prepaymentMonth = url.searchParams.get("prepaymentMonth") || "jan";
+
+      try {
+        const res = calculateCarTax({
+          powerType,
+          engineCc: Number(engineCc),
+          vehicleAgeYears: parseInt(vehicleAgeYears, 10),
+          prepaymentMonth,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 26. Auto: Acquisition Tax (차량 취득세)
+    if (path === "/v1/auto/registration") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const price = url.searchParams.get("price") || 35000000;
+      const vehicleType = url.searchParams.get("vehicleType") || "sedan";
+      const ecoType = url.searchParams.get("ecoType") || "none";
+
+      try {
+        const res = calculateCarRegistration({
+          price: Number(price),
+          vehicleType,
+          ecoType,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

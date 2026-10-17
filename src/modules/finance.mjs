@@ -384,3 +384,142 @@ export function calculateDividendYield({
   };
 }
 
+/**
+ * Calculates Youth Leap Account (청년도약계좌) simulation
+ * @param {Object} params
+ * @param {number} params.monthlyDeposit - Monthly deposit in KRW (100,000 ~ 700,000)
+ * @param {number} [params.annualIncome=36000000] - Annual gross salary in KRW
+ * @param {number} [params.bankRate=5.5] - Annual bank interest rate in % (default 5.5)
+ * @param {number} [params.months=60] - Duration in months (default 60 = 5 years)
+ */
+export function calculateYouthSavings({
+  monthlyDeposit,
+  annualIncome = 36000000,
+  bankRate = 5.5,
+  months = 60,
+}) {
+  const deposit = Number(monthlyDeposit);
+  const income = Number(annualIncome);
+  const rate = Number(bankRate) / 100;
+  const totalMonths = parseInt(months, 10) || 60;
+
+  if (isNaN(deposit) || deposit <= 0) {
+    throw new Error("Monthly deposit must be a positive number");
+  }
+  if (isNaN(income) || income < 0) {
+    throw new Error("Annual income must be a non-negative number");
+  }
+
+  const principal = deposit * totalMonths;
+  // Simple installment interest formula: P * r * (n * (n + 1) / 24)
+  const bankInterest = deposit * rate * (totalMonths * (totalMonths + 1) / 24);
+
+  // Government matching contribution rate & monthly cap
+  let matchingRate = 0;
+  let monthlyCap = 0;
+
+  if (income <= 24000000) {
+    matchingRate = 0.06;
+    monthlyCap = 24000;
+  } else if (income <= 36000000) {
+    matchingRate = 0.046;
+    monthlyCap = 23000;
+  } else if (income <= 48000000) {
+    matchingRate = 0.037;
+    monthlyCap = 22000;
+  } else if (income <= 60000000) {
+    matchingRate = 0.030;
+    monthlyCap = 21000;
+  } else {
+    // Over 60M to 75M: 0 matching, tax-free only
+    matchingRate = 0;
+    monthlyCap = 0;
+  }
+
+  const monthlyGovContribution = Math.min(deposit * matchingRate, monthlyCap);
+  const totalGovContribution = monthlyGovContribution * totalMonths;
+  const taxSavings = bankInterest * 0.154; // 15.4% tax exempted
+  const totalPayout = principal + bankInterest + totalGovContribution;
+  const effectiveYieldPercent = principal > 0 ? ((totalPayout - principal) / principal) * 100 : 0;
+
+  return {
+    monthlyDeposit: deposit,
+    annualIncome: income,
+    bankRatePercent: Number(bankRate),
+    months: totalMonths,
+    principal: Math.round(principal),
+    bankInterest: Math.round(bankInterest),
+    monthlyGovContribution: Math.round(monthlyGovContribution),
+    totalGovContribution: Math.round(totalGovContribution),
+    taxSavings: Math.round(taxSavings),
+    totalPayout: Math.round(totalPayout),
+    effectiveYieldPercent: Number(effectiveYieldPercent.toFixed(2)),
+  };
+}
+
+/**
+ * Calculates generic Fixed Deposit or Installment Savings maturity payout
+ * @param {Object} params
+ * @param {"installment"|"lumpSum"} [params.type="installment"] - installment (적금) or lumpSum (예금)
+ * @param {number} params.amount - Monthly payment for installment, or principal for lumpSum
+ * @param {number} params.annualRate - Annual interest rate in %
+ * @param {number} [params.months=12] - Term in months
+ * @param {"normal"|"preferential"|"taxFree"} [params.taxType="normal"] - normal (15.4%), preferential (9.5%), taxFree (0%)
+ */
+export function calculateDepositMaturity({
+  type = "installment",
+  amount,
+  annualRate,
+  months = 12,
+  taxType = "normal",
+}) {
+  const amt = Number(amount);
+  const rate = Number(annualRate) / 100;
+  const totalMonths = parseInt(months, 10) || 12;
+
+  if (isNaN(amt) || amt <= 0) {
+    throw new Error("Amount must be a positive number");
+  }
+  if (isNaN(rate) || rate < 0) {
+    throw new Error("Annual rate must be non-negative");
+  }
+  if (totalMonths <= 0) {
+    throw new Error("Months must be positive");
+  }
+
+  let principal = 0;
+  let grossInterest = 0;
+
+  if (type === "lumpSum") {
+    principal = amt;
+    grossInterest = amt * rate * (totalMonths / 12);
+  } else {
+    // installment
+    principal = amt * totalMonths;
+    grossInterest = amt * rate * (totalMonths * (totalMonths + 1) / 24);
+  }
+
+  let taxRatePercent = 15.4;
+  if (taxType === "preferential") taxRatePercent = 9.5;
+  else if (taxType === "taxFree") taxRatePercent = 0;
+
+  const taxAmount = Math.round(grossInterest * (taxRatePercent / 100));
+  const netInterest = Math.round(grossInterest - taxAmount);
+  const netPayout = Math.round(principal + netInterest);
+
+  return {
+    type,
+    amount: amt,
+    annualRatePercent: Number(annualRate),
+    months: totalMonths,
+    taxType,
+    taxRatePercent,
+    principal: Math.round(principal),
+    grossInterest: Math.round(grossInterest),
+    taxAmount,
+    netInterest,
+    netPayout,
+  };
+}
+
+
