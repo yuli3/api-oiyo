@@ -33,6 +33,7 @@
 - tools는 같은 파일을 `src/lib/kr-rates-2026.mjs`로 바이트 동일하게 복사해 쓴다(tools `npm run sync:kr-rates`). 이 파일을 고치면 tools에도 같은 PR을 연다.
 - blog `src/lib/kr-payroll-2026.ts`와의 값 일치는 `test/kr-rates-2026.test.mjs`가 확인한다(blog 체크아웃이 없으면 live 비교만 skip, 고정 스냅샷은 항상 실행).
 - 근로소득세는 국세청 간이세액표가 아닌 연간 환산 **추정**이다. 응답 `taxes.isEstimate=true`를 유지한다.
+- 상속·증여세(세율·공제·할증·신고세액공제)와 신용카드 등 소득공제(공제율·자녀 수별 한도) 값과 계산식도 같은 파일(`inheritanceGift`, `cardDeduction`, `inheritanceGiftTax2026`, `cardDeduction2026`)에만 둔다. finance.mjs는 응답 모양만 맞춘다(2026-10-17).
 
 ## 색인 정책 (2026-10-17)
 - 색인 대상은 `/docs` 하나다. sitemap에는 `/docs`만 둔다. `/`(HTML·JSON)는 noindex.

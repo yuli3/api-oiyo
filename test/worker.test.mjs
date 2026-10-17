@@ -714,3 +714,41 @@ test("regional health endpoint: 과표 9천만 is fully covered by the 1억 dedu
   assert.equal(data.monthlyHealthPremium, 20160);
   assert.equal(data.monthlyCarePremium, 2640);
 });
+
+// 2026-10-17 Gemini 계산기 정본 이관: 상속·증여·카드공제 값은 kr-rates-2026.mjs에서만 온다.
+test("inheritance-gift: 40% generation-skip for a minor over 20억, marriage/birth deduction, POST string flags", async () => {
+  const skip = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/inheritance-gift?mode=gift&assetValue=3000000000&relationship=child_minor&isGenerationSkipping=true&hasVoluntaryReporting=false"))).json();
+  // 30억 − 2천만 = 29.8억 → 40% − 1.6억 = 10.32억, 할증 40% = 4.128억
+  assert.equal(skip.calculatedTax, 1032000000);
+  assert.equal(skip.generationSkipSurchargeRatePercent, 40);
+  assert.equal(skip.generationSkipSurcharge, 412800000);
+
+  const mb = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/inheritance-gift?mode=gift&assetValue=150000000&relationship=child_adult&marriageBirthDeduction=100000000"))).json();
+  assert.equal(mb.statutoryMaxDeduction, 150000000);
+  assert.equal(mb.finalTax, 0);
+
+  const post = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/inheritance-gift", {
+    method: "POST",
+    body: JSON.stringify({ mode: "inheritance", assetValue: 1500000000, hasSpouse: "false", hasVoluntaryReporting: "false" }),
+  }))).json();
+  assert.equal(post.statutoryMaxDeduction, 500000000); // no spouse → lump sum only
+  assert.equal(post.calculatedTax, 240000000); // 10억 × 30% − 6천만
+  assert.equal(post.voluntaryReportCredit, 0);
+});
+
+test("card-deduction: 2026 child-based base limit, transit 40%, culture over 7천만 counted as credit", async () => {
+  const base = "https://api.oiyo.net/v1/tax/card-deduction?annualSalary=50000000&creditCardSpend=12500000&checkCardSpend=20000000&cultureSpend=0&traditionalMarketSpend=0";
+  const none = await (await worker.fetch(new Request(base))).json();
+  const two = await (await worker.fetch(new Request(`${base}&children=2`))).json();
+  assert.equal(none.baseLimit, 3000000);
+  assert.equal(two.baseLimit, 4000000);
+  assert.equal(two.actualBaseDeduction, 4000000); // 2천만 × 30% = 6백만 → 한도 4백만
+  const transit = await (await worker.fetch(new Request(`${base}&publicTransitSpend=1000000`))).json();
+  assert.equal(transit.transitDeduction, 400000);
+  assert.equal(transit.actualExtraDeduction, 400000);
+  const high = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/card-deduction?annualSalary=80000000&creditCardSpend=20000000&checkCardSpend=0&cultureSpend=1000000&traditionalMarketSpend=0"))).json();
+  assert.equal(high.cultureCountedAsCredit, true);
+  assert.equal(high.cultureDeduction, 0);
+  assert.equal(high.creditDeduction, 150000); // (2,100만 − 2,000만) × 15%
+  assert.equal(high.isEstimate, true);
+});
