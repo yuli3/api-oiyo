@@ -413,6 +413,9 @@ export function inheritanceGiftProgressiveTax(taxableBase) {
  * 상속세·증여세 모의계산.
  * gift: 관계별 증여재산공제(+선택 시 혼인·출산 공제, 직계존속→자녀만). 10년 내 기존 증여는 반영하지 않는다.
  * inheritance: 일괄공제 5억 + 배우자상속공제(입력이 없으면 최소 5억). 기초·인적공제 선택, 금융재산공제 등은 제외.
+ * @param {{ mode?: string, assetValue?: number, debtValue?: number, relationship?: string, marriageBirthDeduction?: number,
+ *   hasSpouse?: boolean, spouseDeduction?: number, isGenerationSkipping?: boolean, isMinorRecipient?: boolean,
+ *   hasVoluntaryReporting?: boolean }} params
  */
 export function inheritanceGiftTax2026({
   mode = "gift",
@@ -492,6 +495,8 @@ export function marginalIncomeTaxRate(taxBase) {
  * 신용카드 등 소득공제(조특법 제126조의2) 모의계산. 국세청 소득공제신청서 별지 제74호의6 산식 순서를 따른다:
  * 최저사용금액(총급여 25%)은 신용카드 → 체크·현금·문화 → 전통시장·대중교통 순으로 채운다.
  * 총급여 7천만원 초과자의 문화체육 사용분은 결제수단을 모르므로 신용카드(15%)로 본다(보수적).
+ * @param {{ annualSalary: number, creditCardSpend?: number, checkCardSpend?: number, cultureSpend?: number,
+ *   traditionalMarketSpend?: number, publicTransitSpend?: number, children?: number }} params
  */
 export function cardDeduction2026({
   annualSalary,
