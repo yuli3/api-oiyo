@@ -453,6 +453,18 @@ test("saju elements-balance endpoint calculates seasonal support and day master 
   assert.ok(Array.isArray(data.favorableElements));
 });
 
+test("tax freelancer endpoint calculates 3.3% withholding and May refund accurately", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/tax/freelancer?revenue=25000000&jobCode=developer&dependents=1"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.revenue, 25000000);
+  assert.equal(data.prepaidTax.total, 825000); // 3.3% of 25M
+  assert.equal(data.expenseRatePercent, 64.1);
+  assert.ok(data.recognizedExpense > 0);
+  assert.ok(typeof data.isRefund === "boolean");
+  assert.ok(data.refundAmount >= 0);
+});
+
 
 
 

@@ -21,6 +21,7 @@ import {
   calculateDividendYield,
   calculateYouthSavings,
   calculateDepositMaturity,
+  calculateFreelancerTax,
 } from "./modules/finance.mjs";
 import {
   calculateBrokerageFee,
@@ -1075,6 +1076,33 @@ export default {
           price: Number(price),
           vehicleType,
           ecoType,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 27. Tax: Freelancer 3.3% Withholding & May Income Tax Return
+    if (path === "/v1/tax/freelancer") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const revenue = url.searchParams.get("revenue") || 30000000;
+      const jobCode = url.searchParams.get("jobCode") || "general";
+      const dependents = url.searchParams.get("dependents") || 1;
+      const additionalDeduction = url.searchParams.get("additionalDeduction") || 0;
+
+      try {
+        const res = calculateFreelancerTax({
+          revenue: Number(revenue),
+          jobCode,
+          dependents: parseInt(dependents, 10),
+          additionalDeduction: Number(additionalDeduction),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

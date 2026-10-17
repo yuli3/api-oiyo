@@ -522,4 +522,97 @@ export function calculateDepositMaturity({
   };
 }
 
+/**
+ * Calculates South Korean Freelancer 3.3% withholding and May Income Tax Return estimation
+ * @param {Object} params
+ * @param {number} params.revenue - Annual gross freelance revenue in KRW (> 0)
+ * @param {"creator"|"developer"|"designer"|"writer"|"general"} [params.jobCode="general"]
+ * @param {number} [params.dependents=1] - Personal deduction dependents count (default 1 self)
+ * @param {number} [params.additionalDeduction=0] - Additional pension/insurance deduction in KRW
+ */
+export function calculateFreelancerTax({
+  revenue,
+  jobCode = "general",
+  dependents = 1,
+  additionalDeduction = 0,
+}) {
+  const rev = Number(revenue);
+  if (isNaN(rev) || rev <= 0) {
+    throw new Error("Annual revenue must be a positive number in KRW");
+  }
+
+  const depCount = Math.max(1, parseInt(dependents, 10) || 1);
+  const extraDeduction = Math.max(0, Number(additionalDeduction) || 0);
+
+  // 1. 3.3% Withholding tax (Prepaid)
+  const incomeTaxPrepaid = Math.floor(rev * 0.03);
+  const localTaxPrepaid = Math.floor(incomeTaxPrepaid * 0.1);
+  const totalPrepaidTax = incomeTaxPrepaid + localTaxPrepaid;
+
+  // 2. Simple expense rate by job code
+  const EXPENSE_RATES = {
+    creator: 0.642,
+    developer: 0.641,
+    designer: 0.737,
+    writer: 0.587,
+    general: 0.640,
+  };
+  const expenseRate = EXPENSE_RATES[jobCode] ?? 0.640;
+  const recognizedExpense = Math.round(rev * expenseRate);
+  const incomeAmount = Math.max(0, rev - recognizedExpense);
+
+  // 3. Income deductions (1.5M KRW basic deduction per person)
+  const personalDeduction = depCount * 1500000;
+  const totalDeductions = personalDeduction + extraDeduction;
+  const taxBase = Math.max(0, incomeAmount - totalDeductions);
+
+  // 4. Progressive Tax Brackets (2026 South Korea Income Tax)
+  let calculatedIncomeTax = 0;
+  if (taxBase <= 14000000) {
+    calculatedIncomeTax = Math.round(taxBase * 0.06);
+  } else if (taxBase <= 50000000) {
+    calculatedIncomeTax = Math.round(taxBase * 0.14 - 1120000);
+  } else if (taxBase <= 88000000) {
+    calculatedIncomeTax = Math.round(taxBase * 0.24 - 6120000);
+  } else if (taxBase <= 150000000) {
+    calculatedIncomeTax = Math.round(taxBase * 0.35 - 15800000);
+  } else {
+    calculatedIncomeTax = Math.round(taxBase * 0.38 - 20300000);
+  }
+
+  // 5. Tax credits (Standard 70,000 KRW + Electronic Filing 20,000 KRW)
+  const taxCredits = Math.min(calculatedIncomeTax, 90000);
+  const finalIncomeTax = Math.max(0, calculatedIncomeTax - taxCredits);
+  const finalLocalTax = Math.floor(finalIncomeTax * 0.1);
+  const finalTotalTax = finalIncomeTax + finalLocalTax;
+
+  // 6. Refund or additional payment
+  const refundAmount = totalPrepaidTax - finalTotalTax;
+  const isRefund = refundAmount >= 0;
+
+  return {
+    revenue: rev,
+    jobCode,
+    expenseRatePercent: Number((expenseRate * 100).toFixed(1)),
+    recognizedExpense,
+    incomeAmount,
+    dependents: depCount,
+    personalDeduction,
+    totalDeductions,
+    taxBase,
+    calculatedIncomeTax,
+    taxCredits,
+    finalIncomeTax,
+    finalLocalTax,
+    finalTotalTax,
+    prepaidTax: {
+      incomeTax: incomeTaxPrepaid,
+      localTax: localTaxPrepaid,
+      total: totalPrepaidTax,
+    },
+    isRefund,
+    refundAmount: Math.abs(refundAmount),
+  };
+}
+
 
