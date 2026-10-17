@@ -152,3 +152,136 @@ export function calculateCompoundInterest({
     annualBreakdown,
   };
 }
+
+// South Korea Consumer Price Index (CPI) baseline table (2020 = 100.0) from Statistics Korea (KOSIS)
+const KOREA_CPI_SERIES = {
+  1980: 14.8,
+  1985: 22.3,
+  1990: 31.9,
+  1995: 45.3,
+  2000: 56.6,
+  2005: 67.3,
+  2010: 78.8,
+  2015: 90.2,
+  2020: 100.0,
+  2021: 102.5,
+  2022: 107.7,
+  2023: 111.6,
+  2024: 114.2,
+  2025: 116.8,
+  2026: 119.5, // Estimated baseline
+};
+
+/**
+ * Calculates inflation-adjusted purchasing power value between years
+ * @param {Object} params
+ * @param {number} params.baseYear - Baseline year
+ * @param {number} params.targetYear - Target year
+ * @param {number} params.amount - Amount in base year currency
+ */
+export function calculateInflation({ baseYear, targetYear, amount }) {
+  const bYear = parseInt(baseYear, 10);
+  const tYear = parseInt(targetYear, 10);
+  const amt = Number(amount);
+
+  if (isNaN(bYear) || !KOREA_CPI_SERIES[bYear]) {
+    throw new Error(`Unsupported or invalid baseYear. Available: ${Object.keys(KOREA_CPI_SERIES).join(", ")}`);
+  }
+  if (isNaN(tYear) || !KOREA_CPI_SERIES[tYear]) {
+    throw new Error(`Unsupported or invalid targetYear. Available: ${Object.keys(KOREA_CPI_SERIES).join(", ")}`);
+  }
+  if (isNaN(amt) || amt < 0) {
+    throw new Error("Amount must be a non-negative number");
+  }
+
+  const baseCpi = KOREA_CPI_SERIES[bYear];
+  const targetCpi = KOREA_CPI_SERIES[tYear];
+
+  const adjustedAmount = Math.round((amt * targetCpi) / baseCpi);
+  const cpiGrowthPercent = Number((((targetCpi - baseCpi) / baseCpi) * 100).toFixed(2));
+  const purchasingPowerRatio = Number((targetCpi / baseCpi).toFixed(4));
+
+  return {
+    baseYear: bYear,
+    baseCpi,
+    targetYear: tYear,
+    targetCpi,
+    originalAmount: amt,
+    adjustedAmount,
+    cpiGrowthPercent,
+    purchasingPowerRatio,
+  };
+}
+
+/**
+ * Calculates loan repayment schedule and total interest
+ * @param {Object} params
+ * @param {number} params.principal - Loan principal amount (> 0)
+ * @param {number} params.annualRate - Annual interest rate in % (e.g. 4.5)
+ * @param {number} params.months - Total loan duration in months (> 0)
+ * @param {string} [params.method="equalPI"] - equalPI (원리금균등), equalP (원금균등), bullet (만기일시)
+ * @param {number} [params.graceMonths=0] - Grace period in months (interest only)
+ */
+export function calculateLoanRepayment({ principal, annualRate, months, method = "equalPI", graceMonths = 0 }) {
+  const P = Number(principal);
+  const rAnnual = Number(annualRate);
+  const totalMonths = parseInt(months, 10);
+  const grace = parseInt(graceMonths, 10) || 0;
+
+  if (isNaN(P) || P <= 0) {
+    throw new Error("Principal must be a positive number");
+  }
+  if (isNaN(rAnnual) || rAnnual < 0) {
+    throw new Error("Annual interest rate must be non-negative");
+  }
+  if (isNaN(totalMonths) || totalMonths <= 0) {
+    throw new Error("Months must be a positive integer");
+  }
+  if (grace < 0 || grace >= totalMonths) {
+    throw new Error("Grace months must be between 0 and total months - 1");
+  }
+
+  const r = (rAnnual / 100) / 12; // monthly rate
+  const repaymentMonths = totalMonths - grace;
+
+  let firstMonthlyPayment = 0;
+  let totalInterest = 0;
+
+  if (method === "equalPI") {
+    if (r > 0) {
+      const factor = Math.pow(1 + r, repaymentMonths);
+      const monthlyPayment = (P * r * factor) / (factor - 1);
+      firstMonthlyPayment = grace > 0 ? P * r : monthlyPayment;
+      totalInterest = (grace * P * r) + (monthlyPayment * repaymentMonths - P);
+    } else {
+      firstMonthlyPayment = P / repaymentMonths;
+      totalInterest = 0;
+    }
+  } else if (method === "equalP") {
+    const monthlyPrincipal = P / repaymentMonths;
+    const firstInterest = P * r;
+    firstMonthlyPayment = grace > 0 ? P * r : (monthlyPrincipal + firstInterest);
+    const amortizingInterest = ((repaymentMonths + 1) * P * r) / 2;
+    totalInterest = (grace * P * r) + amortizingInterest;
+  } else if (method === "bullet") {
+    firstMonthlyPayment = P * r;
+    totalInterest = P * r * totalMonths;
+  } else {
+    throw new Error("Invalid method. Choose 'equalPI', 'equalP', or 'bullet'");
+  }
+
+  const roundedFirstPayment = Math.round(firstMonthlyPayment);
+  const roundedTotalInterest = Math.round(totalInterest);
+  const roundedTotalPayment = Math.round(P + totalInterest);
+
+  return {
+    principal: P,
+    annualRatePercent: rAnnual,
+    months: totalMonths,
+    graceMonths: grace,
+    method,
+    firstMonthlyPayment: roundedFirstPayment,
+    totalInterest: roundedTotalInterest,
+    totalPayment: roundedTotalPayment,
+  };
+}

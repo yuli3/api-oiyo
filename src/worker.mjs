@@ -1,4 +1,4 @@
-import { getHolidays, isBusinessDay } from "./modules/calendar.mjs";
+import { getHolidays, isBusinessDay, calculateDday, calculateWorkdays } from "./modules/calendar.mjs";
 import { calculateSaju } from "./modules/saju.mjs";
 import {
   calculateUnemploymentBenefits,
@@ -11,7 +11,12 @@ import {
 import { convertUnits } from "./modules/units.mjs";
 import { calculateMilitaryService } from "./modules/military.mjs";
 import { calculateCityGasBill } from "./modules/energy.mjs";
-import { calculateCAGR, calculateCompoundInterest } from "./modules/finance.mjs";
+import {
+  calculateCAGR,
+  calculateCompoundInterest,
+  calculateInflation,
+  calculateLoanRepayment,
+} from "./modules/finance.mjs";
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import {
@@ -200,6 +205,8 @@ export default {
           "GET /sitemap.xml",
           "GET /v1/kr/calendar/holidays?year=2026",
           "GET /v1/kr/calendar/is-business-day?date=2026-10-16",
+          "GET /v1/kr/calendar/dday?baseDate=2026-03-01&targetDate=2026-10-17",
+          "GET /v1/kr/calendar/workdays?startDate=2026-03-01&endDate=2026-03-31",
           "POST /v1/astrology/saju/calculate",
           "GET /v1/labor/kr/unemployment-benefits?wage=3000000&age=under&period=p3&hours=8",
           "GET /v1/labor/kr/weekly-allowance?hourlyWage=10030&hours=20&tax=none",
@@ -212,6 +219,8 @@ export default {
           "GET /v1/math/units/convert?value=100&from=m2&to=pyeong",
           "GET /v1/finance/cagr?initialValue=10000000&finalValue=20000000&years=5",
           "GET /v1/finance/compound-interest?principal=10000000&rate=7&years=10&monthlyContribution=500000",
+          "GET /v1/finance/inflation?baseYear=2000&targetYear=2026&amount=1000000",
+          "GET /v1/finance/loan-repayment?principal=100000000&annualRate=4.5&months=360&method=equalPI",
         ],
       };
       return new Response(method === "HEAD" ? null : JSON.stringify(info), {
@@ -266,6 +275,61 @@ export default {
 
       try {
         const res = isBusinessDay(dateStr);
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 4-1. Calendar: D-day
+    if (path === "/v1/kr/calendar/dday") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const baseDate = url.searchParams.get("baseDate") || new Date().toISOString().split("T")[0];
+      const targetDate = url.searchParams.get("targetDate");
+      const includeBaseDay = url.searchParams.get("includeBaseDay") === "true";
+
+      if (!targetDate) {
+        return Response.json(
+          { error: "Missing required query parameter: targetDate (YYYY-MM-DD)" },
+          { status: 400, headers: commonHeaders }
+        );
+      }
+
+      try {
+        const res = calculateDday(baseDate, targetDate, includeBaseDay);
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 4-2. Calendar: Workdays Range
+    if (path === "/v1/kr/calendar/workdays") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const startDate = url.searchParams.get("startDate");
+      const endDate = url.searchParams.get("endDate");
+
+      if (!startDate || !endDate) {
+        return Response.json(
+          { error: "Missing required query parameters: startDate, endDate (YYYY-MM-DD)" },
+          { status: 400, headers: commonHeaders }
+        );
+      }
+
+      try {
+        const res = calculateWorkdays(startDate, endDate);
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
           headers: commonHeaders,
@@ -613,6 +677,67 @@ export default {
           years: Number(years),
           monthlyContribution: Number(monthlyContribution),
           compoundingFrequency,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 17. Finance: Inflation Value
+    if (path === "/v1/finance/inflation") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const baseYear = url.searchParams.get("baseYear");
+      const targetYear = url.searchParams.get("targetYear") || 2026;
+      const amount = url.searchParams.get("amount") || 1000000;
+
+      if (!baseYear) {
+        return Response.json(
+          { error: "Missing required query parameter: baseYear" },
+          { status: 400, headers: commonHeaders }
+        );
+      }
+
+      try {
+        const res = calculateInflation({
+          baseYear: Number(baseYear),
+          targetYear: Number(targetYear),
+          amount: Number(amount),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 18. Finance: Loan Repayment Schedule
+    if (path === "/v1/finance/loan-repayment") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const principal = url.searchParams.get("principal") || 100000000;
+      const annualRate = url.searchParams.get("annualRate") || 4.5;
+      const months = url.searchParams.get("months") || 360;
+      const methodType = url.searchParams.get("method") || "equalPI";
+      const graceMonths = url.searchParams.get("graceMonths") || 0;
+
+      try {
+        const res = calculateLoanRepayment({
+          principal: Number(principal),
+          annualRate: Number(annualRate),
+          months: Number(months),
+          method: methodType,
+          graceMonths: Number(graceMonths),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

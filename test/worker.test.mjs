@@ -253,6 +253,46 @@ test("finance compound-interest endpoint calculates interest and balance", async
   assert.ok(data.totalInterest > 0);
 });
 
+test("calendar dday endpoint calculates days remaining accurately", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/kr/calendar/dday?baseDate=2026-03-01&targetDate=2026-03-31"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.daysRemaining, 30);
+  assert.equal(data.code, "D-30");
+  assert.equal(data.status, "future");
+});
+
+test("calendar workdays endpoint calculates working days excluding weekends and holidays", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/kr/calendar/workdays?startDate=2026-03-01&endDate=2026-03-07"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.totalDays, 7);
+  // 2026-03-01 is Sunday (weekend), 2026-03-02 is 3.1 대체공휴일, 2026-03-07 is Saturday (weekend)
+  // Workdays: March 3, 4, 5, 6 = 4 days
+  assert.equal(data.workdays, 4);
+  assert.equal(data.holidaysCount, 1);
+});
+
+test("finance inflation endpoint calculates purchasing power over time", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/inflation?baseYear=2000&targetYear=2026&amount=1000000"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.baseYear, 2000);
+  assert.equal(data.targetYear, 2026);
+  assert.ok(data.adjustedAmount > 2000000);
+  assert.ok(data.cpiGrowthPercent > 100);
+});
+
+test("finance loan-repayment endpoint calculates equal principal and interest schedule", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/loan-repayment?principal=100000000&annualRate=4.5&months=360&method=equalPI"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.principal, 100000000);
+  assert.ok(data.firstMonthlyPayment > 500000);
+  assert.ok(data.totalInterest > 80000000);
+  assert.equal(data.totalPayment, data.principal + data.totalInterest);
+});
+
 
 
 

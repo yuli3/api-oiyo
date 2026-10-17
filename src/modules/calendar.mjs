@@ -176,3 +176,103 @@ export function isBusinessDay(dateStr) {
     reason: null,
   };
 }
+
+/**
+ * Calculates D-day difference and formatted status
+ * @param {string} baseDateStr - Base date (YYYY-MM-DD)
+ * @param {string} targetDateStr - Target date (YYYY-MM-DD)
+ * @param {boolean} includeBaseDay - Whether to count base day as day 1
+ */
+export function calculateDday(baseDateStr, targetDateStr, includeBaseDay = false) {
+  const baseMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(baseDateStr);
+  const targetMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(targetDateStr);
+  if (!baseMatch || !targetMatch) {
+    throw new TypeError("Both baseDate and targetDate must be in YYYY-MM-DD format");
+  }
+
+  const base = new Date(baseDateStr + "T00:00:00Z");
+  const target = new Date(targetDateStr + "T00:00:00Z");
+  const diffMs = target.getTime() - base.getTime();
+  let diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (includeBaseDay && diffDays > 0) {
+    diffDays += 1;
+  }
+
+  let code = "D-0";
+  let status = "today";
+  if (diffDays === 0) {
+    code = "D-Day";
+    status = "today";
+  } else if (diffDays > 0) {
+    code = `D-${diffDays}`;
+    status = "future";
+  } else {
+    code = `D+${Math.abs(diffDays)}`;
+    status = "past";
+  }
+
+  return {
+    baseDate: baseDateStr,
+    targetDate: targetDateStr,
+    daysRemaining: diffDays,
+    code,
+    status,
+    includeBaseDay: Boolean(includeBaseDay),
+  };
+}
+
+/**
+ * Calculates working business days between two dates
+ * @param {string} startDateStr - Start date (YYYY-MM-DD)
+ * @param {string} endDateStr - End date (YYYY-MM-DD)
+ */
+export function calculateWorkdays(startDateStr, endDateStr) {
+  const startMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDateStr);
+  const endMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(endDateStr);
+  if (!startMatch || !endMatch) {
+    throw new TypeError("Both startDate and endDate must be in YYYY-MM-DD format");
+  }
+
+  const start = new Date(startDateStr + "T00:00:00Z");
+  const end = new Date(endDateStr + "T00:00:00Z");
+
+  if (end < start) {
+    throw new Error("endDate must be on or after startDate");
+  }
+
+  let totalDays = 0;
+  let workdays = 0;
+  let weekends = 0;
+  let holidaysCount = 0;
+  const observedHolidays = [];
+
+  const cur = new Date(start);
+  while (cur <= end) {
+    totalDays++;
+    const curStr = cur.toISOString().split("T")[0];
+    const info = isBusinessDay(curStr);
+
+    if (info.is_business_day) {
+      workdays++;
+    } else {
+      if (info.reason === "토요일" || info.reason === "일요일") {
+        weekends++;
+      } else {
+        holidaysCount++;
+        observedHolidays.push({ date: curStr, name: info.reason });
+      }
+    }
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+
+  return {
+    startDate: startDateStr,
+    endDate: endDateStr,
+    totalDays,
+    workdays,
+    weekends,
+    holidaysCount,
+    holidays: observedHolidays,
+  };
+}
