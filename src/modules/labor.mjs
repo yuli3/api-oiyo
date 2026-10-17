@@ -2,14 +2,22 @@
 // Statutory references:
 // - Unemployment benefits: Employment Insurance Act Art. 40-50
 // - Weekly holiday allowance: Labor Standards Act Art. 55, Enforcement Decree Art. 30
+//
+// 2026-10-17: every rate now comes from ./kr-rates-2026.mjs (SSOT shared with tools and
+// checked against blog kr-payroll-2026.ts). Do not add numeric rates here.
+// Rate values match the Codex WIP branch codex/labor-accuracy-20261017 (10,320 / 68,100 /
+// 4.75% / 3.595% / 13.14%), which first corrected them; this module centralizes them.
 
-const MIN_WAGE_2026 = 10320; // 2026 statutory minimum wage
-const MAX_DAILY_BENEFIT = 68100; // 2026 statutory cap
+import {
+  KR_RATES_2026,
+  RATES_EFFECTIVE_FROM,
+  netSalary2026,
+  unemploymentDailyBenefit2026,
+  unemploymentDays2026,
+  parentalLeaveSchedule2026,
+} from "./kr-rates-2026.mjs";
 
-const DAYS_TABLE = {
-  under: { p1: 120, p2: 150, p3: 180, p4: 210, p5: 240 },
-  over: { p1: 120, p2: 180, p3: 210, p4: 240, p5: 270 },
-};
+const MIN_WAGE_2026 = KR_RATES_2026.minimumWage;
 
 /**
  * Calculates South Korea unemployment benefits (구직급여 모의계산)
@@ -25,37 +33,20 @@ export function calculateUnemploymentBenefits({
   periodCode = "p3",
   hoursPerDay = 8,
 }) {
-  const effectiveHours = Math.max(1, Math.min(8, Number(hoursPerDay) || 8));
-  const minDailyBenefit = Math.floor(MIN_WAGE_2026 * 0.8 * effectiveHours);
-
-  const estimatedDailyWage = (Number(monthlyWage) || 0) / 30;
-  let dailyBenefit = Math.floor(estimatedDailyWage * 0.6);
-
-  let limitType = "standard";
-  if (dailyBenefit >= MAX_DAILY_BENEFIT) {
-    dailyBenefit = MAX_DAILY_BENEFIT;
-    limitType = "cap_applied";
-  } else if (dailyBenefit <= minDailyBenefit) {
-    dailyBenefit = minDailyBenefit;
-    limitType = "floor_applied";
-  }
-
-  const groupKey = ageGroup === "over" ? "over" : "under";
-  const pKey = DAYS_TABLE[groupKey][periodCode] ? periodCode : "p3";
-  const days = DAYS_TABLE[groupKey][pKey];
-  const totalBenefit = dailyBenefit * days;
-  const monthlyEquivalent = dailyBenefit * 30;
+  const daily = unemploymentDailyBenefit2026({ monthlyWage, hoursPerDay });
+  const days = unemploymentDays2026(ageGroup, periodCode);
 
   return {
     year: 2026,
+    ratesEffectiveFrom: RATES_EFFECTIVE_FROM,
     statutoryMinimumWage: MIN_WAGE_2026,
-    dailyBenefit,
-    limitType,
-    minDailyFloor: minDailyBenefit,
-    maxDailyCap: MAX_DAILY_BENEFIT,
+    dailyBenefit: daily.dailyBenefit,
+    limitType: daily.limitType,
+    minDailyFloor: daily.minDailyFloor,
+    maxDailyCap: daily.maxDailyCap,
     scheduledDays: days,
-    totalBenefit,
-    monthlyEquivalent,
+    totalBenefit: daily.dailyBenefit * days,
+    monthlyEquivalent: daily.dailyBenefit * 30,
     isTaxFree: true,
   };
 }
@@ -63,16 +54,16 @@ export function calculateUnemploymentBenefits({
 /**
  * Calculates South Korea weekly holiday allowance (주휴수당 계산)
  * @param {Object} params
- * @param {number} [params.hourlyWage=10320] - Hourly wage in KRW (min 10,320)
+ * @param {number} [params.hourlyWage=10320] - Hourly wage in KRW (min 10,320, 2026 minimum wage)
  * @param {number} [params.weeklyHours=20] - Total contractual hours per week
  * @param {'none'|'freelance'|'four'} [params.taxType='none'] - Deductions: 'none' (0%), 'freelance' (3.3%), 'four' (~9.4%)
  */
 export function calculateWeeklyAllowance({
-  hourlyWage = 10320,
+  hourlyWage = MIN_WAGE_2026,
   weeklyHours = 20,
   taxType = "none",
 }) {
-  const wage = Math.max(10320, Number(hourlyWage) || 10320);
+  const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
   const hours = Math.max(0, Number(weeklyHours) || 0);
 
   const isEligible = hours >= 15;
@@ -127,13 +118,13 @@ export function calculateWeeklyAllowance({
  * @param {number} [params.holidayHoursOver8=0] - Holiday work exceeding 8 hours (2.0x)
  */
 export function calculateOvertimePay({
-  hourlyWage = 10320,
+  hourlyWage = MIN_WAGE_2026,
   overtimeHours = 0,
   nightHours = 0,
   holidayHours8orLess = 0,
   holidayHoursOver8 = 0,
 }) {
-  const wage = Math.max(10320, Number(hourlyWage) || 10320);
+  const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
   const otH = Math.max(0, Number(overtimeHours) || 0);
   const ntH = Math.max(0, Number(nightHours) || 0);
   const hol8H = Math.max(0, Number(holidayHours8orLess) || 0);
@@ -178,86 +169,58 @@ export function calculateOvertimePay({
 
 /**
  * Calculates South Korea 2026 Net Salary and 4 Major Insurances (실수령액 모의계산)
+ * Insurance uses 2026 statutory rates; income tax is an annualized ESTIMATE (추정), not the
+ * NTS 간이세액표 (2026-10-17: the old comment claimed the table but used an ad-hoc formula, audit A-2).
  * @param {Object} params
  * @param {number} [params.salary=3500000] - Salary in KRW
  * @param {boolean} [params.isAnnual=false] - Whether salary is annual or monthly
  * @param {number} [params.nonTaxable=200000] - Non-taxable income (식대 등 비과세, default 200,000)
  * @param {number} [params.dependents=1] - Number of dependents (본인 포함 부양가족 수)
+ * @param {string} [params.payMonth="2026-07"] - Pay month YYYY-MM; selects pension base bounds (Jan–Jun 2026: 400k–6.37M, Jul 2026–: 410k–6.59M)
  */
 export function calculateNetSalary({
   salary = 3500000,
   isAnnual = false,
   nonTaxable = 200000,
   dependents = 1,
+  payMonth,
 }) {
-  const grossMonthly = isAnnual ? Math.floor(salary / 12) : Math.floor(salary);
-  const nonTax = Math.min(grossMonthly, Math.max(0, Number(nonTaxable) || 0));
-  const taxable = Math.max(0, grossMonthly - nonTax);
-
-  // 1. National Pension (국민연금) 4.5% (기준소득월액 상한 6,170,000원, 하한 390,000원)
-  const pensionBase = Math.min(6170000, Math.max(390000, taxable));
-  const nationalPension = Math.round(pensionBase * 0.045);
-
-  // 2. Health Insurance (건강보험) 3.595% (2026 statutory rate: 7.19% total, employee 3.595%)
-  const healthInsurance = Math.round(taxable * 0.03595);
-
-  // 3. Long-term Care Insurance (장기요양보험) 건강보험료의 13.14% (2026 statutory rate)
-  const longTermCare = Math.round(healthInsurance * 0.1314);
-
-  // 4. Employment Insurance (고용보험) 0.9%
-  const employmentInsurance = Math.round(taxable * 0.009);
-
-  const totalInsurance = nationalPension + healthInsurance + longTermCare + employmentInsurance;
-
-  // 5. Income Tax (근로소득세 간이세액 추정치: 국세청 간이세액표 2026 기준 다단계 누진공식)
-  const depCount = Math.max(1, Number(dependents) || 1);
-  let incomeTax = 0;
-  if (taxable > 1060000) {
-    if (taxable <= 3000000) {
-      incomeTax = Math.floor((taxable - 1000000) * 0.03);
-    } else if (taxable <= 5000000) {
-      incomeTax = Math.floor(60000 + (taxable - 3000000) * 0.08);
-    } else if (taxable <= 8000000) {
-      incomeTax = Math.floor(220000 + (taxable - 5000000) * 0.16);
-    } else {
-      incomeTax = Math.floor(700000 + (taxable - 8000000) * 0.24);
-    }
-    // 부양가족 감면 (1인 초과당 약 15,000원 감면)
-    if (depCount > 1) {
-      incomeTax = Math.max(0, incomeTax - (depCount - 1) * 15000);
-    }
-  }
-
-  // 6. Local Income Tax (지방소득세) 소득세의 10%
-  const localTax = Math.floor(incomeTax * 0.1);
-  const totalTax = incomeTax + localTax;
-
-  const totalDeductions = totalInsurance + totalTax;
-  const netPay = grossMonthly - totalDeductions;
-  const deductionRate = grossMonthly > 0 ? Number(((totalDeductions / grossMonthly) * 100).toFixed(2)) : 0;
+  const r = netSalary2026({ salary, isAnnual, nonTaxable, dependents, payMonth });
+  const { insurances, taxes } = r;
 
   return {
     year: 2026,
-    grossMonthly,
-    grossAnnual: grossMonthly * 12,
-    nonTaxable: nonTax,
-    taxable,
+    ratesEffectiveFrom: RATES_EFFECTIVE_FROM,
+    grossMonthly: r.grossMonthly,
+    grossAnnual: r.grossMonthly * 12,
+    nonTaxable: r.nonTaxable,
+    taxable: r.taxable,
     insurances: {
-      nationalPension,
-      healthInsurance,
-      longTermCare,
-      employmentInsurance,
-      totalInsurance,
+      nationalPension: insurances.nationalPension,
+      healthInsurance: insurances.healthInsurance,
+      longTermCare: insurances.longTermCare,
+      employmentInsurance: insurances.employmentInsurance,
+      totalInsurance: insurances.totalInsurance,
+      pensionBase: insurances.pensionBase,
+      pensionBaseBounds: insurances.pensionBounds,
     },
     taxes: {
-      incomeTax,
-      localTax,
-      totalTax,
+      incomeTax: taxes.incomeTax,
+      localTax: taxes.localTax,
+      totalTax: taxes.totalTax,
+      isEstimate: true,
+      method: "annualized-estimate (not NTS simplified withholding table)",
     },
-    totalDeductions,
-    netPayMonthly: netPay,
-    netPayAnnual: netPay * 12,
-    deductionRatePercentage: deductionRate,
+    totalDeductions: r.totalDeductions,
+    netPayMonthly: r.netPayMonthly,
+    netPayAnnual: r.netPayMonthly * 12,
+    deductionRatePercentage: r.deductionRatePercentage,
+    rates: {
+      pensionEmployee: KR_RATES_2026.pension.employee,
+      healthEmployee: KR_RATES_2026.health.employee,
+      longTermCareOfHealth: KR_RATES_2026.health.longTermCareOfHealth,
+      employmentEmployee: KR_RATES_2026.employment.employee,
+    },
   };
 }
 
@@ -279,7 +242,7 @@ export function calculateSeverancePay({
   threeMonthSalary = 9000000,
   annualBonus = 0,
   annualLeaveAllowance = 0,
-  hourlyWage = 10320,
+  hourlyWage = MIN_WAGE_2026,
   dailyHours = 8,
 }) {
   const start = new Date(startDate || "2024-01-01");
@@ -299,7 +262,7 @@ export function calculateSeverancePay({
   const dailyAverageWage = totalThreeMonthWage > 0 ? Math.floor(totalThreeMonthWage / threeMonthDays) : 0;
 
   // Ordinary daily wage check (통상임금 비교: 근로기준법 제2조 제2항)
-  const wage = Math.max(10320, Number(hourlyWage) || 10320);
+  const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
   const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
   const dailyOrdinaryWage = wage * hours;
 
@@ -333,12 +296,12 @@ export function calculateSeverancePay({
  */
 export function calculateAnnualLeave({
   yearsOfService = 1,
-  hourlyWage = 10320,
+  hourlyWage = MIN_WAGE_2026,
   dailyHours = 8,
   unusedDays = 0,
 }) {
   const years = Math.max(0, Number(yearsOfService) || 0);
-  const wage = Math.max(10320, Number(hourlyWage) || 10320);
+  const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
   const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
   const unused = Math.max(0, Number(unusedDays) || 0);
 
@@ -366,7 +329,9 @@ export function calculateAnnualLeave({
 
 /**
  * Calculates South Korea Parental Leave Benefit & 6+6 Parent Special Scheme (육아휴직 급여 및 6+6 부모육아휴직제)
- * Statutory reference: Employment Insurance Act Art. 70, Enforcement Decree Art. 95
+ * Statutory reference: Employment Insurance Act Art. 70, Enforcement Decree Art. 95, 95-3
+ * 2026-10-17: the 25% deferred payment was abolished on 2025-01-01 and the 6+6 first-month cap
+ * is 2.5M; totalDeferred stays in the response (always 0) so existing clients do not break.
  * @param {Object} params
  * @param {number} [params.monthlyWage=3500000] - Pre-tax monthly ordinary wage in KRW
  * @param {number} [params.leaveMonths=12] - Number of leave months (1~12)
@@ -378,65 +343,19 @@ export function calculateParentalLeave({
   isParental6Plus6 = false,
 }) {
   const wage = Math.max(0, Number(monthlyWage) || 3500000);
-  const months = Math.max(1, Math.min(12, Number(leaveMonths) || 12));
   const is6Plus6 = Boolean(isParental6Plus6);
-
-  const BONUS_CAPS = [2000000, 2500000, 3000000, 3500000, 4000000, 4500000];
-  const monthlyBreakdown = [];
-
-  let totalBenefit = 0;
-  let totalUpfront = 0;
-  let totalDeferred = 0;
-
-  for (let m = 0; m < months; m++) {
-    let gross = 0;
-    let upfront = 0;
-    let deferred = 0;
-
-    if (is6Plus6 && m < 6) {
-      const cap = BONUS_CAPS[m];
-      gross = Math.min(wage, cap);
-      upfront = gross;
-      deferred = 0;
-    } else {
-      let cap = 1600000;
-      let rate = 0.8;
-      if (m < 3) {
-        cap = 2500000;
-        rate = 1.0;
-      } else if (m < 6) {
-        cap = 2000000;
-        rate = 1.0;
-      }
-      gross = Math.min(Math.max(wage * rate, 700000), cap);
-      upfront = Math.round(gross * 0.75);
-      deferred = gross - upfront;
-    }
-
-    monthlyBreakdown.push({
-      month: m + 1,
-      grossAmount: gross,
-      upfrontPaid: upfront,
-      deferredAmount: deferred,
-    });
-
-    totalBenefit += gross;
-    totalUpfront += upfront;
-    totalDeferred += deferred;
-  }
+  const r = parentalLeaveSchedule2026({ monthlyWage: wage, leaveMonths, isParental6Plus6: is6Plus6 });
 
   return {
     year: 2026,
+    ratesEffectiveFrom: RATES_EFFECTIVE_FROM,
     monthlyOrdinaryWage: wage,
-    leaveMonths: months,
+    leaveMonths: r.months,
     isParental6Plus6: is6Plus6,
-    totalBenefit,
-    totalUpfront,
-    totalDeferred,
-    monthlyAverage: Math.round(totalBenefit / months),
-    monthlyBreakdown,
+    totalBenefit: r.totalBenefit,
+    totalUpfront: r.totalBenefit,
+    totalDeferred: 0,
+    monthlyAverage: r.monthlyAverage,
+    monthlyBreakdown: r.monthlyBreakdown,
   };
 }
-
-
-

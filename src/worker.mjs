@@ -40,6 +40,7 @@ import {
   calculateCarRegistration,
 } from "./modules/auto.mjs";
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
+import { KR_RATES_2026 } from "./modules/kr-rates-2026.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import {
   DOCS_HTML,
@@ -63,6 +64,12 @@ const commonHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+// 2026-10-17 (webmaster decision, company-brain projects/oiyo-ecosystem/
+// tools-api-webmaster-registration-2026-10-17.md §5): only the human /docs page is indexable.
+// Machine files stay crawlable (robots.txt Allow) so agents can fetch them, but must not appear
+// in search results, hence noindex without nofollow.
+const MACHINE_FILE_ROBOTS = { "X-Robots-Tag": "noindex" };
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -85,7 +92,8 @@ export default {
       );
     }
 
-    // Interactive Docs (Scalar UI)
+    // Interactive Docs (Scalar UI). Browsers hitting "/" get the same HTML for convenience, but
+    // "/" is noindex so /docs (the canonical) is the only indexable URL.
     if (
       (path === "/docs" || (path === "/" && request.headers.get("accept")?.includes("text/html"))) &&
       (method === "GET" || method === "HEAD")
@@ -96,6 +104,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "Cache-Control": "public, max-age=3600",
           "Access-Control-Allow-Origin": "*",
+          ...(path === "/" ? { "X-Robots-Tag": "noindex" } : {}),
         },
       });
     }
@@ -132,6 +141,7 @@ export default {
           "Content-Type": "text/plain; charset=utf-8",
           "Cache-Control": "public, max-age=86400",
           "Access-Control-Allow-Origin": "*",
+          ...MACHINE_FILE_ROBOTS,
         },
       });
     }
@@ -144,6 +154,7 @@ export default {
           "Content-Type": "text/plain; charset=utf-8",
           "Cache-Control": "public, max-age=86400",
           "Access-Control-Allow-Origin": "*",
+          ...MACHINE_FILE_ROBOTS,
         },
       });
     }
@@ -156,6 +167,7 @@ export default {
           "Content-Type": "application/json; charset=utf-8",
           "Cache-Control": "public, max-age=3600",
           "Access-Control-Allow-Origin": "*",
+          ...MACHINE_FILE_ROBOTS,
         },
       });
     }
@@ -263,6 +275,7 @@ export default {
             "Content-Type": "application/json; charset=utf-8",
             "Cache-Control": "public, max-age=3600",
             "Access-Control-Allow-Origin": "*",
+          ...MACHINE_FILE_ROBOTS,
           },
         }
       );
@@ -506,7 +519,7 @@ export default {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
+      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
       const weeklyHours = url.searchParams.get("hours") || 20;
       const taxType = url.searchParams.get("tax") || "none";
 
@@ -559,7 +572,7 @@ export default {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
+      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
       const overtimeHours = url.searchParams.get("overtimeHours") || 0;
       const nightHours = url.searchParams.get("nightHours") || 0;
       const holidayHours8orLess = url.searchParams.get("holidayHours8orLess") || 0;
@@ -645,6 +658,10 @@ export default {
       const isAnnual = url.searchParams.get("isAnnual") === "true";
       const nonTaxable = url.searchParams.get("nonTaxable") || 200000;
       const dependents = url.searchParams.get("dependents") || 1;
+      const payMonth = url.searchParams.get("payMonth") || undefined;
+      if (payMonth !== undefined && !/^\d{4}-\d{2}$/.test(payMonth)) {
+        return Response.json({ error: "payMonth must use YYYY-MM" }, { status: 400, headers: commonHeaders });
+      }
 
       try {
         const res = calculateNetSalary({
@@ -652,6 +669,7 @@ export default {
           isAnnual,
           nonTaxable: Number(nonTaxable),
           dependents: Number(dependents),
+          payMonth,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
@@ -673,7 +691,7 @@ export default {
       const threeMonthSalary = url.searchParams.get("threeMonthSalary") || 9000000;
       const annualBonus = url.searchParams.get("annualBonus") || 0;
       const annualLeaveAllowance = url.searchParams.get("annualLeaveAllowance") || 0;
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
+      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
       const dailyHours = url.searchParams.get("dailyHours") || 8;
 
       if (!startDate || !endDate) {
@@ -709,7 +727,7 @@ export default {
       }
 
       const yearsOfService = url.searchParams.get("yearsOfService") || 1;
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
+      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
       const dailyHours = url.searchParams.get("dailyHours") || 8;
       const unusedDays = url.searchParams.get("unusedDays") || 0;
 

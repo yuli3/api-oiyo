@@ -32,37 +32,13 @@ Disallow: /v1/
 Sitemap: https://api.oiyo.net/sitemap.xml
 `;
 
+// 2026-10-17: only /docs is indexable. "/" is noindex (JSON index / docs alias) and the
+// machine files carry X-Robots-Tag: noindex, so listing them here would contradict that.
 export const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://api.oiyo.net/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
     <loc>https://api.oiyo.net/docs</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://api.oiyo.net/openapi.json</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://api.oiyo.net/tools.json</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://api.oiyo.net/llms.txt</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://api.oiyo.net/llms-full.txt</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
 </urlset>`;
 
@@ -179,6 +155,8 @@ Computes the traditional Korean sexagenary cycle (60 Gapja) four pillars and fiv
   - \`isAnnual\` (boolean, default false)
   - \`nonTaxable\` (number, non-taxable allowance in KRW, default 200,000)
   - \`dependents\` (integer, number of dependents, default 1)
+  - \`payMonth\` (YYYY-MM, optional, default 2026-07; selects pension base bounds)
+- Rates: 2026 statutory (effective 2026-01-01). Income tax is an annualized estimate, not the NTS withholding table.
 
 ### GET /v1/labor/kr/severance-pay
 - Query Parameters:
@@ -191,7 +169,7 @@ Computes the traditional Korean sexagenary cycle (60 Gapja) four pillars and fiv
 ### GET /v1/labor/kr/annual-leave
 - Query Parameters:
   - \`yearsOfService\` (number, continuous service years)
-  - \`hourlyWage\` (number, default 10,320 KRW)
+  - \`hourlyWage\` (number, default 10,320 KRW — 2026 minimum wage)
   - \`unusedDays\` (number, optional)
 
 ---

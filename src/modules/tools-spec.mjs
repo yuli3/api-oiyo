@@ -83,7 +83,7 @@ export const TOOLS_SPEC = {
         parameters: {
           type: "object",
           properties: {
-            hourlyWage: { type: "number", description: "Hourly wage in KRW (minimum wage: 10,320 KRW)" },
+            hourlyWage: { type: "number", description: "Hourly wage in KRW (2026 minimum wage: 10,320 KRW)" },
             hours: { type: "number", description: "Contractual working hours per week (must be >= 15 for allowance)" },
             tax: { type: "string", enum: ["none", "income33", "fourMajor"], description: "Tax deduction option" },
           },
@@ -113,7 +113,7 @@ export const TOOLS_SPEC = {
       type: "function",
       function: {
         name: "calculate_net_salary",
-        description: "Calculates net monthly take-home salary after 4 major social insurances and statutory income tax in South Korea.",
+        description: "Calculates net monthly take-home salary after the 4 major social insurances (2026 statutory rates) and an ESTIMATED income tax (annualized estimate, not the NTS withholding table) in South Korea.",
         parameters: {
           type: "object",
           properties: {

@@ -7,6 +7,7 @@ import {
   calculateNetSalary,
   calculateSeverancePay,
   calculateAnnualLeave,
+  calculateParentalLeave,
 } from "../src/modules/labor.mjs";
 
 
@@ -21,7 +22,8 @@ test("calculateUnemploymentBenefits applies floor when wage is low", () => {
   assert.equal(res.year, 2026);
   assert.equal(res.scheduledDays, 120);
   assert.equal(res.limitType, "floor_applied");
-  assert.equal(res.dailyBenefit, 66048); // 10320 * 0.8 * 8
+  // Vectors from codex/labor-accuracy-20261017 (Codex): 2026 floor = 10,320 × 0.8 × 8.
+  assert.equal(res.dailyBenefit, 66048);
   assert.equal(res.totalBenefit, 66048 * 120);
 });
 
@@ -35,12 +37,12 @@ test("calculateUnemploymentBenefits applies cap when wage is high", () => {
 
   assert.equal(res.scheduledDays, 270);
   assert.equal(res.limitType, "cap_applied");
-  assert.equal(res.dailyBenefit, 68100); // 68100 cap (2026)
+  assert.equal(res.dailyBenefit, 68100); // 2026 cap
   assert.equal(res.totalBenefit, 68100 * 270);
 });
 
 test("calculateWeeklyAllowance calculates correct hours and wages", () => {
-  // 20 hours/week, 10,320 KRW/hr
+  // 2026 minimum hourly wage (vector ported from Codex labor-accuracy WIP).
   const res = calculateWeeklyAllowance({
     hourlyWage: 10320,
     weeklyHours: 20,
@@ -63,33 +65,27 @@ test("calculateWeeklyAllowance returns zero allowance when under 15 hours", () =
   assert.equal(res.isEligible, false);
   assert.equal(res.allowanceHours, 0);
   assert.equal(res.weeklyAllowance, 0);
-  assert.equal(res.totalWeeklyWage, 12 * 10320);
+  assert.equal(res.totalWeeklyWage, 123840);
 });
 
-test("calculateOvertimePay computes correct 1.5x overtime and 0.5x night premiums", () => {
+test("calculateOvertimePay clamps below-minimum wages to 10,320 and applies premiums", () => {
   const res = calculateOvertimePay({
-    hourlyWage: 10000, // normalized for testing
-    overtimeHours: 4,  // 4 * 10320 * 1.5 = 61920
-    nightHours: 2,     // 2 * 10320 * 0.5 = 10320
-    holidayHours8orLess: 8, // 8 * 10320 * 1.5 = 123840
-    holidayHoursOver8: 2,   // 2 * 10320 * 2.0 = 41280
+    hourlyWage: 10000,
+    overtimeHours: 4,
+    nightHours: 2,
+    holidayHours8orLess: 8,
+    holidayHoursOver8: 2,
   });
 
-  assert.equal(res.baseHourlyWage, 10320); // min wage clamp 10320
-  // With 10320:
-  // overtime: 4 * 10320 * 1.5 = 61920
-  // night: 2 * 10320 * 0.5 = 10320
-  // hol8: 8 * 10320 * 1.5 = 123840
-  // holOver: 2 * 10320 * 2.0 = 41280
-  // total: 61920 + 10320 + 123840 + 41280 = 237360
-  assert.equal(res.overtime.pay, 61920);
-  assert.equal(res.night.pay, 10320);
-  assert.equal(res.holiday.payUnder8, 123840);
-  assert.equal(res.holiday.payOver8, 41280);
+  assert.equal(res.baseHourlyWage, 10320);
+  assert.equal(res.overtime.pay, 61920); // 4 × 10,320 × 1.5
+  assert.equal(res.night.pay, 10320); // 2 × 10,320 × 0.5
+  assert.equal(res.holiday.payUnder8, 123840); // 8 × 10,320 × 1.5
+  assert.equal(res.holiday.payOver8, 41280); // 2 × 10,320 × 2.0
   assert.equal(res.totalExtraPay, 237360);
 });
 
-test("calculateNetSalary computes 4 major insurances and progressive tax", () => {
+test("calculateNetSalary uses 2026 rates (audit S-1 vector: 월 350만, 비과세 20만)", () => {
   const res = calculateNetSalary({
     salary: 3500000,
     isAnnual: false,
@@ -98,18 +94,29 @@ test("calculateNetSalary computes 4 major insurances and progressive tax", () =>
   });
 
   assert.equal(res.year, 2026);
+  assert.equal(res.ratesEffectiveFrom, "2026-01-01");
   assert.equal(res.grossMonthly, 3500000);
   assert.equal(res.taxable, 3300000);
-  // Pension: 3300000 * 0.045 = 148500
-  assert.equal(res.insurances.nationalPension, 148500);
-  // Health (2026: 3.595%): 3300000 * 0.03595 = 118635
-  assert.equal(res.insurances.healthInsurance, 118635);
-  // Care (2026: 13.14%): 118635 * 0.1314 = 15588.639 -> 15589
-  assert.equal(res.insurances.longTermCare, 15589);
-  // Emp: 3300000 * 0.009 = 29700
+  // Before (2025 rates): 148,500 / 116,985 / 15,150.
+  assert.equal(res.insurances.nationalPension, 156750); // 3,300,000 × 9.5% = 313,500 → half
+  assert.equal(res.insurances.healthInsurance, 118635); // 3,300,000 × 7.19% = 237,270 → half
+  assert.equal(res.insurances.longTermCare, 15585); // 237,270 × 0.9448/7.19 = 31,178 → 31,170 → half
   assert.equal(res.insurances.employmentInsurance, 29700);
-  assert.ok(res.netPayMonthly > 2900000 && res.netPayMonthly < 3200000);
-  assert.ok(res.deductionRatePercentage > 8 && res.deductionRatePercentage < 20);
+  assert.equal(res.taxes.isEstimate, true);
+  assert.equal(res.taxes.incomeTax, 115170);
+  assert.equal(res.taxes.localTax, 11510);
+  assert.equal(res.netPayMonthly, 3052650);
+});
+
+test("calculateNetSalary pension bounds follow the pay month", () => {
+  const july = calculateNetSalary({ salary: 8000000, nonTaxable: 0 });
+  assert.equal(july.insurances.pensionBase, 6590000);
+  assert.equal(july.insurances.nationalPension, 313025); // 6,590,000 × 9.5% = 626,050 → half
+  const march = calculateNetSalary({ salary: 8000000, nonTaxable: 0, payMonth: "2026-03" });
+  assert.equal(march.insurances.pensionBase, 6370000);
+  assert.equal(march.insurances.nationalPension, 302575); // 6,370,000 × 9.5% = 605,150 → half
+  const low = calculateNetSalary({ salary: 300000, nonTaxable: 0 });
+  assert.equal(low.insurances.pensionBase, 410000);
 });
 
 test("calculateSeverancePay calculates standard 2 years severance", () => {
@@ -150,4 +157,16 @@ test("calculateAnnualLeave determines statutory days based on service", () => {
   assert.equal(thirdYear.unusedLeaveAllowance, 10 * 10320 * 8);
 });
 
+test("calculateParentalLeave pays in full with no deferred share (2025 reform, audit S-4)", () => {
+  const general = calculateParentalLeave({ monthlyWage: 3000000, leaveMonths: 12 });
+  assert.equal(general.totalBenefit, 23100000); // 250만×3 + 200만×3 + 160만×6
+  assert.equal(general.totalDeferred, 0); // before: 5,775,000 shown as 사후지급
+  assert.equal(general.totalUpfront, 23100000);
 
+  const sixPlusSix = calculateParentalLeave({ monthlyWage: 5000000, leaveMonths: 6, isParental6Plus6: true });
+  assert.deepEqual(sixPlusSix.monthlyBreakdown.map((m) => m.grossAmount), [2500000, 2500000, 3000000, 3500000, 4000000, 4500000]);
+  // before: first month 2,000,000
+
+  const lowWage = calculateParentalLeave({ monthlyWage: 600000, leaveMonths: 1 });
+  assert.equal(lowWage.totalBenefit, 700000); // 하한 70만
+});
