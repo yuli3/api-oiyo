@@ -169,3 +169,148 @@ export function calculateSaju({ year, month, day, hour = null, minute = 0 }) {
     five_elements: elementDistribution,
   };
 }
+
+/**
+ * Calculates Saju Wu Xing (Five Elements) power balance, seasonal strength, and deficiency/excess
+ * @param {Object} params
+ * @param {number|string} params.year
+ * @param {number|string} params.month
+ * @param {number|string} params.day
+ * @param {number|string} [params.hour]
+ * @param {number|string} [params.minute]
+ */
+export function calculateElementsBalance({ year, month, day, hour = null, minute = 0 }) {
+  const saju = calculateSaju({ year, month, day, hour, minute });
+  const dmElement = saju.day_master.element;
+
+  // Seasonal mapping (월지 오행 계절)
+  const monthBranch = saju.pillars.month.branch;
+  const monthBranchElement = saju.pillars.month.branch_element;
+  const dayBranchElement = saju.pillars.day.branch_element;
+
+  const PRODUCING_ELEMENT = {
+    Wood: "Water", // 수생목
+    Fire: "Wood",  // 목생화
+    Earth: "Fire", // 화생토
+    Metal: "Earth",// 토생금
+    Water: "Metal",// 금생수
+  };
+
+  const PRODUCED_BY_DM = {
+    Wood: "Fire",
+    Fire: "Earth",
+    Earth: "Metal",
+    Metal: "Water",
+    Water: "Wood",
+  };
+
+  const CONTROLLING_DM = {
+    Wood: "Metal",
+    Fire: "Water",
+    Earth: "Wood",
+    Metal: "Fire",
+    Water: "Earth",
+  };
+
+  const CONTROLLED_BY_DM = {
+    Wood: "Earth",
+    Fire: "Metal",
+    Earth: "Water",
+    Metal: "Wood",
+    Water: "Fire",
+  };
+
+  // 1. 득령 (Deung-ryeong): Season power from month branch
+  const hasSeasonalPower = (monthBranchElement === dmElement || monthBranchElement === PRODUCING_ELEMENT[dmElement]);
+
+  // 2. 득지 (Deung-ji): Root power from day branch
+  const hasEarthlyPower = (dayBranchElement === dmElement || dayBranchElement === PRODUCING_ELEMENT[dmElement]);
+
+  // 3. 득세 (Deung-se): Supporting counts
+  let supportingScore = 0;
+  let drainingScore = 0;
+  let yinCount = 0;
+  let yangCount = 0;
+
+  const validPillars = Object.values(saju.pillars).filter(Boolean);
+  for (const p of validPillars) {
+    if (p.stem_yin_yang === "Yang") yangCount++; else yinCount++;
+    if (p.branch_yin_yang === "Yang") yangCount++; else yinCount++;
+
+    // Weighting: Month branch carries 3x weight, Day branch carries 2x, stems carry 1x
+    const stemWeight = 1.0;
+    const branchWeight = (p === saju.pillars.month) ? 3.0 : (p === saju.pillars.day) ? 2.0 : 1.0;
+
+    if (p.stem_element === dmElement || p.stem_element === PRODUCING_ELEMENT[dmElement]) {
+      supportingScore += stemWeight;
+    } else {
+      drainingScore += stemWeight;
+    }
+
+    if (p.branch_element === dmElement || p.branch_element === PRODUCING_ELEMENT[dmElement]) {
+      supportingScore += branchWeight;
+    } else {
+      drainingScore += branchWeight;
+    }
+  }
+
+  const totalScore = supportingScore + drainingScore;
+  const strengthPercentage = Math.round((supportingScore / totalScore) * 100);
+
+  let strengthLevel = "Balanced";
+  let strengthLevelKo = "중화(中和)";
+  if (strengthPercentage >= 58) {
+    strengthLevel = "Strong";
+    strengthLevelKo = "신강(身强)";
+  } else if (strengthPercentage <= 42) {
+    strengthLevel = "Weak";
+    strengthLevelKo = "신약(身弱)";
+  }
+
+  // Deficiency & Excess
+  const deficientElements = [];
+  const excessElements = [];
+  for (const el of ELEMENTS) {
+    const c = saju.five_elements[el].count;
+    if (c === 0) deficientElements.push({ element: el, element_ko: ELEMENTS_KO[el] });
+    if (c >= 3) excessElements.push({ element: el, element_ko: ELEMENTS_KO[el], count: c });
+  }
+
+  // Favorable Elements (용신·희신 방향)
+  const favorableElements = [];
+  if (strengthLevel === "Weak") {
+    favorableElements.push({ role: "용신(도움)", element: PRODUCING_ELEMENT[dmElement], element_ko: ELEMENTS_KO[PRODUCING_ELEMENT[dmElement]], reason: "인성(생조)" });
+    favorableElements.push({ role: "희신(협력)", element: dmElement, element_ko: ELEMENTS_KO[dmElement], reason: "비겁(자립)" });
+  } else if (strengthLevel === "Strong") {
+    favorableElements.push({ role: "용신(설기)", element: PRODUCED_BY_DM[dmElement], element_ko: ELEMENTS_KO[PRODUCED_BY_DM[dmElement]], reason: "식상(배출)" });
+    favorableElements.push({ role: "희신(제어)", element: CONTROLLING_DM[dmElement], element_ko: ELEMENTS_KO[CONTROLLING_DM[dmElement]], reason: "관성(절제)" });
+  } else {
+    favorableElements.push({ role: "균형(조화)", element: CONTROLLED_BY_DM[dmElement], element_ko: ELEMENTS_KO[CONTROLLED_BY_DM[dmElement]], reason: "재성(활동)" });
+    favorableElements.push({ role: "조후(조절)", element: PRODUCED_BY_DM[dmElement], element_ko: ELEMENTS_KO[PRODUCED_BY_DM[dmElement]], reason: "식상(표현)" });
+  }
+
+  return {
+    dayMaster: saju.day_master,
+    fiveElementsDistribution: saju.five_elements,
+    balanceAnalysis: {
+      strengthScore: strengthPercentage,
+      strengthLevel,
+      strengthLevelKo,
+      hasSeasonalPower, // 득령 여부
+      hasEarthlyPower,  // 득지 여부
+      supportingScore: Number(supportingScore.toFixed(1)),
+      drainingScore: Number(drainingScore.toFixed(1)),
+    },
+    yinYangBalance: {
+      yangCount,
+      yinCount,
+      yangPercentage: Math.round((yangCount / (yangCount + yinCount)) * 100),
+      yinPercentage: Math.round((yinCount / (yangCount + yinCount)) * 100),
+    },
+    specialConditions: {
+      deficientElements,
+      excessElements,
+    },
+    favorableElements,
+  };
+}

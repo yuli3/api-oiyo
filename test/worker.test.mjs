@@ -409,6 +409,50 @@ test("labor parental-leave endpoint calculates standard and 6+6 special rates", 
   assert.ok(data2.totalBenefit >= 18000000);
 });
 
+test("real-estate brokerage-fee endpoint calculates statutory commission and VAT", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/brokerage-fee?transactionType=sale&propertyType=residential&amount=600000000"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.transactionType, "sale");
+  assert.equal(data.propertyType, "residential");
+  assert.equal(data.amount, 600000000);
+  assert.equal(data.statutoryMaxRatePercent, 0.4);
+  assert.equal(data.brokerageFee, 2400000);
+  assert.equal(data.vat, 240000);
+  assert.equal(data.totalWithVat, 2640000);
+});
+
+test("real-estate property-tax endpoint calculates holding tax and 1-homeowner deductions", async () => {
+  // 1-homeowner 10억 (below 12억, no comp tax)
+  const res1 = await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/property-tax?price=1000000000&ownerType=single"));
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.equal(data1.officialPrice, 1000000000);
+  assert.equal(data1.comprehensiveTax.isSubject, false);
+  assert.ok(data1.propertyTax.total > 0);
+  assert.equal(data1.totalAnnualHoldingTax, data1.propertyTax.total);
+
+  // Multi-homeowner 15억 (exceeds 9억)
+  const res2 = await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/property-tax?price=1500000000&ownerType=multi&houseCount=2"));
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.comprehensiveTax.isSubject, true);
+  assert.ok(data2.comprehensiveTax.total > 0);
+  assert.equal(data2.totalAnnualHoldingTax, data2.propertyTax.total + data2.comprehensiveTax.total);
+});
+
+test("saju elements-balance endpoint calculates seasonal support and day master strength", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/saju/elements-balance?year=1990&month=5&day=15&hour=14"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.ok(data.dayMaster);
+  assert.ok(data.fiveElementsDistribution);
+  assert.ok(data.balanceAnalysis.strengthScore >= 0 && data.balanceAnalysis.strengthScore <= 100);
+  assert.ok(["Strong", "Weak", "Balanced"].includes(data.balanceAnalysis.strengthLevel));
+  assert.ok(data.yinYangBalance.yangPercentage + data.yinYangBalance.yinPercentage === 100);
+  assert.ok(Array.isArray(data.favorableElements));
+});
+
 
 
 

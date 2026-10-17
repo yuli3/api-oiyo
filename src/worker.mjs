@@ -1,5 +1,5 @@
 import { getHolidays, isBusinessDay, calculateDday, calculateWorkdays } from "./modules/calendar.mjs";
-import { calculateSaju } from "./modules/saju.mjs";
+import { calculateSaju, calculateElementsBalance } from "./modules/saju.mjs";
 import {
   calculateUnemploymentBenefits,
   calculateWeeklyAllowance,
@@ -25,6 +25,7 @@ import {
 import {
   calculateBrokerageFee,
   calculateAcquisitionTax,
+  calculatePropertyTax,
 } from "./modules/real-estate.mjs";
 import {
   calculateCarTax,
@@ -380,6 +381,59 @@ export default {
         });
       } catch (err) {
         return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 5-1. Saju: Five Elements Balance & Strength (오행 세력·균형 판정)
+    if (path === "/v1/saju/elements-balance") {
+      if (method === "GET" || method === "HEAD") {
+        const year = url.searchParams.get("year");
+        const month = url.searchParams.get("month");
+        const day = url.searchParams.get("day");
+        const hour = url.searchParams.get("hour");
+        const minute = url.searchParams.get("minute") || 0;
+
+        if (!year || !month || !day) {
+          return Response.json(
+            { error: "Missing required query parameters: year, month, day" },
+            { status: 400, headers: commonHeaders }
+          );
+        }
+
+        try {
+          const res = calculateElementsBalance({
+            year: parseInt(year, 10),
+            month: parseInt(month, 10),
+            day: parseInt(day, 10),
+            hour: hour ? parseInt(hour, 10) : null,
+            minute: parseInt(minute, 10),
+          });
+          return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+            status: 200,
+            headers: commonHeaders,
+          });
+        } catch (err) {
+          return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+        }
+      } else if (method === "POST") {
+        try {
+          const payload = await req.json();
+          if (!payload.year || !payload.month || !payload.day) {
+            return Response.json(
+              { error: "Missing required fields: year, month, day" },
+              { status: 400, headers: commonHeaders }
+            );
+          }
+          const res = calculateElementsBalance(payload);
+          return new Response(JSON.stringify(res), {
+            status: 200,
+            headers: { ...commonHeaders, "Cache-Control": "no-store" },
+          });
+        } catch (err) {
+          return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+        }
+      } else {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
     }
 
@@ -882,6 +936,37 @@ export default {
           houseCount,
           areaOver85,
           isFirstHome,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 22-1. Real Estate: Property Tax & Holding Tax (주택분 재산세 및 종합부동산세)
+    if (path === "/v1/real-estate/property-tax") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const price = url.searchParams.get("price") || 1000000000;
+      const ownerType = url.searchParams.get("ownerType") || "single";
+      const houseCount = url.searchParams.get("houseCount") || 1;
+      const includeUrban = url.searchParams.get("includeUrban") !== "false";
+      const ageRatePercent = url.searchParams.get("ageRatePercent") || 0;
+      const holdRatePercent = url.searchParams.get("holdRatePercent") || 0;
+
+      try {
+        const res = calculatePropertyTax({
+          price: Number(price),
+          ownerType,
+          houseCount: Number(houseCount),
+          includeUrban,
+          ageRatePercent: Number(ageRatePercent),
+          holdRatePercent: Number(holdRatePercent),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
