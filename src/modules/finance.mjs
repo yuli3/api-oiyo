@@ -285,3 +285,102 @@ export function calculateLoanRepayment({ principal, annualRate, months, method =
     totalPayment: roundedTotalPayment,
   };
 }
+
+/**
+ * Calculates stock DCA / average price dilution (물타기 평단가 계산)
+ * @param {Object} params
+ * @param {number} params.currentShares - Current number of shares held (> 0)
+ * @param {number} params.currentPrice - Current average purchase price (> 0)
+ * @param {number} params.additionalShares - Additional shares to buy (> 0)
+ * @param {number} params.additionalPrice - Additional share purchase price (> 0)
+ */
+export function calculateStockAverage({
+  currentShares,
+  currentPrice,
+  additionalShares,
+  additionalPrice,
+}) {
+  const cShares = Number(currentShares);
+  const cPrice = Number(currentPrice);
+  const aShares = Number(additionalShares);
+  const aPrice = Number(additionalPrice);
+
+  if (isNaN(cShares) || cShares <= 0 || isNaN(aShares) || aShares <= 0) {
+    throw new Error("Share quantities must be positive numbers");
+  }
+  if (isNaN(cPrice) || cPrice <= 0 || isNaN(aPrice) || aPrice <= 0) {
+    throw new Error("Share prices must be positive numbers");
+  }
+
+  const currentTotal = cShares * cPrice;
+  const additionalTotal = aShares * aPrice;
+  const totalShares = cShares + aShares;
+  const totalCost = currentTotal + additionalTotal;
+  const newAveragePrice = totalCost / totalShares;
+  const priceDiff = newAveragePrice - cPrice;
+  const priceDiffPercent = (priceDiff / cPrice) * 100;
+
+  return {
+    currentShares: cShares,
+    currentPrice: cPrice,
+    currentTotalCost: Math.round(currentTotal),
+    additionalShares: aShares,
+    additionalPrice: aPrice,
+    additionalTotalCost: Math.round(additionalTotal),
+    totalShares,
+    totalCost: Math.round(totalCost),
+    newAveragePrice: Number(newAveragePrice.toFixed(2)),
+    priceDiff: Number(priceDiff.toFixed(2)),
+    priceDiffPercent: Number(priceDiffPercent.toFixed(2)),
+  };
+}
+
+/**
+ * Calculates dividend yield, tax, and monthly payout (배당수익률 및 월배당 계산)
+ * @param {Object} params
+ * @param {number} params.sharePrice - Price per share (> 0)
+ * @param {number} params.annualDividendPerShare - Annual dividend per share (>= 0)
+ * @param {number} [params.sharesHeld=1] - Total shares held
+ * @param {number} [params.dividendTaxRate=15.4] - Dividend tax rate in % (default 15.4% Korea)
+ */
+export function calculateDividendYield({
+  sharePrice,
+  annualDividendPerShare,
+  sharesHeld = 1,
+  dividendTaxRate = 15.4,
+}) {
+  const price = Number(sharePrice);
+  const divPerShare = Number(annualDividendPerShare);
+  const shares = Number(sharesHeld) || 1;
+  const taxRate = Number(dividendTaxRate) ?? 15.4;
+
+  if (isNaN(price) || price <= 0) {
+    throw new Error("Share price must be a positive number");
+  }
+  if (isNaN(divPerShare) || divPerShare < 0) {
+    throw new Error("Annual dividend per share must be non-negative");
+  }
+
+  const grossYieldPercent = (divPerShare / price) * 100;
+  const totalInvestment = price * shares;
+  const grossAnnualDividend = divPerShare * shares;
+  const taxAmount = Math.round(grossAnnualDividend * (taxRate / 100));
+  const netAnnualDividend = grossAnnualDividend - taxAmount;
+  const netMonthlyDividend = Math.round(netAnnualDividend / 12);
+  const netYieldPercent = totalInvestment > 0 ? (netAnnualDividend / totalInvestment) * 100 : 0;
+
+  return {
+    sharePrice: price,
+    annualDividendPerShare: divPerShare,
+    sharesHeld: shares,
+    totalInvestment: Math.round(totalInvestment),
+    dividendTaxRatePercent: taxRate,
+    grossYieldPercent: Number(grossYieldPercent.toFixed(2)),
+    netYieldPercent: Number(netYieldPercent.toFixed(2)),
+    grossAnnualDividend: Math.round(grossAnnualDividend),
+    taxAmount,
+    netAnnualDividend: Math.round(netAnnualDividend),
+    netMonthlyDividend,
+  };
+}
+

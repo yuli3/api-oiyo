@@ -293,6 +293,51 @@ test("finance loan-repayment endpoint calculates equal principal and interest sc
   assert.equal(data.totalPayment, data.principal + data.totalInterest);
 });
 
+test("finance stock-average endpoint calculates blended average price", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/stock-average?currentShares=100&currentPrice=50000&additionalShares=100&additionalPrice=30000"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.totalShares, 200);
+  assert.equal(data.totalCost, 8000000);
+  assert.equal(data.newAveragePrice, 40000);
+  assert.equal(data.priceDiff, -10000);
+  assert.equal(data.priceDiffPercent, -20);
+});
+
+test("finance dividend-yield endpoint calculates yield and net dividends", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/finance/dividend-yield?sharePrice=50000&annualDividendPerShare=2500&sharesHeld=200&dividendTaxRate=15.4"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.grossYieldPercent, 5.0);
+  assert.equal(data.grossAnnualDividend, 500000);
+  assert.equal(data.taxAmount, 77000);
+  assert.equal(data.netAnnualDividend, 423000);
+  assert.equal(data.netMonthlyDividend, 35250);
+});
+
+test("real-estate brokerage-fee endpoint calculates statutory commission limit", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/brokerage-fee?transactionType=sale&propertyType=residential&amount=500000000"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.statutoryMaxRatePercent, 0.4);
+  assert.equal(data.brokerageFee, 2000000);
+  assert.equal(data.vat, 200000);
+  assert.equal(data.totalWithVat, 2200000);
+});
+
+test("real-estate acquisition-tax endpoint calculates tax and first-home discount", async () => {
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/acquisition-tax?price=500000000&houseCount=1&isFirstHome=true"));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.baseRatePercent, 1.0);
+  // 500,000,000 * 1% = 5,000,000 mainTax. With 2,000,000 first home discount -> 3,000,000
+  assert.equal(data.discountAmount, 2000000);
+  assert.equal(data.mainTax, 3000000);
+  assert.equal(data.educationTax, 500000); // 500,000,000 * 0.1%
+  assert.equal(data.totalTax, 3500000);
+});
+
+
 
 
 

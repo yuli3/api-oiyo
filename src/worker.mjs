@@ -16,7 +16,13 @@ import {
   calculateCompoundInterest,
   calculateInflation,
   calculateLoanRepayment,
+  calculateStockAverage,
+  calculateDividendYield,
 } from "./modules/finance.mjs";
+import {
+  calculateBrokerageFee,
+  calculateAcquisitionTax,
+} from "./modules/real-estate.mjs";
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import {
@@ -738,6 +744,112 @@ export default {
           months: Number(months),
           method: methodType,
           graceMonths: Number(graceMonths),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 19. Finance: Stock Average (물타기 평단가)
+    if (path === "/v1/finance/stock-average") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const currentShares = url.searchParams.get("currentShares") || 100;
+      const currentPrice = url.searchParams.get("currentPrice") || 50000;
+      const additionalShares = url.searchParams.get("additionalShares") || 50;
+      const additionalPrice = url.searchParams.get("additionalPrice") || 40000;
+
+      try {
+        const res = calculateStockAverage({
+          currentShares: Number(currentShares),
+          currentPrice: Number(currentPrice),
+          additionalShares: Number(additionalShares),
+          additionalPrice: Number(additionalPrice),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 20. Finance: Dividend Yield (배당수익률 및 월배당)
+    if (path === "/v1/finance/dividend-yield") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const sharePrice = url.searchParams.get("sharePrice") || 70000;
+      const annualDividendPerShare = url.searchParams.get("annualDividendPerShare") || 3500;
+      const sharesHeld = url.searchParams.get("sharesHeld") || 100;
+      const dividendTaxRate = url.searchParams.get("dividendTaxRate") || 15.4;
+
+      try {
+        const res = calculateDividendYield({
+          sharePrice: Number(sharePrice),
+          annualDividendPerShare: Number(annualDividendPerShare),
+          sharesHeld: Number(sharesHeld),
+          dividendTaxRate: Number(dividendTaxRate),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 21. Real Estate: Brokerage Fee (부동산 중개보수)
+    if (path === "/v1/real-estate/brokerage-fee") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const transactionType = url.searchParams.get("transactionType") || "sale";
+      const propertyType = url.searchParams.get("propertyType") || "residential";
+      const amount = url.searchParams.get("amount") || 500000000;
+
+      try {
+        const res = calculateBrokerageFee({
+          transactionType,
+          propertyType,
+          amount: Number(amount),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 22. Real Estate: Acquisition Tax (주택 취득세)
+    if (path === "/v1/real-estate/acquisition-tax") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const price = url.searchParams.get("price") || 650000000;
+      const houseCount = url.searchParams.get("houseCount") || "1";
+      const areaOver85 = url.searchParams.get("areaOver85") === "true";
+      const isFirstHome = url.searchParams.get("isFirstHome") === "true";
+
+      try {
+        const res = calculateAcquisitionTax({
+          price: Number(price),
+          houseCount,
+          areaOver85,
+          isFirstHome,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
