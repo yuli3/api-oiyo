@@ -511,8 +511,199 @@ export const OPENAPI_SPEC = {
           }
         }
       }
+    },
+    "/v1/tax/inheritance-gift": {
+      get: {
+        summary: "Korea inheritance & gift tax estimate (2026 상속·증여세 추정)",
+        description: "Statutory 5-bracket rates (10-50%) and deductions from the kr-rates-2026 SSOT, incl. 혼인·출산 증여공제 1억 and generation-skip surcharge (30%, minors over 2B KRW 40%). Excludes prior-gift aggregation and asset valuation; estimate only.",
+        parameters: [
+          { name: "mode", in: "query", schema: { type: "string", default: "gift", enum: ["gift", "inheritance"] }, description: "gift or inheritance" },
+          { name: "assetValue", in: "query", schema: { type: "number", default: 500000000 }, description: "Gross asset value in KRW" },
+          { name: "debtValue", in: "query", schema: { type: "number", default: 0 }, description: "Assumed debt (부담부증여) or estate debts in KRW" },
+          { name: "relationship", in: "query", schema: { type: "string", default: "spouse" }, description: "Gift: recipient relationship to donor" },
+          { name: "hasSpouse", in: "query", schema: { type: "boolean", default: true }, description: "Inheritance: surviving spouse exists" },
+          { name: "spouseDeduction", in: "query", schema: { type: "number" }, description: "Inheritance: spouse deduction override (clamped 5억~30억)" },
+          { name: "marriageBirthDeduction", in: "query", schema: { type: "number", default: 0 }, description: "Gift from lineal ascendant within 2 years of marriage/birth: amount up to 100000000, or true for the full 1억" },
+          { name: "isGenerationSkipping", in: "query", schema: { type: "boolean", default: false }, description: "Gift/inheritance skips a generation" },
+          { name: "isMinorRecipient", in: "query", schema: { type: "boolean" }, description: "Recipient is a minor (40% surcharge over 2B KRW)" },
+          { name: "hasVoluntaryReporting", in: "query", schema: { type: "boolean", default: true }, description: "Apply 3% filing credit" }
+        ],
+        responses: {
+          "200": {
+            description: "Korea inheritance & gift tax estimate (2026 상속·증여세 추정)",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    year: { type: "number" },
+                    mode: { type: "string" },
+                    assetValue: { type: "number" },
+                    debtValue: { type: "number" },
+                    netAssetValue: { type: "number" },
+                    relationship: { type: "string" },
+                    deductionAmount: { type: "number" },
+                    statutoryMaxDeduction: { type: "number" },
+                    marriageBirthDeductionApplied: { type: "number" },
+                    taxableBase: { type: "number" },
+                    bracketRatePercent: { type: "number" },
+                    progressiveDeduction: { type: "number" },
+                    calculatedTax: { type: "number" },
+                    generationSkipSurchargeRatePercent: { type: "number" },
+                    generationSkipSurcharge: { type: "number" },
+                    voluntaryReportCredit: { type: "number" },
+                    finalTax: { type: "number" },
+                    effectiveRatePercent: { type: "number" },
+                    notIncluded: { type: "array" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { description: "Invalid input" }
+        }
+      },
+      post: {
+        summary: "Korea inheritance & gift tax estimate (2026 상속·증여세 추정)",
+        description: "Same as GET; accepts the same fields as a JSON body.",
+        requestBody: { content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "200": {
+            description: "Korea inheritance & gift tax estimate (2026 상속·증여세 추정)",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    year: { type: "number" },
+                    mode: { type: "string" },
+                    assetValue: { type: "number" },
+                    debtValue: { type: "number" },
+                    netAssetValue: { type: "number" },
+                    relationship: { type: "string" },
+                    deductionAmount: { type: "number" },
+                    statutoryMaxDeduction: { type: "number" },
+                    marriageBirthDeductionApplied: { type: "number" },
+                    taxableBase: { type: "number" },
+                    bracketRatePercent: { type: "number" },
+                    progressiveDeduction: { type: "number" },
+                    calculatedTax: { type: "number" },
+                    generationSkipSurchargeRatePercent: { type: "number" },
+                    generationSkipSurcharge: { type: "number" },
+                    voluntaryReportCredit: { type: "number" },
+                    finalTax: { type: "number" },
+                    effectiveRatePercent: { type: "number" },
+                    notIncluded: { type: "array" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { description: "Invalid input" }
+        }
+      }
+    },
+    "/v1/finance/loan-refinance": {
+      get: {
+        summary: "Loan refinance break-even (대환대출 갈아타기 손익분기)",
+        description: "Compares interest savings with the user-supplied prepayment penalty rate and incidental costs. The penalty rate is an input, not a bank-specific figure.",
+        parameters: [
+          { name: "loanBalance", in: "query", schema: { type: "number", default: 200000000 }, description: "Outstanding balance in KRW" },
+          { name: "currentRate", in: "query", schema: { type: "number", default: 4.8 }, description: "Current annual rate (%)" },
+          { name: "newRate", in: "query", schema: { type: "number", default: 3.9 }, description: "New annual rate (%)" },
+          { name: "penaltyRate", in: "query", schema: { type: "number", default: 1.2 }, description: "Prepayment penalty rate (%) from your loan contract" },
+          { name: "elapsedMonths", in: "query", schema: { type: "number", default: 12 }, description: "Months since the loan started" },
+          { name: "incidentalCosts", in: "query", schema: { type: "number", default: 75000 }, description: "Stamp duty and other one-off costs in KRW" }
+        ],
+        responses: {
+          "200": {
+            description: "Loan refinance break-even (대환대출 갈아타기 손익분기)",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    year: { type: "number" },
+                    loanBalance: { type: "number" },
+                    currentRatePercent: { type: "number" },
+                    newRatePercent: { type: "number" },
+                    rateDifferencePercent: { type: "number" },
+                    monthlyInterestSavings: { type: "number" },
+                    annualInterestSavings: { type: "number" },
+                    prepaymentPenalty: { type: "number" },
+                    incidentalCosts: { type: "number" },
+                    totalSwitchingCost: { type: "number" },
+                    elapsedMonths: { type: "number" },
+                    breakEvenMonths: { type: "number" },
+                    netSavings1Year: { type: "number" },
+                    netSavings2Year: { type: "number" },
+                    netSavings3Year: { type: "number" },
+                    recommendation: { type: "string" },
+                    verdict: { type: "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { description: "Invalid input" }
+        }
+      }
+    },
+    "/v1/tax/card-deduction": {
+      get: {
+        summary: "Card income deduction estimate (2026 신용·체크카드 소득공제 추정)",
+        description: "Year-end card deduction from the kr-rates-2026 SSOT: 25% threshold, category rates, salary-tier base limits raised by number of children, extra limits. Refund uses an approximate tax base; estimate only.",
+        parameters: [
+          { name: "annualSalary", in: "query", schema: { type: "number", default: 50000000 }, description: "Gross annual salary (총급여) in KRW" },
+          { name: "creditCardSpend", in: "query", schema: { type: "number", default: 15000000 }, description: "Credit card spend" },
+          { name: "checkCardSpend", in: "query", schema: { type: "number", default: 10000000 }, description: "Debit card and cash receipt spend" },
+          { name: "cultureSpend", in: "query", schema: { type: "number", default: 1000000 }, description: "Books/performances/museums etc. (counted as credit over 70M salary)" },
+          { name: "traditionalMarketSpend", in: "query", schema: { type: "number", default: 1200000 }, description: "Traditional market spend" },
+          { name: "publicTransitSpend", in: "query", schema: { type: "number", default: 0 }, description: "Public transit spend" },
+          { name: "children", in: "query", schema: { type: "integer", default: 0 }, description: "Number of children (raises base limit)" }
+        ],
+        responses: {
+          "200": {
+            description: "Card income deduction estimate (2026 신용·체크카드 소득공제 추정)",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    year: { type: "number" },
+                    annualSalary: { type: "number" },
+                    threshold25Percent: { type: "number" },
+                    totalSpend: { type: "number" },
+                    cultureCountedAsCredit: { type: "boolean" },
+                    thresholdMet: { type: "boolean" },
+                    creditDeduction: { type: "number" },
+                    checkDeduction: { type: "number" },
+                    cultureDeduction: { type: "number" },
+                    marketDeduction: { type: "number" },
+                    transitDeduction: { type: "number" },
+                    grossDeduction: { type: "number" },
+                    children: { type: "number" },
+                    baseLimit: { type: "number" },
+                    extraLimit: { type: "number" },
+                    actualBaseDeduction: { type: "number" },
+                    actualExtraDeduction: { type: "number" },
+                    totalDeduction: { type: "number" },
+                    approxTaxBase: { type: "number" },
+                    marginalRate: { type: "number" },
+                    estimatedTaxRefund: { type: "number" },
+                    isEstimate: { type: "boolean" },
+                    excessSpend: { type: "number" },
+                    marginalTaxRatePercent: { type: "number" },
+                    goldenRuleRecommendation: { type: "string" },
+                    notIncluded: { type: "array" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { description: "Invalid input" }
+        }
+      }
     }
   }
 };
-
-
