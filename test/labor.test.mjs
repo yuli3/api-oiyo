@@ -21,8 +21,8 @@ test("calculateUnemploymentBenefits applies floor when wage is low", () => {
   assert.equal(res.year, 2026);
   assert.equal(res.scheduledDays, 120);
   assert.equal(res.limitType, "floor_applied");
-  assert.equal(res.dailyBenefit, 64192); // 10030 * 0.8 * 8
-  assert.equal(res.totalBenefit, 64192 * 120);
+  assert.equal(res.dailyBenefit, 66048); // 10320 * 0.8 * 8
+  assert.equal(res.totalBenefit, 66048 * 120);
 });
 
 test("calculateUnemploymentBenefits applies cap when wage is high", () => {
@@ -35,58 +35,58 @@ test("calculateUnemploymentBenefits applies cap when wage is high", () => {
 
   assert.equal(res.scheduledDays, 270);
   assert.equal(res.limitType, "cap_applied");
-  assert.equal(res.dailyBenefit, 66000); // 66000 cap
-  assert.equal(res.totalBenefit, 66000 * 270);
+  assert.equal(res.dailyBenefit, 68100); // 68100 cap (2026)
+  assert.equal(res.totalBenefit, 68100 * 270);
 });
 
 test("calculateWeeklyAllowance calculates correct hours and wages", () => {
-  // 20 hours/week, 10,030 KRW/hr
+  // 20 hours/week, 10,320 KRW/hr
   const res = calculateWeeklyAllowance({
-    hourlyWage: 10030,
+    hourlyWage: 10320,
     weeklyHours: 20,
     taxType: "none",
   });
 
   assert.equal(res.isEligible, true);
   assert.equal(res.allowanceHours, 4); // (20/40) * 8
-  assert.equal(res.weeklyAllowance, 40120);
-  assert.equal(res.baseWeeklyWage, 200600);
-  assert.equal(res.totalWeeklyWage, 240720);
+  assert.equal(res.weeklyAllowance, 41280);
+  assert.equal(res.baseWeeklyWage, 206400);
+  assert.equal(res.totalWeeklyWage, 247680);
 });
 
 test("calculateWeeklyAllowance returns zero allowance when under 15 hours", () => {
   const res = calculateWeeklyAllowance({
-    hourlyWage: 10030,
+    hourlyWage: 10320,
     weeklyHours: 12,
   });
 
   assert.equal(res.isEligible, false);
   assert.equal(res.allowanceHours, 0);
   assert.equal(res.weeklyAllowance, 0);
-  assert.equal(res.totalWeeklyWage, 12 * 10030);
+  assert.equal(res.totalWeeklyWage, 12 * 10320);
 });
 
 test("calculateOvertimePay computes correct 1.5x overtime and 0.5x night premiums", () => {
   const res = calculateOvertimePay({
     hourlyWage: 10000, // normalized for testing
-    overtimeHours: 4,  // 4 * 10000 * 1.5 = 60000
-    nightHours: 2,     // 2 * 10000 * 0.5 = 10000
-    holidayHours8orLess: 8, // 8 * 10000 * 1.5 = 120000
-    holidayHoursOver8: 2,   // 2 * 10000 * 2.0 = 40000
+    overtimeHours: 4,  // 4 * 10320 * 1.5 = 61920
+    nightHours: 2,     // 2 * 10320 * 0.5 = 10320
+    holidayHours8orLess: 8, // 8 * 10320 * 1.5 = 123840
+    holidayHoursOver8: 2,   // 2 * 10320 * 2.0 = 41280
   });
 
-  assert.equal(res.baseHourlyWage, 10030); // min wage clamp 10030
-  // With 10030:
-  // overtime: 4 * 10030 * 1.5 = 60180
-  // night: 2 * 10030 * 0.5 = 10030
-  // hol8: 8 * 10030 * 1.5 = 120360
-  // holOver: 2 * 10030 * 2.0 = 40120
-  // total: 60180 + 10030 + 120360 + 40120 = 230690
-  assert.equal(res.overtime.pay, 60180);
-  assert.equal(res.night.pay, 10030);
-  assert.equal(res.holiday.payUnder8, 120360);
-  assert.equal(res.holiday.payOver8, 40120);
-  assert.equal(res.totalExtraPay, 230690);
+  assert.equal(res.baseHourlyWage, 10320); // min wage clamp 10320
+  // With 10320:
+  // overtime: 4 * 10320 * 1.5 = 61920
+  // night: 2 * 10320 * 0.5 = 10320
+  // hol8: 8 * 10320 * 1.5 = 123840
+  // holOver: 2 * 10320 * 2.0 = 41280
+  // total: 61920 + 10320 + 123840 + 41280 = 237360
+  assert.equal(res.overtime.pay, 61920);
+  assert.equal(res.night.pay, 10320);
+  assert.equal(res.holiday.payUnder8, 123840);
+  assert.equal(res.holiday.payOver8, 41280);
+  assert.equal(res.totalExtraPay, 237360);
 });
 
 test("calculateNetSalary computes 4 major insurances and progressive tax", () => {
@@ -102,10 +102,10 @@ test("calculateNetSalary computes 4 major insurances and progressive tax", () =>
   assert.equal(res.taxable, 3300000);
   // Pension: 3300000 * 0.045 = 148500
   assert.equal(res.insurances.nationalPension, 148500);
-  // Health: 3300000 * 0.03545 = 116985
-  assert.equal(res.insurances.healthInsurance, 116985);
-  // Care: 116985 * 0.1295 = 15149.55 -> 15150
-  assert.equal(res.insurances.longTermCare, 15150);
+  // Health (2026: 3.595%): 3300000 * 0.03595 = 118635
+  assert.equal(res.insurances.healthInsurance, 118635);
+  // Care (2026: 13.14%): 118635 * 0.1314 = 15588.639 -> 15589
+  assert.equal(res.insurances.longTermCare, 15589);
   // Emp: 3300000 * 0.009 = 29700
   assert.equal(res.insurances.employmentInsurance, 29700);
   assert.ok(res.netPayMonthly > 2900000 && res.netPayMonthly < 3200000);
@@ -143,11 +143,11 @@ test("calculateSeverancePay returns zero when under 1 year", () => {
 test("calculateAnnualLeave determines statutory days based on service", () => {
   const firstYear = calculateAnnualLeave({ yearsOfService: 0.5, unusedDays: 5 });
   assert.equal(firstYear.statutoryLeaveDays, 11);
-  assert.equal(firstYear.unusedLeaveAllowance, 5 * 10030 * 8);
+  assert.equal(firstYear.unusedLeaveAllowance, 5 * 10320 * 8);
 
   const thirdYear = calculateAnnualLeave({ yearsOfService: 3, unusedDays: 10 });
   assert.equal(thirdYear.statutoryLeaveDays, 16); // 15 + floor(2/2) = 16
-  assert.equal(thirdYear.unusedLeaveAllowance, 10 * 10030 * 8);
+  assert.equal(thirdYear.unusedLeaveAllowance, 10 * 10320 * 8);
 });
 
 

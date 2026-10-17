@@ -51,11 +51,11 @@ export function calculateHealthInsurance({
 
   const totalAnnualIncome = bizInc + finInc + othInc;
 
-  // 1. 소득분 건강보험료 (소득정률제 7.09%)
+  // 1. 소득분 건강보험료 (2026 소득정률제 7.19%)
   // 연소득 336만원 초과 시 부과
   let monthlyIncomePrem = 0;
   if (totalAnnualIncome > 3360000) {
-    monthlyIncomePrem = (totalAnnualIncome / 12) * 0.0709;
+    monthlyIncomePrem = (totalAnnualIncome / 12) * 0.0719;
   }
 
   // 2. 재산분 건강보험료 (기본공제 5,000만원, 점수당 208.4원)
@@ -69,8 +69,8 @@ export function calculateHealthInsurance({
     monthlyHealthPrem = 19780;
   }
 
-  // 4. 장기요양보험료 (건강보험료의 12.95%)
-  const monthlyCarePrem = monthlyHealthPrem * 0.1295;
+  // 4. 장기요양보험료 (건강보험료의 13.14%)
+  const monthlyCarePrem = monthlyHealthPrem * 0.1314;
 
   const roundedHealth = Math.round(monthlyHealthPrem);
   const roundedCare = Math.round(monthlyCarePrem);

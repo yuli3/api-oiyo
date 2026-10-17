@@ -171,7 +171,7 @@ export const OPENAPI_SPEC = {
         summary: "South Korea Weekly Holiday Allowance Calculator",
         description: "Calculates statutory weekly holiday allowance under Labor Standards Act Art. 55.",
         parameters: [
-          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10030 }, description: "Hourly wage in KRW (min 10,030)" },
+          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Hourly wage in KRW (min 10,320)" },
           { name: "hours", in: "query", required: false, schema: { type: "number", default: 20 }, description: "Weekly contractual working hours" },
           { name: "tax", in: "query", required: false, schema: { type: "string", enum: ["none", "freelance", "four"], default: "none" }, description: "Tax deduction mode" }
         ],
@@ -289,7 +289,7 @@ export const OPENAPI_SPEC = {
         description: "Calculates statutory annual leave days under Labor Standards Act Art. 60 and cash-out allowance for unused days.",
         parameters: [
           { name: "yearsOfService", in: "query", required: false, schema: { type: "number", default: 1 }, description: "Completed years of service" },
-          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10030 }, description: "Ordinary hourly wage" },
+          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Ordinary hourly wage" },
           { name: "dailyHours", in: "query", required: false, schema: { type: "number", default: 8 }, description: "Daily working hours" },
           { name: "unusedDays", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Remaining unused leave days" }
         ],
@@ -349,7 +349,7 @@ export const OPENAPI_SPEC = {
         summary: "Overtime, Night, and Holiday Pay Calculator (연장·야간·휴일수당)",
         description: "Calculates statutory wage premiums under South Korea Labor Standards Act Art. 56.",
         parameters: [
-          { name: "hourlyWage", in: "query", schema: { type: "integer", default: 10030 }, description: "Base hourly wage (KRW)" },
+          { name: "hourlyWage", in: "query", schema: { type: "integer", default: 10320 }, description: "Base hourly wage (KRW)" },
           { name: "overtimeHours", in: "query", schema: { type: "number", default: 0 }, description: "Overtime hours (1.5x)" },
           { name: "nightHours", in: "query", schema: { type: "number", default: 0 }, description: "Night hours between 22:00-06:00 (+0.5x)" },
           { name: "holidayHours8orLess", in: "query", schema: { type: "number", default: 0 }, description: "Holiday hours up to 8h (1.5x)" },

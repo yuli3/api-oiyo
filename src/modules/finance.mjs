@@ -741,4 +741,315 @@ export function calculateVatComparison({
   };
 }
 
+/**
+ * Calculates South Korea 2026 Inheritance and Gift Tax (상속세 및 증여세 모의계산)
+ * Statutory reference: Inheritance and Gift Tax Act (상속세 및 증여세법) Art. 13, 19, 21, 24, 26, 53, 56
+ * @param {Object} params
+ * @param {'gift'|'inheritance'} [params.mode='gift'] - Calculation mode
+ * @param {number} params.assetValue - Gross market value of gifted/inherited assets
+ * @param {number} [params.debtValue=0] - Transferred liabilities / debt deducted
+ * @param {'spouse'|'child_adult'|'child_minor'|'parent'|'other_relative'|'other'} [params.relationship='spouse'] - Beneficiary relationship
+ * @param {boolean} [params.hasSpouse=true] - (Inheritance only) Surviving spouse deduction eligibility
+ * @param {boolean} [params.isGenerationSkipping=false] - Grandchild or skipped generation surcharge (30%)
+ * @param {boolean} [params.hasVoluntaryReporting=true] - Statutory voluntary filing credit (3%)
+ */
+export function calculateInheritanceGiftTax({
+  mode = "gift",
+  assetValue,
+  debtValue = 0,
+  relationship = "spouse",
+  hasSpouse = true,
+  isGenerationSkipping = false,
+  hasVoluntaryReporting = true,
+}) {
+  const asset = Number(assetValue);
+  const debt = Math.max(0, Number(debtValue) || 0);
+
+  if (isNaN(asset) || asset < 0) {
+    throw new Error("assetValue must be a non-negative number");
+  }
+
+  const netAssetValue = Math.max(0, asset - debt);
+
+  let deductionAmount = 0;
+  if (mode === "gift") {
+    switch (relationship) {
+      case "spouse":
+        deductionAmount = 600000000; // 6억 원
+        break;
+      case "child_adult":
+      case "parent":
+        deductionAmount = 50000000; // 5,000만 원
+        break;
+      case "child_minor":
+        deductionAmount = 20000000; // 2,000만 원
+        break;
+      case "other_relative":
+        deductionAmount = 10000000; // 1,000만 원
+        break;
+      case "other":
+      default:
+        deductionAmount = 0;
+        break;
+    }
+  } else {
+    // Inheritance: Basic lump sum deduction 500M + spouse min 500M
+    const lumpSum = 500000000;
+    const spouseDeduction = hasSpouse ? 500000000 : 0;
+    deductionAmount = lumpSum + spouseDeduction;
+  }
+
+  const taxableBase = Math.max(0, netAssetValue - deductionAmount);
+
+  // 5-bracket progressive tax rates
+  let bracketRate = 0.1;
+  let progressiveDeduction = 0;
+  if (taxableBase <= 100000000) {
+    bracketRate = 0.1;
+    progressiveDeduction = 0;
+  } else if (taxableBase <= 500000000) {
+    bracketRate = 0.2;
+    progressiveDeduction = 10000000;
+  } else if (taxableBase <= 1000000000) {
+    bracketRate = 0.3;
+    progressiveDeduction = 60000000;
+  } else if (taxableBase <= 3000000000) {
+    bracketRate = 0.4;
+    progressiveDeduction = 160000000;
+  } else {
+    bracketRate = 0.5;
+    progressiveDeduction = 460000000;
+  }
+
+  const calculatedTax = taxableBase > 0 ? Math.max(0, Math.floor(taxableBase * bracketRate - progressiveDeduction)) : 0;
+
+  let generationSkipSurcharge = 0;
+  if (isGenerationSkipping && calculatedTax > 0) {
+    generationSkipSurcharge = Math.floor(calculatedTax * 0.3);
+  }
+
+  const subtotalTax = calculatedTax + generationSkipSurcharge;
+
+  let voluntaryReportCredit = 0;
+  if (hasVoluntaryReporting && subtotalTax > 0) {
+    voluntaryReportCredit = Math.floor(subtotalTax * 0.03); // 3%
+  }
+
+  const finalTax = Math.max(0, subtotalTax - voluntaryReportCredit);
+  const effectiveRatePercent = asset > 0 ? Number(((finalTax / asset) * 100).toFixed(2)) : 0;
+
+  return {
+    year: 2026,
+    mode,
+    assetValue: asset,
+    debtValue: debt,
+    netAssetValue,
+    relationship,
+    deductionAmount: Math.min(netAssetValue, deductionAmount),
+    statutoryMaxDeduction: deductionAmount,
+    taxableBase,
+    bracketRatePercent: Math.round(bracketRate * 100),
+    progressiveDeduction,
+    calculatedTax,
+    generationSkipSurcharge,
+    voluntaryReportCredit,
+    finalTax,
+    effectiveRatePercent,
+  };
+}
+
+/**
+ * Calculates South Korea Loan Refinancing Gains, Prepayment Penalty & Break-Even Point (대출 중도상환수수료 및 갈아타기 실익)
+ * Based on Financial Consumer Protection Act standards and sliding 3-year fee reduction formula
+ * @param {Object} params
+ * @param {number} params.loanBalance - Remaining loan balance to refinance in KRW
+ * @param {number} params.currentRate - Existing annual interest rate in %
+ * @param {number} params.newRate - New annual interest rate in %
+ * @param {number} [params.penaltyRate=1.2] - Prepayment penalty rate in % (default 1.2%, 2026 guidelines)
+ * @param {number} [params.elapsedMonths=12] - Elapsed months since loan origination (0~36)
+ * @param {number} [params.incidentalCosts=75000] - Refinancing incidental fees (stamp duty, mortgage filing, etc.)
+ */
+export function calculateLoanRefinance({
+  loanBalance,
+  currentRate,
+  newRate,
+  penaltyRate = 1.2,
+  elapsedMonths = 12,
+  incidentalCosts = 75000,
+}) {
+  const balance = Number(loanBalance);
+  const curR = Number(currentRate);
+  const newR = Number(newRate);
+  const penR = Number(penaltyRate);
+  const months = Math.max(0, Math.min(36, parseInt(elapsedMonths, 10) || 0));
+  const incidental = Math.max(0, Number(incidentalCosts) || 0);
+
+  if (isNaN(balance) || balance <= 0) {
+    throw new Error("loanBalance must be a positive number");
+  }
+  if (isNaN(curR) || curR <= 0 || isNaN(newR) || newR <= 0) {
+    throw new Error("currentRate and newRate must be positive numbers");
+  }
+
+  // Prepayment penalty sliding 3-year taper (전액 면제 after 36 months)
+  let prepaymentPenalty = 0;
+  if (months < 36) {
+    prepaymentPenalty = Math.floor(balance * (penR / 100) * ((36 - months) / 36));
+  }
+
+  const totalSwitchingCost = prepaymentPenalty + incidental;
+
+  // Monthly and Annual Interest Savings
+  const monthlyCurrentInterest = (balance * (curR / 100)) / 12;
+  const monthlyNewInterest = (balance * (newR / 100)) / 12;
+  const monthlyInterestSavings = Math.floor(monthlyCurrentInterest - monthlyNewInterest);
+  const annualInterestSavings = monthlyInterestSavings * 12;
+  const rateDifferencePercent = Number((curR - newR).toFixed(2));
+
+  let breakEvenMonths = 0;
+  let recommendation = "not_recommended";
+  let verdict = "";
+
+  if (monthlyInterestSavings <= 0) {
+    breakEvenMonths = Infinity;
+    recommendation = "not_recommended";
+    verdict = "신규 대출 금리가 기존보다 높거나 같아 대환 실익이 없습니다.";
+  } else {
+    breakEvenMonths = totalSwitchingCost > 0 ? Number((totalSwitchingCost / monthlyInterestSavings).toFixed(1)) : 0;
+    if (breakEvenMonths <= 12) {
+      recommendation = "strong_recommend";
+      verdict = `1년 이내(${breakEvenMonths}개월)에 모든 수수료와 비용을 회수하여 갈아타기 실익이 큽니다.`;
+    } else if (breakEvenMonths <= 24) {
+      recommendation = "recommend";
+      verdict = `약 ${breakEvenMonths}개월 만에 비용을 회수하므로 대환을 권장합니다.`;
+    } else if (breakEvenMonths <= 36) {
+      recommendation = "caution";
+      verdict = `비용 회수에 ${breakEvenMonths}개월이 걸리므로 향후 대출을 장기 유지할 계획일 때만 유리합니다.`;
+    } else {
+      recommendation = "not_recommended";
+      verdict = "수수료 회수에 3년 이상 소요되어 3년 경과 후 중도상환수수료 면제 시점에 대환하는 것이 유리합니다.";
+    }
+  }
+
+  const netSavings1Year = monthlyInterestSavings * 12 - totalSwitchingCost;
+  const netSavings2Year = monthlyInterestSavings * 24 - totalSwitchingCost;
+  const netSavings3Year = monthlyInterestSavings * 36 - totalSwitchingCost;
+
+  return {
+    year: 2026,
+    loanBalance: balance,
+    currentRatePercent: curR,
+    newRatePercent: newR,
+    rateDifferencePercent,
+    monthlyInterestSavings,
+    annualInterestSavings,
+    prepaymentPenalty,
+    incidentalCosts: incidental,
+    totalSwitchingCost,
+    elapsedMonths: months,
+    breakEvenMonths: isFinite(breakEvenMonths) ? breakEvenMonths : null,
+    netSavings1Year,
+    netSavings2Year,
+    netSavings3Year,
+    recommendation,
+    verdict,
+  };
+}
+
+/**
+ * Calculates South Korea 2026 Year-End Card Tax Deduction & Golden Ratio (연말정산 신용/체크카드 소득공제 및 황금비율 산출)
+ * Statutory reference: Income Tax Act (소득세법) Art. 126-2
+ * @param {Object} params
+ * @param {number} params.annualSalary - Annual gross salary (비과세 제외 총급여) in KRW
+ * @param {number} [params.creditCardSpend=0] - Annual credit card spending
+ * @param {number} [params.checkCardSpend=0] - Annual check/debit card and cash receipt spending
+ * @param {number} [params.cultureSpend=0] - Book, performing arts, museum, cinema spending
+ * @param {number} [params.traditionalMarketSpend=0] - Traditional market and public transport spending
+ */
+export function calculateCardTaxDeduction({
+  annualSalary,
+  creditCardSpend = 0,
+  checkCardSpend = 0,
+  cultureSpend = 0,
+  traditionalMarketSpend = 0,
+}) {
+  const salary = Number(annualSalary);
+  const credit = Math.max(0, Number(creditCardSpend) || 0);
+  const check = Math.max(0, Number(checkCardSpend) || 0);
+  const culture = Math.max(0, Number(cultureSpend) || 0);
+  const market = Math.max(0, Number(traditionalMarketSpend) || 0);
+
+  if (isNaN(salary) || salary <= 0) {
+    throw new Error("annualSalary must be a positive number");
+  }
+
+  const threshold25Percent = Math.floor(salary * 0.25);
+  const totalSpend = credit + check + culture + market;
+  const excessSpend = Math.max(0, totalSpend - threshold25Percent);
+
+  // Threshold consumption logic: credit card first (lowest rate 15%)
+  let remainingThreshold = threshold25Percent;
+
+  const creditToThreshold = Math.min(credit, remainingThreshold);
+  remainingThreshold -= creditToThreshold;
+  const eligibleCredit = credit - creditToThreshold;
+  const creditDeduction = Math.floor(eligibleCredit * 0.15);
+
+  const checkToThreshold = Math.min(check, remainingThreshold);
+  remainingThreshold -= checkToThreshold;
+  const eligibleCheck = check - checkToThreshold;
+  const checkDeduction = Math.floor(eligibleCheck * 0.30);
+
+  const isUnder70M = salary <= 70000000;
+  const cultureToThreshold = Math.min(culture, remainingThreshold);
+  remainingThreshold -= cultureToThreshold;
+  const eligibleCulture = isUnder70M ? (culture - cultureToThreshold) : 0;
+  const cultureDeduction = Math.floor(eligibleCulture * 0.30);
+
+  const marketToThreshold = Math.min(market, remainingThreshold);
+  remainingThreshold -= marketToThreshold;
+  const eligibleMarket = market - marketToThreshold;
+  const marketDeduction = Math.floor(eligibleMarket * 0.40);
+
+  // Statutory Limits
+  const baseLimit = isUnder70M ? 3000000 : 2500000;
+  const actualBaseDeduction = Math.min(baseLimit, creditDeduction + checkDeduction);
+
+  const extraLimit = isUnder70M ? 3000000 : 2000000;
+  const actualExtraDeduction = Math.min(extraLimit, cultureDeduction + marketDeduction);
+
+  const totalDeduction = actualBaseDeduction + actualExtraDeduction;
+
+  // Marginal income tax rate estimation
+  let marginalRate = 0.15;
+  if (salary <= 14000000) marginalRate = 0.06;
+  else if (salary <= 50000000) marginalRate = 0.15;
+  else if (salary <= 88000000) marginalRate = 0.24;
+  else marginalRate = 0.35;
+
+  const estimatedTaxRefund = Math.floor(totalDeduction * marginalRate * 1.1); // With 10% local tax
+
+  const goldenRuleRecommendation = `총급여의 25%인 ${threshold25Percent.toLocaleString()}원까지는 혜택이 풍부한 신용카드로 결제하고, 초과분은 공제율이 2배인 체크카드·현금영수증(30%)으로 결제하여 기본 한도(${baseLimit.toLocaleString()}원)를 달성하는 것이 최적입니다.`;
+
+  return {
+    year: 2026,
+    annualSalary: salary,
+    threshold25Percent,
+    totalSpend,
+    excessSpend,
+    creditDeduction,
+    checkDeduction,
+    cultureDeduction,
+    marketDeduction,
+    baseLimit,
+    extraLimit,
+    actualBaseDeduction,
+    actualExtraDeduction,
+    totalDeduction,
+    marginalTaxRatePercent: Math.round(marginalRate * 100),
+    estimatedTaxRefund,
+    goldenRuleRecommendation,
+  };
+}
+
 

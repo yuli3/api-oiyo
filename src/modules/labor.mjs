@@ -3,8 +3,8 @@
 // - Unemployment benefits: Employment Insurance Act Art. 40-50
 // - Weekly holiday allowance: Labor Standards Act Art. 55, Enforcement Decree Art. 30
 
-const MIN_WAGE_2026 = 10030; // 2026 statutory minimum wage
-const MAX_DAILY_BENEFIT = 66000; // Statutory cap
+const MIN_WAGE_2026 = 10320; // 2026 statutory minimum wage
+const MAX_DAILY_BENEFIT = 68100; // 2026 statutory cap
 
 const DAYS_TABLE = {
   under: { p1: 120, p2: 150, p3: 180, p4: 210, p5: 240 },
@@ -63,16 +63,16 @@ export function calculateUnemploymentBenefits({
 /**
  * Calculates South Korea weekly holiday allowance (주휴수당 계산)
  * @param {Object} params
- * @param {number} [params.hourlyWage=10030] - Hourly wage in KRW (min 10,030)
+ * @param {number} [params.hourlyWage=10320] - Hourly wage in KRW (min 10,320)
  * @param {number} [params.weeklyHours=20] - Total contractual hours per week
  * @param {'none'|'freelance'|'four'} [params.taxType='none'] - Deductions: 'none' (0%), 'freelance' (3.3%), 'four' (~9.4%)
  */
 export function calculateWeeklyAllowance({
-  hourlyWage = 10030,
+  hourlyWage = 10320,
   weeklyHours = 20,
   taxType = "none",
 }) {
-  const wage = Math.max(10030, Number(hourlyWage) || 10030);
+  const wage = Math.max(10320, Number(hourlyWage) || 10320);
   const hours = Math.max(0, Number(weeklyHours) || 0);
 
   const isEligible = hours >= 15;
@@ -120,20 +120,20 @@ export function calculateWeeklyAllowance({
  * Calculates South Korea overtime, night, and holiday pay (연장·야간·휴일근로 가산수당)
  * Statutory reference: Labor Standards Act Art. 56
  * @param {Object} params
- * @param {number} [params.hourlyWage=10030] - Base regular hourly wage (KRW)
+ * @param {number} [params.hourlyWage=10320] - Base regular hourly wage (KRW)
  * @param {number} [params.overtimeHours=0] - Overtime hours (hours exceeding 8h/day or 40h/week, 1.5x)
  * @param {number} [params.nightHours=0] - Night work hours (22:00 ~ 06:00, +0.5x)
  * @param {number} [params.holidayHours8orLess=0] - Holiday work up to 8 hours (1.5x)
  * @param {number} [params.holidayHoursOver8=0] - Holiday work exceeding 8 hours (2.0x)
  */
 export function calculateOvertimePay({
-  hourlyWage = 10030,
+  hourlyWage = 10320,
   overtimeHours = 0,
   nightHours = 0,
   holidayHours8orLess = 0,
   holidayHoursOver8 = 0,
 }) {
-  const wage = Math.max(10030, Number(hourlyWage) || 10030);
+  const wage = Math.max(10320, Number(hourlyWage) || 10320);
   const otH = Math.max(0, Number(overtimeHours) || 0);
   const ntH = Math.max(0, Number(nightHours) || 0);
   const hol8H = Math.max(0, Number(holidayHours8orLess) || 0);
@@ -198,11 +198,11 @@ export function calculateNetSalary({
   const pensionBase = Math.min(6170000, Math.max(390000, taxable));
   const nationalPension = Math.round(pensionBase * 0.045);
 
-  // 2. Health Insurance (건강보험) 3.545%
-  const healthInsurance = Math.round(taxable * 0.03545);
+  // 2. Health Insurance (건강보험) 3.595% (2026 statutory rate: 7.19% total, employee 3.595%)
+  const healthInsurance = Math.round(taxable * 0.03595);
 
-  // 3. Long-term Care Insurance (장기요양보험) 건강보험료의 12.95%
-  const longTermCare = Math.round(healthInsurance * 0.1295);
+  // 3. Long-term Care Insurance (장기요양보험) 건강보험료의 13.14% (2026 statutory rate)
+  const longTermCare = Math.round(healthInsurance * 0.1314);
 
   // 4. Employment Insurance (고용보험) 0.9%
   const employmentInsurance = Math.round(taxable * 0.009);
@@ -270,7 +270,7 @@ export function calculateNetSalary({
  * @param {number} [params.threeMonthSalary=9000000] - Total base salary of last 3 months
  * @param {number} [params.annualBonus=0] - Total annual bonuses (연간 상여금 총액)
  * @param {number} [params.annualLeaveAllowance=0] - Unused annual leave allowance paid in past year
- * @param {number} [params.hourlyWage=10030] - Ordinary hourly wage for comparison
+ * @param {number} [params.hourlyWage=10320] - Ordinary hourly wage for comparison
  * @param {number} [params.dailyHours=8] - Contractual hours per day
  */
 export function calculateSeverancePay({
@@ -279,7 +279,7 @@ export function calculateSeverancePay({
   threeMonthSalary = 9000000,
   annualBonus = 0,
   annualLeaveAllowance = 0,
-  hourlyWage = 10030,
+  hourlyWage = 10320,
   dailyHours = 8,
 }) {
   const start = new Date(startDate || "2024-01-01");
@@ -299,7 +299,7 @@ export function calculateSeverancePay({
   const dailyAverageWage = totalThreeMonthWage > 0 ? Math.floor(totalThreeMonthWage / threeMonthDays) : 0;
 
   // Ordinary daily wage check (통상임금 비교: 근로기준법 제2조 제2항)
-  const wage = Math.max(10030, Number(hourlyWage) || 10030);
+  const wage = Math.max(10320, Number(hourlyWage) || 10320);
   const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
   const dailyOrdinaryWage = wage * hours;
 
@@ -327,18 +327,18 @@ export function calculateSeverancePay({
  * Statutory reference: Labor Standards Act Art. 60, 61
  * @param {Object} params
  * @param {number} [params.yearsOfService=1] - Completed years of service
- * @param {number} [params.hourlyWage=10030] - Ordinary hourly wage in KRW
+ * @param {number} [params.hourlyWage=10320] - Ordinary hourly wage in KRW
  * @param {number} [params.dailyHours=8] - Contractual working hours per day
  * @param {number} [params.unusedDays=0] - Remaining unused leave days
  */
 export function calculateAnnualLeave({
   yearsOfService = 1,
-  hourlyWage = 10030,
+  hourlyWage = 10320,
   dailyHours = 8,
   unusedDays = 0,
 }) {
   const years = Math.max(0, Number(yearsOfService) || 0);
-  const wage = Math.max(10030, Number(hourlyWage) || 10030);
+  const wage = Math.max(10320, Number(hourlyWage) || 10320);
   const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
   const unused = Math.max(0, Number(unusedDays) || 0);
 

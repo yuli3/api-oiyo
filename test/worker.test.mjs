@@ -63,17 +63,17 @@ test("labor unemployment-benefits endpoint returns accurate calculation", async 
   const data = await res.json();
   assert.equal(data.year, 2026);
   assert.equal(data.scheduledDays, 180);
-  assert.equal(data.dailyBenefit, 64192);
+  assert.equal(data.dailyBenefit, 66048);
   assert.ok(data.totalBenefit > 0);
 });
 
 test("labor weekly-allowance endpoint returns allowance breakdown", async () => {
-  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/weekly-allowance?hourlyWage=10030&hours=20"));
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/weekly-allowance?hourlyWage=10320&hours=20"));
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.isEligible, true);
   assert.equal(data.allowanceHours, 4);
-  assert.equal(data.weeklyAllowance, 40120);
+  assert.equal(data.weeklyAllowance, 41280);
 });
 
 test("math units convert endpoint performs accurate conversion", async () => {
@@ -91,12 +91,12 @@ test("CORS OPTIONS preflight returns 204", async () => {
 });
 
 test("labor overtime-pay endpoint calculates correct premiums", async () => {
-  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/overtime-pay?hourlyWage=10030&overtimeHours=10&nightHours=5"));
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/overtime-pay?hourlyWage=10320&overtimeHours=10&nightHours=5"));
   assert.equal(res.status, 200);
   const data = await res.json();
-  assert.equal(data.baseHourlyWage, 10030);
-  assert.equal(data.overtime.pay, Math.floor(10 * 10030 * 1.5));
-  assert.equal(data.night.pay, Math.floor(5 * 10030 * 0.5));
+  assert.equal(data.baseHourlyWage, 10320);
+  assert.equal(data.overtime.pay, Math.floor(10 * 10320 * 1.5));
+  assert.equal(data.night.pay, Math.floor(5 * 10320 * 0.5));
 });
 
 test("military service-calculator endpoint returns milestones", async () => {
@@ -387,8 +387,8 @@ test("labor unemployment-benefits endpoint calculates scheduled days and benefit
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.scheduledDays, 180);
-  assert.equal(data.dailyBenefit, 66000); // capped at 66,000
-  assert.equal(data.totalBenefit, 66000 * 180);
+  assert.equal(data.dailyBenefit, 68100); // capped at 68,100 (2026)
+  assert.equal(data.totalBenefit, 68100 * 180);
 });
 
 test("labor parental-leave endpoint calculates standard and 6+6 special rates", async () => {
@@ -591,6 +591,87 @@ test("tax vat-comparison endpoint accurately contrasts general and simplified ta
   const data3 = await res3.json();
   assert.equal(data3.simplified.isExempt, true);
   assert.equal(data3.simplified.payableTax, 0);
+});
+
+test("tax inheritance-gift endpoint calculates progressive tax, deductions, and generation skipping", async () => {
+  // Case 1: Gift to spouse under 600M -> tax free
+  const res1 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/inheritance-gift?mode=gift&assetValue=500000000&relationship=spouse")
+  );
+  assert.equal(res1.status, 200);
+  const data1 = await res1.json();
+  assert.equal(data1.year, 2026);
+  assert.equal(data1.statutoryMaxDeduction, 600000000);
+  assert.equal(data1.taxableBase, 0);
+  assert.equal(data1.finalTax, 0);
+
+  // Case 2: Gift to adult child of 500M (50M deduction, 450M taxable -> 20% bracket with 10M progressive deduction)
+  // Taxable: 450M. Tax: 450M * 0.2 - 10M = 80M. Voluntary credit: 3% of 80M = 2.4M. Final tax = 77.6M
+  const res2 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/inheritance-gift?mode=gift&assetValue=500000000&relationship=child_adult&hasVoluntaryReporting=true")
+  );
+  assert.equal(res2.status, 200);
+  const data2 = await res2.json();
+  assert.equal(data2.deductionAmount, 50000000);
+  assert.equal(data2.taxableBase, 450000000);
+  assert.equal(data2.bracketRatePercent, 20);
+  assert.equal(data2.calculatedTax, 80000000);
+  assert.equal(data2.voluntaryReportCredit, 2400000);
+  assert.equal(data2.finalTax, 77600000);
+
+  // Case 3: Inheritance with spouse (1B lump sum + spouse deduction)
+  const res3 = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/inheritance-gift?mode=inheritance&assetValue=1200000000&hasSpouse=true")
+  );
+  assert.equal(res3.status, 200);
+  const data3 = await res3.json();
+  assert.equal(data3.statutoryMaxDeduction, 1000000000);
+  assert.equal(data3.taxableBase, 200000000);
+  assert.ok(data3.finalTax > 0);
+});
+
+test("finance loan-refinance endpoint calculates interest savings, penalty fee, and BEP", async () => {
+  // 200M loan, 4.8% to 3.9% (0.9%p reduction), 12 months elapsed (penalty = 200M * 1.2% * 24/36 = 1.6M)
+  // Monthly savings = 200M * 0.9% / 12 = 150,000 KRW
+  // Incidental costs = 75,000 KRW -> Total switching cost = 1,675,000 KRW
+  // BEP = 1,675,000 / 150,000 = 11.2 months
+  const res = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/finance/loan-refinance?loanBalance=200000000&currentRate=4.8&newRate=3.9&penaltyRate=1.2&elapsedMonths=12&incidentalCosts=75000")
+  );
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.year, 2026);
+  assert.equal(data.rateDifferencePercent, 0.9);
+  assert.equal(data.monthlyInterestSavings, 150000);
+  assert.equal(data.prepaymentPenalty, 1600000);
+  assert.equal(data.totalSwitchingCost, 1675000);
+  assert.equal(data.breakEvenMonths, 11.2);
+  assert.equal(data.recommendation, "strong_recommend");
+});
+
+test("tax card-deduction endpoint calculates 25% threshold, card deductions, and golden rule", async () => {
+  // 50M salary -> threshold = 12.5M
+  // credit card: 15M (12.5M to threshold, 2.5M eligible * 15% = 375,000)
+  // check card: 10M eligible * 30% = 3,000,000
+  // Base limit = 3,000,000 (actual base deduction capped at 3,000,000)
+  // Culture: 1M * 30% = 300,000, Market: 1.2M * 40% = 480,000 -> Extra = 780,000
+  // Total deduction = 3,780,000
+  const res = await worker.fetch(
+    new Request("https://api.oiyo.net/v1/tax/card-deduction?annualSalary=50000000&creditCardSpend=15000000&checkCardSpend=10000000&cultureSpend=1000000&traditionalMarketSpend=1200000")
+  );
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.year, 2026);
+  assert.equal(data.threshold25Percent, 12500000);
+  assert.equal(data.creditDeduction, 375000);
+  assert.equal(data.checkDeduction, 3000000);
+  assert.equal(data.baseLimit, 3000000);
+  assert.equal(data.actualBaseDeduction, 3000000);
+  assert.equal(data.cultureDeduction, 300000);
+  assert.equal(data.marketDeduction, 480000);
+  assert.equal(data.totalDeduction, 3780000);
+  assert.ok(data.estimatedTaxRefund > 0);
+  assert.ok(data.goldenRuleRecommendation.includes("25%"));
 });
 
 

@@ -191,7 +191,7 @@ Computes the traditional Korean sexagenary cycle (60 Gapja) four pillars and fiv
 ### GET /v1/labor/kr/annual-leave
 - Query Parameters:
   - \`yearsOfService\` (number, continuous service years)
-  - \`hourlyWage\` (number, default 10,030 KRW)
+  - \`hourlyWage\` (number, default 10,320 KRW)
   - \`unusedDays\` (number, optional)
 
 ---

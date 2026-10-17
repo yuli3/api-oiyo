@@ -83,7 +83,7 @@ export const TOOLS_SPEC = {
         parameters: {
           type: "object",
           properties: {
-            hourlyWage: { type: "number", description: "Hourly wage in KRW (minimum wage: 10,030 KRW)" },
+            hourlyWage: { type: "number", description: "Hourly wage in KRW (minimum wage: 10,320 KRW)" },
             hours: { type: "number", description: "Contractual working hours per week (must be >= 15 for allowance)" },
             tax: { type: "string", enum: ["none", "income33", "fourMajor"], description: "Tax deduction option" },
           },
@@ -311,6 +311,63 @@ export const TOOLS_SPEC = {
             industryType: { type: "string", enum: ["food_retail", "manufacturing", "construction_logistics", "service", "real_estate_professional"], description: "Industry classification" },
           },
           required: ["revenue"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate_inheritance_gift_tax",
+        description: "Calculates South Korea 2026 statutory inheritance and gift tax, progressive tax brackets (10-50%), relationship deductions, and voluntary filing discount.",
+        parameters: {
+          type: "object",
+          properties: {
+            mode: { type: "string", enum: ["gift", "inheritance"], description: "Calculation mode" },
+            assetValue: { type: "number", description: "Gross market value of assets in KRW" },
+            debtValue: { type: "number", description: "Liabilities or debts assumed in KRW" },
+            relationship: { type: "string", enum: ["spouse", "child_adult", "child_minor", "parent", "other_relative", "other"], description: "Beneficiary relationship" },
+            hasSpouse: { type: "boolean", description: "Whether surviving spouse exists (inheritance mode only)" },
+            isGenerationSkipping: { type: "boolean", description: "Generation skipping surcharge (30%)" },
+            hasVoluntaryReporting: { type: "boolean", description: "3% voluntary filing tax credit" },
+          },
+          required: ["assetValue"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate_loan_refinance",
+        description: "Calculates loan refinancing savings, prepayment penalty fees with 3-year sliding taper, and break-even point in months.",
+        parameters: {
+          type: "object",
+          properties: {
+            loanBalance: { type: "number", description: "Remaining loan balance in KRW" },
+            currentRate: { type: "number", description: "Existing loan annual interest rate in %" },
+            newRate: { type: "number", description: "New loan annual interest rate in %" },
+            penaltyRate: { type: "number", description: "Prepayment penalty rate in % (default 1.2)" },
+            elapsedMonths: { type: "number", description: "Months elapsed since loan origination (0-36)" },
+            incidentalCosts: { type: "number", description: "Incidental refinancing fees in KRW" },
+          },
+          required: ["loanBalance", "currentRate", "newRate"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate_card_tax_deduction",
+        description: "Calculates South Korea 2026 year-end card tax deduction, 25% threshold, credit (15%) vs check (30%) rates, and golden ratio strategy.",
+        parameters: {
+          type: "object",
+          properties: {
+            annualSalary: { type: "number", description: "Gross annual salary (비과세 제외) in KRW" },
+            creditCardSpend: { type: "number", description: "Annual credit card spending in KRW" },
+            checkCardSpend: { type: "number", description: "Annual check/debit card and cash receipt spending in KRW" },
+            cultureSpend: { type: "number", description: "Book, performing arts, museum spending in KRW" },
+            traditionalMarketSpend: { type: "number", description: "Traditional market and public transit spending in KRW" },
+          },
+          required: ["annualSalary"],
         },
       },
     },

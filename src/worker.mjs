@@ -23,6 +23,9 @@ import {
   calculateDepositMaturity,
   calculateFreelancerTax,
   calculateVatComparison,
+  calculateInheritanceGiftTax,
+  calculateLoanRefinance,
+  calculateCardTaxDeduction,
 } from "./modules/finance.mjs";
 import {
   calculateBrokerageFee,
@@ -228,11 +231,11 @@ export default {
           "GET /v1/kr/calendar/workdays?startDate=2026-03-01&endDate=2026-03-31",
           "POST /v1/astrology/saju/calculate",
           "GET /v1/labor/kr/unemployment-benefits?wage=3000000&age=under&period=p3&hours=8",
-          "GET /v1/labor/kr/weekly-allowance?hourlyWage=10030&hours=20&tax=none",
-          "GET /v1/labor/kr/overtime-pay?hourlyWage=10030&overtimeHours=10&nightHours=5",
+          "GET /v1/labor/kr/weekly-allowance?hourlyWage=10320&hours=20&tax=none",
+          "GET /v1/labor/kr/overtime-pay?hourlyWage=10320&overtimeHours=10&nightHours=5",
           "GET /v1/labor/kr/net-salary?salary=3500000&isAnnual=false&nonTaxable=200000&dependents=1",
           "GET /v1/labor/kr/severance-pay?startDate=2024-01-01&endDate=2026-01-01&threeMonthSalary=9000000",
-          "GET /v1/labor/kr/annual-leave?yearsOfService=2&hourlyWage=10030&unusedDays=5",
+          "GET /v1/labor/kr/annual-leave?yearsOfService=2&hourlyWage=10320&unusedDays=5",
           "GET /v1/military/kr/service-calculator?enlistmentDate=2026-03-02&branch=army",
           "GET /v1/energy/kr/gas-bill?usageM3=50&type=heating",
           "GET /v1/math/units/convert?value=100&from=m2&to=pyeong",
@@ -240,6 +243,9 @@ export default {
           "GET /v1/finance/compound-interest?principal=10000000&rate=7&years=10&monthlyContribution=500000",
           "GET /v1/finance/inflation?baseYear=2000&targetYear=2026&amount=1000000",
           "GET /v1/finance/loan-repayment?principal=100000000&annualRate=4.5&months=360&method=equalPI",
+          "GET /v1/tax/inheritance-gift?mode=gift&assetValue=500000000&relationship=spouse",
+          "GET /v1/finance/loan-refinance?loanBalance=200000000&currentRate=4.8&newRate=3.9&elapsedMonths=12",
+          "GET /v1/tax/card-deduction?annualSalary=50000000&creditCardSpend=15000000&checkCardSpend=10000000",
         ],
       };
       return new Response(method === "HEAD" ? null : JSON.stringify(info), {
@@ -500,7 +506,7 @@ export default {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10030;
+      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
       const weeklyHours = url.searchParams.get("hours") || 20;
       const taxType = url.searchParams.get("tax") || "none";
 
@@ -553,7 +559,7 @@ export default {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10030;
+      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
       const overtimeHours = url.searchParams.get("overtimeHours") || 0;
       const nightHours = url.searchParams.get("nightHours") || 0;
       const holidayHours8orLess = url.searchParams.get("holidayHours8orLess") || 0;
@@ -667,7 +673,7 @@ export default {
       const threeMonthSalary = url.searchParams.get("threeMonthSalary") || 9000000;
       const annualBonus = url.searchParams.get("annualBonus") || 0;
       const annualLeaveAllowance = url.searchParams.get("annualLeaveAllowance") || 0;
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10030;
+      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
       const dailyHours = url.searchParams.get("dailyHours") || 8;
 
       if (!startDate || !endDate) {
@@ -703,7 +709,7 @@ export default {
       }
 
       const yearsOfService = url.searchParams.get("yearsOfService") || 1;
-      const hourlyWage = url.searchParams.get("hourlyWage") || 10030;
+      const hourlyWage = url.searchParams.get("hourlyWage") || 10320;
       const dailyHours = url.searchParams.get("dailyHours") || 8;
       const unusedDays = url.searchParams.get("unusedDays") || 0;
 
@@ -1248,6 +1254,108 @@ export default {
           revenue: Number(revenue),
           purchase: Number(purchase),
           industryType,
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 32. Tax: Inheritance and Gift Tax (상속세 및 증여세 모의계산)
+    if (path === "/v1/tax/inheritance-gift") {
+      if (method !== "GET" && method !== "POST" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      let payload = {};
+      if (method === "POST") {
+        try {
+          payload = await request.json();
+        } catch {
+          payload = {};
+        }
+      }
+
+      const mode = payload.mode ?? url.searchParams.get("mode") ?? "gift";
+      const assetValue = payload.assetValue ?? url.searchParams.get("assetValue") ?? 500000000;
+      const debtValue = payload.debtValue ?? url.searchParams.get("debtValue") ?? 0;
+      const relationship = payload.relationship ?? url.searchParams.get("relationship") ?? "spouse";
+      const hasSpouse = payload.hasSpouse ?? (url.searchParams.get("hasSpouse") !== "false");
+      const isGenerationSkipping = payload.isGenerationSkipping ?? (url.searchParams.get("isGenerationSkipping") === "true");
+      const hasVoluntaryReporting = payload.hasVoluntaryReporting ?? (url.searchParams.get("hasVoluntaryReporting") !== "false");
+
+      try {
+        const res = calculateInheritanceGiftTax({
+          mode,
+          assetValue: Number(assetValue),
+          debtValue: Number(debtValue),
+          relationship,
+          hasSpouse: Boolean(hasSpouse),
+          isGenerationSkipping: Boolean(isGenerationSkipping),
+          hasVoluntaryReporting: Boolean(hasVoluntaryReporting),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 33. Finance: Loan Refinancing Gains & Prepayment Penalty (대환대출 갈아타기 실익 및 중도상환수수료)
+    if (path === "/v1/finance/loan-refinance") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const loanBalance = url.searchParams.get("loanBalance") ?? 200000000;
+      const currentRate = url.searchParams.get("currentRate") ?? 4.8;
+      const newRate = url.searchParams.get("newRate") ?? 3.9;
+      const penaltyRate = url.searchParams.get("penaltyRate") ?? 1.2;
+      const elapsedMonths = url.searchParams.get("elapsedMonths") ?? 12;
+      const incidentalCosts = url.searchParams.get("incidentalCosts") ?? 75000;
+
+      try {
+        const res = calculateLoanRefinance({
+          loanBalance: Number(loanBalance),
+          currentRate: Number(currentRate),
+          newRate: Number(newRate),
+          penaltyRate: Number(penaltyRate),
+          elapsedMonths: Number(elapsedMonths),
+          incidentalCosts: Number(incidentalCosts),
+        });
+        return new Response(method === "HEAD" ? null : JSON.stringify(res), {
+          status: 200,
+          headers: commonHeaders,
+        });
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
+      }
+    }
+
+    // 34. Tax: Card Deduction & Golden Ratio (연말정산 신용/체크카드 소득공제 및 황금비율)
+    if (path === "/v1/tax/card-deduction") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+
+      const annualSalary = url.searchParams.get("annualSalary") ?? 50000000;
+      const creditCardSpend = url.searchParams.get("creditCardSpend") ?? 15000000;
+      const checkCardSpend = url.searchParams.get("checkCardSpend") ?? 10000000;
+      const cultureSpend = url.searchParams.get("cultureSpend") ?? 1000000;
+      const traditionalMarketSpend = url.searchParams.get("traditionalMarketSpend") ?? 1200000;
+
+      try {
+        const res = calculateCardTaxDeduction({
+          annualSalary: Number(annualSalary),
+          creditCardSpend: Number(creditCardSpend),
+          checkCardSpend: Number(checkCardSpend),
+          cultureSpend: Number(cultureSpend),
+          traditionalMarketSpend: Number(traditionalMarketSpend),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
