@@ -278,7 +278,7 @@ export const NAVER_VERIFICATION_HTML = `naver-site-verification: naverfeb1d8514d
 export const CURRENT_NAVER_VERIFICATION_HTML = `naver-site-verification: naver30ca6024e3afe9efab466a8203cc4f7c.html`;
 
 export const DOCS_BROWSER_TAGS = `<aside aria-label="광고" data-manual-ad="api-docs-end" hidden>
-<p>광고</p><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9541920090543312" data-ad-slot="2768903568" data-ad-format="auto" data-full-width-responsive="true"></ins></aside>
+<p>광고</p><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9541920090543312" data-ad-slot="5187526223" data-ad-format="auto" data-full-width-responsive="true"></ins></aside>
 <style>[data-manual-ad="api-docs-end"]{margin:48px 16px 24px;min-height:300px;padding-top:16px}[data-manual-ad="api-docs-end"][hidden]{display:none}[data-manual-ad="api-docs-end"] p{text-align:center}</style>
 <script>
 (function(){

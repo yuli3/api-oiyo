@@ -17,7 +17,7 @@ test('only human canonical docs receive browser analytics and manual ads', async
   const docs = await worker.fetch(new Request('https://api.oiyo.net/docs'));
   const html = await docs.text();
   assert.match(html, /<h1>OIYO API 사용 안내/);
-  assert.match(html, /2768903568/);
+  assert.match(html, /5187526223/);
   assert.match(html, /G-915L6V38X6/);
   assert.doesNotMatch(html, /e1043bad/);
   for (const [, javascript] of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
