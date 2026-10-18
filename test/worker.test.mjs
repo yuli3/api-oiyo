@@ -131,7 +131,8 @@ test("interactive docs returns HTML documentation", async () => {
   assert.match(res.headers.get("Content-Type"), /text\/html/);
   const body = await res.text();
   assert.match(body, /@scalar\/api-reference/);
-  assert.match(body, /e1043bad51e3be143affbe491f12354fa985fa6a/);
+  // 2026-10-18: the copied Wiki meta token never verified API ownership; API uses its supplied HTML file.
+  assert.doesNotMatch(body, /e1043bad51e3be143affbe491f12354fa985fa6a/);
 });
 
 test("robots.txt returns correct crawl policy and sitemap link", async () => {

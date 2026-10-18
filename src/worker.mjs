@@ -51,6 +51,8 @@ import {
   ADS_TXT,
   FAVICON_SVG,
   NAVER_VERIFICATION_HTML,
+  CURRENT_NAVER_VERIFICATION_HTML,
+  DOCS_BROWSER_TAGS,
   INDEXNOW_TXT,
 } from "./modules/assets.mjs";
 
@@ -92,13 +94,18 @@ export default {
       );
     }
 
+    if (path === '/docs/' && (method === 'GET' || method === 'HEAD')) {
+      return new Response(null, { status: 301, headers: { Location: 'https://api.oiyo.net/docs' } });
+    }
+
     // Interactive Docs (Scalar UI). Browsers hitting "/" get the same HTML for convenience, but
     // "/" is noindex so /docs (the canonical) is the only indexable URL.
     if (
       (path === "/docs" || (path === "/" && request.headers.get("accept")?.includes("text/html"))) &&
       (method === "GET" || method === "HEAD")
     ) {
-      return new Response(method === "HEAD" ? null : DOCS_HTML, {
+      // 2026-10-18: browser scripts belong only to human /docs, never machine responses/root aliases.
+      return new Response(method === "HEAD" ? null : DOCS_HTML.replace('<!-- OIYO_BROWSER_TAGS -->', path === '/docs' ? DOCS_BROWSER_TAGS : ''), {
         status: 200,
         headers: {
           "Content-Type": "text/html; charset=utf-8",
@@ -197,6 +204,12 @@ export default {
     }
 
     // Search Engine Verifications
+    if (path === '/naver30ca6024e3afe9efab466a8203cc4f7c.html' && (method === 'GET' || method === 'HEAD')) {
+      return new Response(method === 'HEAD' ? null : CURRENT_NAVER_VERIFICATION_HTML, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=86400' },
+      });
+    }
     if (path === "/naverfeb1d8514db116d06b5d11e882ee9d1c.html" && (method === "GET" || method === "HEAD")) {
       return new Response(method === "HEAD" ? null : NAVER_VERIFICATION_HTML, {
         status: 200,
