@@ -351,6 +351,7 @@ export function unemploymentDays2026(ageGroup = "under", periodCode = "p3") {
  * 주지 않으면 배우자도 6개월 이상 쓴다고 본다(옛 응답과 같음).
  * 한부모(제95조의3 ③): 1~3개월 상한 300만, 4~6개월 200만, 7개월~ 80%·160만.
  * 기간: 1년, 부모가 각각 3개월 이상 쓰거나 한부모면 1년 6개월(남녀고용평등법 제19조).
+ * @param {{ monthlyWage?: number, leaveMonths?: number, isParental6Plus6?: boolean, mode?: "general" | "sixPlusSix" | "singleParent", otherParentMonths?: number }} [opts]
  */
 export function parentalLeaveSchedule2026({ monthlyWage = 3_500_000, leaveMonths = 12, isParental6Plus6 = false, mode, otherParentMonths } = {}) {
   const P = KR_RATES_2026.parentalLeave;
