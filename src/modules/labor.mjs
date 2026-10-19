@@ -368,17 +368,21 @@ export function calculateAnnualLeave({
  * is 2.5M; totalDeferred stays in the response (always 0) so existing clients do not break.
  * @param {Object} params
  * @param {number} [params.monthlyWage=3500000] - Pre-tax monthly ordinary wage in KRW
- * @param {number} [params.leaveMonths=12] - Number of leave months (1~12)
- * @param {boolean} [params.isParental6Plus6=false] - Whether 6+6 parent special scheme applies
+ * @param {number} [params.leaveMonths=12] - Number of leave months (1~12, 1~18 for single parents or 6+6 with the other parent on 3+ months)
+ * @param {boolean} [params.isParental6Plus6=false] - Whether 6+6 parent special scheme applies (same as mode "sixPlusSix")
+ * @param {string} [params.mode] - "general" | "sixPlusSix" | "singleParent"
+ * @param {number} [params.otherParentMonths=6] - 6+6 only: the other parent's leave months; special caps run to the shorter of the two
  */
 export function calculateParentalLeave({
   monthlyWage = 3500000,
   leaveMonths = 12,
   isParental6Plus6 = false,
+  mode,
+  otherParentMonths,
 }) {
   const wage = Math.max(0, Number(monthlyWage) || 3500000);
-  const is6Plus6 = Boolean(isParental6Plus6);
-  const r = parentalLeaveSchedule2026({ monthlyWage: wage, leaveMonths, isParental6Plus6: is6Plus6 });
+  const r = parentalLeaveSchedule2026({ monthlyWage: wage, leaveMonths, isParental6Plus6: Boolean(isParental6Plus6), mode, otherParentMonths });
+  const is6Plus6 = r.mode === "sixPlusSix";
 
   return {
     year: 2026,
@@ -386,6 +390,9 @@ export function calculateParentalLeave({
     monthlyOrdinaryWage: wage,
     leaveMonths: r.months,
     isParental6Plus6: is6Plus6,
+    mode: r.mode,
+    maxMonths: r.maxMonths,
+    specialCapMonths: r.specialUntil,
     totalBenefit: r.totalBenefit,
     totalUpfront: r.totalBenefit,
     totalDeferred: 0,

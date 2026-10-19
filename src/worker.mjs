@@ -516,12 +516,16 @@ export default {
       const monthlyWage = url.searchParams.get("monthlyWage") || url.searchParams.get("wage") || 3500000;
       const leaveMonths = url.searchParams.get("leaveMonths") || url.searchParams.get("months") || 12;
       const isParental6Plus6 = url.searchParams.get("is6Plus6") === "true" || url.searchParams.get("isParental6Plus6") === "true";
+      const mode = url.searchParams.get("mode") || undefined;
+      const otherParentMonths = url.searchParams.has("otherParentMonths") ? Number(url.searchParams.get("otherParentMonths")) : undefined;
 
       try {
         const res = calculateParentalLeave({
           monthlyWage: Number(monthlyWage),
           leaveMonths: Number(leaveMonths),
           isParental6Plus6,
+          mode,
+          otherParentMonths,
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
