@@ -27,7 +27,7 @@ export const OPENAPI_SPEC = {
     "/v1/kr/calendar/holidays": {
       get: {
         summary: "South Korea Public Holidays",
-        description: "Returns official South Korea public holidays, substitute holidays, and solar terms for a given year.",
+        description: "Returns the implemented South Korea public and substitute holiday list for a given year. Solar terms are not returned.",
         parameters: [
           { name: "year", in: "query", required: false, schema: { type: "integer", default: 2026 }, description: "Calendar year (2024-2027)" }
         ],
