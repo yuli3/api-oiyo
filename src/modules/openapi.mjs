@@ -254,13 +254,15 @@ export const OPENAPI_SPEC = {
     "/v1/labor/kr/severance-pay": {
       get: {
         summary: "South Korea Statutory Severance Pay Calculator",
-        description: "Calculates legal retirement benefits under Act on the Guarantee of Employees' Retirement Benefits Art. 8.",
+        description: "Retirement-benefit simulation using actual preceding three calendar months. Weekly-hours eligibility and excluded wage periods are not assessed. Blank, nonfinite or negative numeric inputs are rejected.",
         parameters: [
           { name: "startDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2023-01-01" }, description: "Start date (YYYY-MM-DD)" },
-          { name: "endDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2026-01-01" }, description: "End date (YYYY-MM-DD)" },
-          { name: "threeMonthSalary", in: "query", required: false, schema: { type: "number", default: 9000000 }, description: "Total salary for the last 3 months" },
-          { name: "annualBonus", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Total annual bonus" },
-          { name: "annualLeaveAllowance", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Unused annual leave allowance" }
+          { name: "endDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2026-01-01" }, description: "First date no longer employed, after last workday (YYYY-MM-DD); excluded from service days" },
+          { name: "threeMonthSalary", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 9000000 }, description: "Total salary for the last 3 months" },
+          { name: "annualBonus", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 }, description: "Total annual bonus" },
+          { name: "annualLeaveAllowance", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 }, description: "Unused annual leave allowance" },
+          { name: "hourlyWage", in: "query", schema: { type: "number", minimum: 0, default: 10320 }, description: "Ordinary hourly wage; minimum-wage floor applied" },
+          { name: "dailyHours", in: "query", schema: { type: "number", minimum: 0, exclusiveMinimum: true, maximum: 8, default: 8 }, description: "Daily contractual hours" }
         ],
         responses: {
           "200": {
@@ -287,13 +289,13 @@ export const OPENAPI_SPEC = {
     "/v1/labor/kr/annual-leave": {
       get: {
         summary: "South Korea Statutory Annual Leave & Allowance Calculator",
-        description: "Calculates statutory annual leave days under Labor Standards Act Art. 60 and cash-out allowance for unused days.",
+        description: "Annual leave simulation. Workplace coverage, weekly-hours and attendance eligibility are not assessed. First-year accrual requires completedPerfectMonths. Unused days are supplied by the caller. Blank, nonfinite or negative numeric inputs are rejected.",
         parameters: [
-          { name: "yearsOfService", in: "query", required: false, schema: { type: "number", default: 1 }, description: "Completed years of service" },
+          { name: "yearsOfService", in: "query", required: false, schema: { type: "number", minimum: 0, default: 1 }, description: "Completed years of service" },
           { name: "completedPerfectMonths", in: "query", required: false, schema: { type: "integer", minimum: 0, maximum: 11 }, description: "Required when yearsOfService is less than 1: actual completed perfect-attendance months, not the maximum first-year allowance" },
-          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Ordinary hourly wage" },
-          { name: "dailyHours", in: "query", required: false, schema: { type: "number", default: 8 }, description: "Daily working hours" },
-          { name: "unusedDays", in: "query", required: false, schema: { type: "number", default: 0 }, description: "Remaining unused leave days" }
+          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 10320 }, description: "Ordinary hourly wage; minimum-wage floor applied" },
+          { name: "dailyHours", in: "query", required: false, schema: { type: "number", minimum: 0, exclusiveMinimum: true, maximum: 8, default: 8 }, description: "Daily working hours" },
+          { name: "unusedDays", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 }, description: "Remaining unused leave days, including fractional days" }
         ],
         responses: {
           "200": {

@@ -19,6 +19,13 @@ import {
 
 const MIN_WAGE_2026 = KR_RATES_2026.minimumWage;
 
+// 2026-10-18: invalid payroll inputs must not become plausible defaults or JSON null.
+function requireAmount(name, value, minimum = 0, maximum = Number.MAX_SAFE_INTEGER) {
+  if (!Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new RangeError(`${name} must be finite and between ${minimum} and ${maximum}`);
+  }
+}
+
 /**
  * Calculates South Korea unemployment benefits (구직급여 모의계산)
  * @param {Object} params
@@ -245,6 +252,8 @@ export function calculateSeverancePay({
   hourlyWage = MIN_WAGE_2026,
   dailyHours = 8,
 }) {
+  for (const [name, value] of Object.entries({ threeMonthSalary, annualBonus, annualLeaveAllowance, hourlyWage })) requireAmount(name, value);
+  requireAmount("dailyHours", dailyHours, Number.MIN_VALUE, 8);
   // 2026-10-18: recover MOEL civil-date semantics lost during worktree cleanup.
   // Date otherwise silently normalizes February 30 or accepts time-of-day values.
   const parseDate = (value) => {
@@ -275,7 +284,7 @@ export function calculateSeverancePay({
 
   // Ordinary daily wage check (통상임금 비교: 근로기준법 제2조 제2항)
   const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
-  const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
+  const hours = dailyHours;
   const dailyOrdinaryWage = wage * hours;
 
   const effectiveDailyWage = Math.max(dailyAverageWage, dailyOrdinaryWage);
@@ -284,6 +293,8 @@ export function calculateSeverancePay({
   const severancePay = isEligible
     ? Math.floor(effectiveDailyWage * 30 * (serviceDays / 365))
     : 0;
+
+  for (const [name, value] of Object.entries({ totalThreeMonthWage, dailyOrdinaryWage, severancePay })) requireAmount(name, value);
 
   return {
     year: 2026,
@@ -314,10 +325,12 @@ export function calculateAnnualLeave({
   unusedDays = 0,
   completedPerfectMonths,
 }) {
+  for (const [name, value] of Object.entries({ hourlyWage, unusedDays })) requireAmount(name, value);
+  requireAmount("dailyHours", dailyHours, Number.MIN_VALUE, 8);
   if (!Number.isFinite(yearsOfService) || yearsOfService < 0) throw new RangeError("Invalid yearsOfService");
   const years = Math.max(0, Number(yearsOfService) || 0);
   const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
-  const hours = Math.max(1, Math.min(8, Number(dailyHours) || 8));
+  const hours = dailyHours;
   const unused = Math.max(0, Number(unusedDays) || 0);
 
   let statutoryDays = 0;
@@ -335,6 +348,8 @@ export function calculateAnnualLeave({
 
   const dailyWage = wage * hours;
   const unusedAllowance = Math.floor(unused * dailyWage);
+  requireAmount("dailyOrdinaryWage", dailyWage);
+  requireAmount("unusedLeaveAllowance", unusedAllowance);
 
   return {
     year: 2026,

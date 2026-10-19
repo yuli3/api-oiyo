@@ -161,16 +161,24 @@ Computes the traditional Korean sexagenary cycle (60 Gapja) four pillars and fiv
 ### GET /v1/labor/kr/severance-pay
 - Query Parameters:
   - \`startDate\` (YYYY-MM-DD)
-  - \`endDate\` (YYYY-MM-DD)
+  - \`endDate\` (YYYY-MM-DD, first date no longer employed; excluded from service days)
   - \`threeMonthSalary\` (number, total 3-month salary in KRW)
   - \`annualBonus\` (number, optional)
   - \`annualLeaveAllowance\` (number, optional)
+  - \`hourlyWage\` (finite nonnegative ordinary hourly wage; default 10,320)
+  - \`dailyHours\` (greater than 0, at most 8; default 8)
+- Uses the actual preceding three calendar months, not a fixed 90/92-day denominator.
+- Simulation only: weekly-hours eligibility and excluded wage periods are not assessed.
 
 ### GET /v1/labor/kr/annual-leave
 - Query Parameters:
   - \`yearsOfService\` (number, continuous service years)
+  - \`completedPerfectMonths\` (integer 0–11, required when yearsOfService < 1)
   - \`hourlyWage\` (number, default 10,320 KRW — 2026 minimum wage)
   - \`unusedDays\` (number, optional)
+  - \`dailyHours\` (greater than 0, at most 8; default 8)
+- Blank, nonfinite and negative amounts are rejected with HTTP 400; omitted optional inputs use defaults.
+- Simulation only: workplace coverage, weekly-hours and attendance eligibility must be checked separately. Unused days are supplied by the caller, not determined by this API.
 
 ---
 

@@ -54,6 +54,12 @@ import {
   INDEXNOW_TXT,
 } from "./modules/assets.mjs";
 
+// 2026-10-18: only omission selects a default; a blank payroll value is invalid.
+function laborNumber(params, name, fallback) {
+  const value = params.get(name);
+  return value === null ? fallback : value.trim() === "" ? NaN : Number(value);
+}
+
 const commonHeaders = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "public, max-age=3600",
@@ -688,11 +694,11 @@ export default {
 
       const startDate = url.searchParams.get("startDate");
       const endDate = url.searchParams.get("endDate");
-      const threeMonthSalary = url.searchParams.get("threeMonthSalary") || 9000000;
-      const annualBonus = url.searchParams.get("annualBonus") || 0;
-      const annualLeaveAllowance = url.searchParams.get("annualLeaveAllowance") || 0;
-      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
-      const dailyHours = url.searchParams.get("dailyHours") || 8;
+      const threeMonthSalary = laborNumber(url.searchParams, "threeMonthSalary", 9000000);
+      const annualBonus = laborNumber(url.searchParams, "annualBonus", 0);
+      const annualLeaveAllowance = laborNumber(url.searchParams, "annualLeaveAllowance", 0);
+      const hourlyWage = laborNumber(url.searchParams, "hourlyWage", KR_RATES_2026.minimumWage);
+      const dailyHours = laborNumber(url.searchParams, "dailyHours", 8);
 
       if (!startDate || !endDate) {
         return Response.json(
@@ -726,11 +732,11 @@ export default {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const yearsOfService = url.searchParams.get("yearsOfService") || 1;
+      const yearsOfService = laborNumber(url.searchParams, "yearsOfService", 1);
       const completedPerfectMonths = url.searchParams.get("completedPerfectMonths");
-      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
-      const dailyHours = url.searchParams.get("dailyHours") || 8;
-      const unusedDays = url.searchParams.get("unusedDays") || 0;
+      const hourlyWage = laborNumber(url.searchParams, "hourlyWage", KR_RATES_2026.minimumWage);
+      const dailyHours = laborNumber(url.searchParams, "dailyHours", 8);
+      const unusedDays = laborNumber(url.searchParams, "unusedDays", 0);
 
       try {
         const res = calculateAnnualLeave({
