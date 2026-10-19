@@ -15,6 +15,7 @@ import {
   unemploymentDailyBenefit2026,
   unemploymentDays2026,
   parentalLeaveSchedule2026,
+  employeeInsurance2026,
 } from "./kr-rates-2026.mjs";
 
 const MIN_WAGE_2026 = KR_RATES_2026.minimumWage;
@@ -63,7 +64,7 @@ export function calculateUnemploymentBenefits({
  * @param {Object} params
  * @param {number} [params.hourlyWage=10320] - Hourly wage in KRW (min 10,320, 2026 minimum wage)
  * @param {number} [params.weeklyHours=20] - Total contractual hours per week
- * @param {'none'|'freelance'|'four'} [params.taxType='none'] - Deductions: 'none' (0%), 'freelance' (3.3%), 'four' (~9.4%)
+ * @param {'none'|'freelance'|'four'} [params.taxType='none'] - Deductions: 'none' (0%), 'freelance' (3.3%), 'four' (~9.7%, 2026 근로자 부담 4대보험)
  */
 export function calculateWeeklyAllowance({
   hourlyWage = MIN_WAGE_2026,
@@ -94,7 +95,8 @@ export function calculateWeeklyAllowance({
 
   let deductionRate = 0;
   if (taxType === "freelance") deductionRate = 0.033;
-  else if (taxType === "four") deductionRate = 0.094;
+  // 2026 근로자 부담 4대보험 비율(국민연금·건강·장기요양·고용, 상하한 무시)을 정본에서 계산한다.
+  else if (taxType === "four") deductionRate = employeeInsuranceRate2026();
 
   const netMonthlyWage = Math.floor(grossMonthlyWage * (1 - deductionRate));
 
@@ -112,6 +114,11 @@ export function calculateWeeklyAllowance({
     deductionRate,
     netMonthlyWage,
   };
+}
+
+function employeeInsuranceRate2026() {
+  const sample = 3_000_000; // 상하한 밖이 아닌 금액에서 비율을 잰다
+  return Number((employeeInsurance2026(sample).totalInsurance / sample).toFixed(4));
 }
 
 /**
@@ -148,6 +155,8 @@ export function calculateOvertimePay({
   const holidayPayOver8 = Math.floor(holOverH * wage * 2.0);
   const totalHolidayPay = holidayPayUnder8 + holidayPayOver8;
 
+  // 연장·휴일은 기본 100%를 포함한 총액, 야간은 가산 50%만이다. 합계는 "가산수당"만이 아니라 이 수당들의 합이다.
+  // 가산 지급(제56조)은 상시 5명 이상 사업장에만 적용된다(제11조, 시행령 별표1).
   const totalExtraPay = overtimePay + nightPay + totalHolidayPay;
 
   return {
@@ -171,6 +180,7 @@ export function calculateOvertimePay({
       totalPay: totalHolidayPay,
     },
     totalExtraPay,
+    appliesTo: "상시 근로자 5명 이상 사업장 (근로기준법 제11조). 5명 미만이면 가산분 없이 일한 시간만큼만 받아요.",
   };
 }
 

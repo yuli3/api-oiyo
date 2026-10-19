@@ -6,8 +6,12 @@
 const FIXED_HOLIDAYS = [
   { month: 1, day: 1, name: "신정", substitute: false },
   { month: 3, day: 1, name: "3·1절", substitute: true },
+  // 노동절은 2026년부터 관공서 공휴일. 대체공휴일 적용 여부는 자료가 엇갈려 자동 계산하지 않는다.
+  { month: 5, day: 1, name: "노동절", substitute: false, from: 2026 },
   { month: 5, day: 5, name: "어린이날", substitute: true },
   { month: 6, day: 6, name: "현충일", substitute: false },
+  // 제헌절은 2026년부터 다시 공휴일(대체공휴일 포함).
+  { month: 7, day: 17, name: "제헌절", substitute: true, from: 2026 },
   { month: 8, day: 15, name: "광복절", substitute: true },
   { month: 10, day: 3, name: "개천절", substitute: true },
   { month: 10, day: 9, name: "한글날", substitute: true },
@@ -21,17 +25,21 @@ const LUNAR_HOLIDAYS_BY_YEAR = {
     { date: "2024-02-10", name: "설날", is_substitute: false },
     { date: "2024-02-11", name: "설날 연휴", is_substitute: false },
     { date: "2024-02-12", name: "설날 대체공휴일", is_substitute: true },
+    { date: "2024-04-10", name: "국회의원 선거일", is_substitute: false },
     { date: "2024-05-15", name: "부처님오신날", is_substitute: false },
     { date: "2024-09-16", name: "추석 연휴", is_substitute: false },
     { date: "2024-09-17", name: "추석", is_substitute: false },
     { date: "2024-09-18", name: "추석 연휴", is_substitute: false },
+    { date: "2024-10-01", name: "국군의 날 임시공휴일", is_substitute: false },
   ],
   2025: [
+    { date: "2025-01-27", name: "임시공휴일", is_substitute: false },
     { date: "2025-01-28", name: "설날 연휴", is_substitute: false },
     { date: "2025-01-29", name: "설날", is_substitute: false },
     { date: "2025-01-30", name: "설날 연휴", is_substitute: false },
     { date: "2025-05-05", name: "어린이날/부처님오신날", is_substitute: false },
     { date: "2025-05-06", name: "대체공휴일", is_substitute: true },
+    { date: "2025-06-03", name: "대통령 선거일", is_substitute: false },
     { date: "2025-10-05", name: "추석 연휴", is_substitute: false },
     { date: "2025-10-06", name: "추석", is_substitute: false },
     { date: "2025-10-07", name: "추석 연휴", is_substitute: false },
@@ -44,6 +52,7 @@ const LUNAR_HOLIDAYS_BY_YEAR = {
     { date: "2026-03-02", name: "3·1절 대체공휴일", is_substitute: true },
     { date: "2026-05-24", name: "부처님오신날", is_substitute: false },
     { date: "2026-05-25", name: "부처님오신날 대체공휴일", is_substitute: true },
+    { date: "2026-06-03", name: "전국동시지방선거일", is_substitute: false },
     { date: "2026-08-17", name: "광복절 대체공휴일", is_substitute: true },
     { date: "2026-09-24", name: "추석 연휴", is_substitute: false },
     { date: "2026-09-25", name: "추석", is_substitute: false },
@@ -82,6 +91,7 @@ export function getHolidays(year) {
 
   // 1. 고정 공휴일 추가
   for (const h of FIXED_HOLIDAYS) {
+    if (h.from && y < h.from) continue;
     const dateStr = `${y}-${formatZero(h.month)}-${formatZero(h.day)}`;
     holidays.push({
       date: dateStr,
@@ -89,8 +99,8 @@ export function getHolidays(year) {
       is_substitute: false,
     });
 
-    // 대체공휴일 자동 계산 (픽스처가 없는 연도를 위한 폴백)
-    if (h.substitute && !LUNAR_HOLIDAYS_BY_YEAR[y]) {
+    // 고정 공휴일의 토·일 대체공휴일은 픽스처가 있는 연도에도 계산한다(날짜가 겹치면 아래에서 한 번만 남김).
+    if (h.substitute) {
       const d = new Date(Date.UTC(y, h.month - 1, h.day));
       const dayOfWeek = d.getUTCDay(); // 0: Sun, 6: Sat
       if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -110,9 +120,9 @@ export function getHolidays(year) {
   if (LUNAR_HOLIDAYS_BY_YEAR[y]) {
     for (const lh of LUNAR_HOLIDAYS_BY_YEAR[y]) {
       // 중복 방지
-      if (!holidays.some((item) => item.date === lh.date)) {
-        holidays.push(lh);
-      }
+      const same = holidays.findIndex((item) => item.date === lh.date);
+      if (same === -1) holidays.push(lh);
+      else if (holidays[same].is_substitute && lh.is_substitute) holidays[same] = lh;
     }
   }
 

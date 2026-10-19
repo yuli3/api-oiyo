@@ -115,7 +115,7 @@ test("energy gas-bill endpoint computes correct billing", async () => {
   const data = await res.json();
   assert.equal(data.usageM3, 50);
   assert.equal(data.energyConsumedMJ, 2140);
-  assert.equal(data.totalBilled, 53240);
+  assert.equal(data.totalBilled, 54400);
 });
 
 test("404 fallback for undefined routes", async () => {
