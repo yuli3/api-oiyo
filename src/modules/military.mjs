@@ -31,10 +31,12 @@ export function calculateMilitaryService({
   const [eYear, eMonth, eDay] = enlistmentDate.split("-").map(Number);
   const start = new Date(Date.UTC(eYear, eMonth - 1, eDay));
 
-  // Statutory discharge date calculation:
-  // Add service months, subtract 1 day from the same day
-  const discharge = new Date(Date.UTC(eYear, eMonth - 1 + months, eDay));
-  discharge.setUTCDate(discharge.getUTCDate() - 1);
+  // 전역일 = 복무 개월 뒤 같은 날의 전날. 그 달에 같은 날이 없으면 그 달 말일(민법 제160조③).
+  const lastDayOfEndMonth = new Date(Date.UTC(eYear, eMonth - 1 + months + 1, 0)).getUTCDate();
+  const discharge =
+    eDay > lastDayOfEndMonth
+      ? new Date(Date.UTC(eYear, eMonth - 1 + months, lastDayOfEndMonth))
+      : new Date(Date.UTC(eYear, eMonth - 1 + months, eDay - 1));
 
   const dischargeDateStr = discharge.toISOString().slice(0, 10);
 

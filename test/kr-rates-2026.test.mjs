@@ -18,6 +18,7 @@ import {
   unemploymentDailyBenefit2026,
   unemploymentDays2026,
   parentalLeaveSchedule2026,
+  shortParentalLeave2026,
   regionalPropertyScore2026,
   regionalHealthPremium2026,
   earnedIncomeDeduction,
@@ -151,6 +152,19 @@ test("vector: 육아휴직급여 (사후지급 없음, 6+6 첫 달 250만)", () 
   const s = parentalLeaveSchedule2026({ monthlyWage: 5_000_000, leaveMonths: 7, isParental6Plus6: true });
   assert.equal(s.monthlyBreakdown[0].grossAmount, 2_500_000); // was 2,000,000
   assert.equal(s.monthlyBreakdown[6].grossAmount, 1_600_000);
+});
+
+test("vector: 육아휴직급여 6+6 짧은 쪽 개월까지만 특례, 한부모, 18개월", () => {
+  const short = parentalLeaveSchedule2026({ monthlyWage: 5_000_000, leaveMonths: 12, mode: "sixPlusSix", otherParentMonths: 3 });
+  assert.deepEqual(short.monthlyBreakdown.slice(0, 6).map((m) => m.grossAmount), [2_500_000, 2_500_000, 3_000_000, 2_000_000, 2_000_000, 2_000_000]);
+  assert.equal(short.maxMonths, 18);
+  assert.equal(parentalLeaveSchedule2026({ monthlyWage: 5_000_000, leaveMonths: 18, mode: "sixPlusSix", otherParentMonths: 2 }).months, 12);
+  const single = parentalLeaveSchedule2026({ monthlyWage: 4_000_000, leaveMonths: 18, mode: "singleParent" });
+  assert.equal(single.months, 18);
+  assert.equal(single.totalBenefit, 34_200_000); // 300×3 + 200×3 + 160×12
+  assert.equal(parentalLeaveSchedule2026({ monthlyWage: 500_000, leaveMonths: 2, mode: "sixPlusSix" }).monthlyBreakdown[0].grossAmount, 700_000); // 하한
+  assert.equal(parentalLeaveSchedule2026({ monthlyWage: 4_000_000, leaveMonths: 18 }).months, 12);
+  assert.equal(shortParentalLeave2026(2_500_000, 7), 583_333);
 });
 
 test("vector: 지역가입자 건강보험료", () => {

@@ -125,6 +125,11 @@ export const KR_RATES_2026 = deepFreeze({
     ],
     floor: 700_000,
     sixPlusSixCaps: [2_500_000, 2_500_000, 3_000_000, 3_500_000, 4_000_000, 4_500_000],
+    // 한부모(시행령 제95조의3 ③): 1~3개월 상한 300만, 4~6개월 200만. 7개월~은 general과 같다.
+    singleParentCaps: [3_000_000, 3_000_000, 3_000_000, 2_000_000, 2_000_000, 2_000_000],
+    // 남녀고용평등법 제19조: 1년, 부모 각각 3개월 이상 사용·한부모·중증장애아동이면 1년 6개월.
+    maxMonths: 12,
+    maxMonthsExtended: 18,
     deferredShare: 0,
   },
 
@@ -339,27 +344,52 @@ export function unemploymentDays2026(ageGroup = "under", periodCode = "p3") {
   return table[periodCode] ?? table.p3;
 }
 
-/** 육아휴직급여 월별 지급액(2025-01-01 개편, 사후지급 없음). */
-export function parentalLeaveSchedule2026({ monthlyWage = 3_500_000, leaveMonths = 12, isParental6Plus6 = false } = {}) {
+/**
+ * 육아휴직급여 월별 지급액(2025-01-01 개편, 사후지급 없음).
+ * mode: "general" | "sixPlusSix" | "singleParent". isParental6Plus6=true는 mode "sixPlusSix"의 옛 이름이다.
+ * 6+6 특례 상한은 두 부모 중 짧게 쓴 개월 수(최대 6)까지만 적용된다(시행령 제95조의3 ①). otherParentMonths를
+ * 주지 않으면 배우자도 6개월 이상 쓴다고 본다(옛 응답과 같음).
+ * 한부모(제95조의3 ③): 1~3개월 상한 300만, 4~6개월 200만, 7개월~ 80%·160만.
+ * 기간: 1년, 부모가 각각 3개월 이상 쓰거나 한부모면 1년 6개월(남녀고용평등법 제19조).
+ * @param {{ monthlyWage?: number, leaveMonths?: number, isParental6Plus6?: boolean, mode?: "general" | "sixPlusSix" | "singleParent", otherParentMonths?: number }} [opts]
+ */
+export function parentalLeaveSchedule2026({ monthlyWage = 3_500_000, leaveMonths = 12, isParental6Plus6 = false, mode, otherParentMonths } = {}) {
   const P = KR_RATES_2026.parentalLeave;
   const wage = Math.max(0, num(monthlyWage));
-  const months = Math.max(1, Math.min(12, Math.floor(num(leaveMonths, 12)) || 12));
+  const kind = mode === "singleParent" || mode === "sixPlusSix" ? mode : isParental6Plus6 ? "sixPlusSix" : "general";
+  const other = kind === "sixPlusSix" ? Math.max(0, Math.floor(num(otherParentMonths, 6))) : 0;
+  const maxMonths = kind === "singleParent" || (kind === "sixPlusSix" && other >= 3) ? P.maxMonthsExtended : P.maxMonths;
+  const months = Math.max(1, Math.min(maxMonths, Math.floor(num(leaveMonths, 12)) || 12));
+  const specialUntil = kind === "sixPlusSix" ? Math.min(P.sixPlusSixCaps.length, months, other) : 0;
   const monthlyBreakdown = [];
   for (let m = 1; m <= months; m++) {
-    let gross;
+    let cap;
+    let rate;
     let scheme;
-    if (isParental6Plus6 && m <= P.sixPlusSixCaps.length) {
-      gross = Math.min(wage, P.sixPlusSixCaps[m - 1]);
+    if (m <= specialUntil) {
+      cap = P.sixPlusSixCaps[m - 1];
+      rate = 1;
       scheme = "six_plus_six";
+    } else if (kind === "singleParent" && m <= P.singleParentCaps.length) {
+      cap = P.singleParentCaps[m - 1];
+      rate = 1;
+      scheme = "single_parent";
     } else {
       const tier = P.general.find((t) => m >= t.fromMonth && m <= t.toMonth) ?? P.general[P.general.length - 1];
-      gross = Math.floor(Math.min(Math.max(wage * tier.rate, P.floor), tier.cap));
+      cap = tier.cap;
+      rate = tier.rate;
       scheme = "general";
     }
+    const gross = Math.floor(Math.min(Math.max(wage * rate, P.floor), cap));
     monthlyBreakdown.push({ month: m, scheme, grossAmount: gross, upfrontPaid: gross, deferredAmount: 0 });
   }
   const totalBenefit = monthlyBreakdown.reduce((s, r) => s + r.grossAmount, 0);
-  return { months, totalBenefit, monthlyAverage: Math.round(totalBenefit / months), monthlyBreakdown };
+  return { mode: kind, months, maxMonths, specialUntil, totalBenefit, monthlyAverage: Math.round(totalBenefit / months), monthlyBreakdown };
+}
+
+/** 단기 육아휴직(2026-08-20~, 연 1회 1주·2주): 그 달 금액을 30일로 나눠 일수만큼. */
+export function shortParentalLeave2026(monthlyAmount, days = 7) {
+  return Math.floor((Math.max(0, num(monthlyAmount)) * (days === 14 ? 14 : 7)) / 30);
 }
 
 /** 지역가입자 재산점수(시행령 별표4). taxBase = 재산세 과세표준 + 전월세 평가액 합계(원). */

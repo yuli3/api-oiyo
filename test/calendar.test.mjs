@@ -42,3 +42,13 @@ test("isBusinessDay correctly identifies business days and holidays", () => {
   assert.equal(subHoliday.is_business_day, false);
   assert.equal(subHoliday.reason, "3·1절 대체공휴일");
 });
+
+test("2026·2027 공휴일: 노동절·제헌절·지방선거와 고정 공휴일 대체공휴일", () => {
+  const d26 = getHolidays(2026).map((h) => h.date);
+  for (const d of ["2026-05-01", "2026-06-03", "2026-07-17", "2026-03-02", "2026-08-17", "2026-10-05"]) assert.ok(d26.includes(d), d);
+  const d27 = getHolidays(2027).map((h) => h.date);
+  for (const d of ["2027-07-19", "2027-08-16", "2027-10-04", "2027-10-11", "2027-12-27"]) assert.ok(d27.includes(d), d);
+  assert.ok(!getHolidays(2025).some((h) => h.date === "2025-07-17"));
+  assert.ok(getHolidays(2024).some((h) => h.date === "2024-05-06"));
+  assert.equal(new Set(d27).size, d27.length);
+});

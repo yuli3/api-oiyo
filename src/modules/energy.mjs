@@ -1,10 +1,13 @@
 // Energy and Utilities calculation module for South Korea
 // Statutory reference: Korea Gas Corporation & Metropolitan City Gas Supply Regulations
 
-// Default heating and cooking MJ unit prices (KRW/MJ) - standard 2026 residential rates
-const BASE_FEE_RESIDENTIAL = 1000; // KRW per month
-const HEATING_UNIT_PRICE_MJ = 22.15; // KRW/MJ for residential heating
-const COOKING_UNIT_PRICE_MJ = 21.05; // KRW/MJ for residential cooking
+// 서울도시가스 주택용 요금표(2026-10-01 시행): 기본요금 월 1,250원, 취사·난방 같은 단가 22.5268원/MJ.
+// https://www.seoulgas.co.kr/mobile/payment/gasPayTable — 공급사·지역마다 다르므로 응답에 기준을 함께 준다.
+const TARIFF_SUPPLIER = "서울도시가스 (서울)";
+const TARIFF_EFFECTIVE_FROM = "2026-10-01";
+const BASE_FEE_RESIDENTIAL = 1250; // KRW per month
+const HEATING_UNIT_PRICE_MJ = 22.5268; // KRW/MJ, residential
+const COOKING_UNIT_PRICE_MJ = 22.5268; // KRW/MJ, residential (same tariff since the unified 주택용 rate)
 const AVG_CALORIFIC_VALUE = 42.8; // Average MJ per cubic meter (Nm3)
 const CORRECTION_FACTOR = 1.0; // Volume temperature/pressure correction factor
 
@@ -46,6 +49,8 @@ export function calculateCityGasBill({
     energyConsumedMJ,
     unitPriceKRWperMJ: unitPrice,
     baseFee: BASE_FEE_RESIDENTIAL,
+    tariffSupplier: TARIFF_SUPPLIER,
+    tariffEffectiveFrom: TARIFF_EFFECTIVE_FROM,
     usageCharge,
     supplyPrice,
     vat,
