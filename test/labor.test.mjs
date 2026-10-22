@@ -47,6 +47,8 @@ test("calculateWeeklyAllowance calculates correct hours and wages", () => {
     hourlyWage: 10320,
     weeklyHours: 20,
     taxType: "none",
+    employedWholeWeek: true,
+    completedScheduledDays: true,
   });
 
   assert.equal(res.isEligible, true);

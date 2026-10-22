@@ -169,21 +169,31 @@ export const OPENAPI_SPEC = {
     "/v1/labor/kr/weekly-allowance": {
       get: {
         summary: "South Korea Weekly Holiday Allowance Calculator",
-        description: "Calculates statutory weekly holiday allowance under Labor Standards Act Art. 55.",
+        description: "South Korea only. A comparison estimate under a normal 40-hour/five-day schedule, not a legal eligibility determination. hours means four-week average contractual hours (actual employment period if shorter). isEligible is now nullable: omitted employment/attendance confirmations produce null and allowanceAssumesEligibility=true; existing monetary fields then show a conditional what-if scenario. Self-confirmation is not legal verification. Entered wages are preserved, including values below the 2026 minimum (warning only). Weekly components are floored to KRW, then monthly totals use 4.345 weeks and floor again; this is not actual payroll or the statutory 209-hour monthly minimum example. Other schedules may require a different allowance formula.",
         parameters: [
-          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", default: 10320 }, description: "Hourly wage in KRW (min 10,320, 2026 minimum wage)" },
-          { name: "hours", in: "query", required: false, schema: { type: "number", default: 20 }, description: "Weekly contractual working hours" },
-          { name: "tax", in: "query", required: false, schema: { type: "string", enum: ["none", "freelance", "four"], default: "none" }, description: "Tax deduction mode" }
+          { name: "hourlyWage", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 10320 }, description: "Entered hourly wage in KRW, never silently raised to the minimum; below 10,320 triggers a warning" },
+          { name: "hours", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: 168, default: 20 }, description: "Four-week average contractual hours, or actual employment period average if shorter; not extra hours actually worked. Hours over 40 omit overtime premiums in this comparison." },
+          { name: "tax", in: "query", required: false, schema: { type: "string", enum: ["none", "freelance", "four"], default: "none" }, description: "Flat deduction scenario only; does not decide employee/self-employed status or actual insurance/tax liability" },
+          { name: "employedWholeWeek", in: "query", required: false, schema: { type: "boolean" }, description: "Self-confirm seven-day employment relationship. No requirement to remain employed the following week. Omission remains unknown." },
+          { name: "completedScheduledDays", in: "query", required: false, schema: { type: "boolean" }, description: "Self-confirm attendance on all obligated working days; a public holiday without a work obligation is not an absence. Omission remains unknown." }
         ],
         responses: {
           "200": {
-            description: "Weekly holiday allowance and wage breakdown",
+            description: "Conditional weekly-holiday comparison and wage breakdown. Read eligibility/allowanceAssumesEligibility before interpreting monetary fields.",
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
-                    isEligible: { type: "boolean" },
+                    isEligible: { type: "boolean", nullable: true, description: "null = conditions unknown; true = user self-confirmed conditions in this model, not a legal determination; false = threshold or a confirmed condition not met" },
+                    isEstimate: { type: "boolean", enum: [true] },
+                    hourlyWage: { type: "number", description: "Entered value, unchanged" },
+                    statutoryMinimumWage: { type: "number" },
+                    warnings: { type: "array", items: { type: "string" } },
+                    allowanceAssumesEligibility: { type: "boolean" },
+                    eligibility: { type: "object", properties: { status: { type: "string", enum: ["unknown", "self_confirmed", "conditions_not_met"] }, hoursThresholdMet: { type: "boolean" }, employedWholeWeek: { type: "boolean", nullable: true }, completedScheduledDays: { type: "boolean", nullable: true }, isLegalDetermination: { type: "boolean", enum: [false] }, basis: { type: "string" } } },
+                    calculationModel: { type: "object", properties: { id: { type: "string" }, description: { type: "string" }, weeksPerMonth: { type: "number", enum: [4.345] }, roundingPolicy: { type: "string" }, allowanceHoursDisplayDecimals: { type: "integer" }, isStatutoryMonthlyMinimum: { type: "boolean", enum: [false] }, monthlyCaveat: { type: "string" }, deductionsCaveat: { type: "string" } } },
+                    sources: { type: "array", items: { type: "string", format: "uri" } },
                     allowanceHours: { type: "number" },
                     weeklyAllowance: { type: "number" },
                     effectiveHourlyWage: { type: "number" },
@@ -193,7 +203,8 @@ export const OPENAPI_SPEC = {
                 }
               }
             }
-          }
+          },
+          "400": { description: "Invalid numeric value, blank input, unsupported deduction mode, or confirmation other than true/false" }
         }
       }
     },
