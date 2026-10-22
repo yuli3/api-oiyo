@@ -542,15 +542,24 @@ export default {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
-      const weeklyHours = url.searchParams.get("hours") || 20;
-      const taxType = url.searchParams.get("tax") || "none";
+      const hourlyWage = laborNumber(url.searchParams, "hourlyWage", KR_RATES_2026.minimumWage);
+      const weeklyHours = laborNumber(url.searchParams, "hours", 20);
+      const taxType = url.searchParams.get("tax") ?? "none";
 
       try {
+        const confirmation = (name) => {
+          const value = url.searchParams.get(name);
+          if (value === null) return undefined;
+          if (value === "true") return true;
+          if (value === "false") return false;
+          throw new RangeError(`${name} must be true or false when supplied`);
+        };
         const res = calculateWeeklyAllowance({
-          hourlyWage: Number(hourlyWage),
-          weeklyHours: Number(weeklyHours),
+          hourlyWage,
+          weeklyHours,
           taxType,
+          employedWholeWeek: confirmation("employedWholeWeek"),
+          completedScheduledDays: confirmation("completedScheduledDays"),
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,

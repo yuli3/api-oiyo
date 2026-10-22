@@ -68,7 +68,7 @@ test("labor unemployment-benefits endpoint returns accurate calculation", async 
 });
 
 test("labor weekly-allowance endpoint returns allowance breakdown", async () => {
-  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/weekly-allowance?hourlyWage=10320&hours=20"));
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/weekly-allowance?hourlyWage=10320&hours=20&employedWholeWeek=true&completedScheduledDays=true"));
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.isEligible, true);

@@ -62,22 +62,39 @@ export function calculateUnemploymentBenefits({
 /**
  * Calculates South Korea weekly holiday allowance (주휴수당 계산)
  * @param {Object} params
- * @param {number} [params.hourlyWage=10320] - Hourly wage in KRW (min 10,320, 2026 minimum wage)
- * @param {number} [params.weeklyHours=20] - Total contractual hours per week
+ * @param {number} [params.hourlyWage=10320] - Entered hourly wage in KRW; below-minimum values are warned, not replaced
+ * @param {number} [params.weeklyHours=20] - Four-week average contractual hours (actual employment period if shorter)
+ * @param {boolean} [params.employedWholeWeek] - Self-confirmed seven-day employment relationship, not next-week employment
+ * @param {boolean} [params.completedScheduledDays] - Self-confirmed attendance on obligated working days; public holidays without work obligation are not absence
  * @param {'none'|'freelance'|'four'} [params.taxType='none'] - Deductions: 'none' (0%), 'freelance' (3.3%), 'four' (~9.7%, 2026 근로자 부담 4대보험)
  */
 export function calculateWeeklyAllowance({
   hourlyWage = MIN_WAGE_2026,
   weeklyHours = 20,
   taxType = "none",
+  employedWholeWeek,
+  completedScheduledDays,
 }) {
-  const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
-  const hours = Math.max(0, Number(weeklyHours) || 0);
+  requireAmount('hourlyWage', hourlyWage);
+  requireAmount('weeklyHours', weeklyHours, 0, 168);
+  const wage = hourlyWage;
+  const hours = weeklyHours;
+  const warnings = wage < MIN_WAGE_2026 ? ['below_2026_minimum_wage'] : [];
+  if (!['none', 'freelance', 'four'].includes(taxType)) throw new RangeError('taxType must be none, freelance or four');
+  if (hours > 40) warnings.push('overtime_premiums_not_included');
+  if (taxType === 'freelance') warnings.push('deduction_mode_does_not_determine_worker_status');
 
-  const isEligible = hours >= 15;
+  for (const [name, value] of Object.entries({ employedWholeWeek, completedScheduledDays })) {
+    if (value !== undefined && typeof value !== 'boolean') throw new RangeError(`${name} must be true or false when supplied`);
+  }
+  const hoursThresholdMet = hours >= 15;
+  // WHY 2026-10-23: hours alone cannot establish weekly-holiday entitlement.
+  // Unknown conditions retain a clearly marked what-if amount, not a grant decision.
+  const isEligible = !hoursThresholdMet || employedWholeWeek === false || completedScheduledDays === false
+    ? false : employedWholeWeek === true && completedScheduledDays === true ? true : null;
 
   let allowanceHours = 0;
-  if (isEligible) {
+  if (isEligible !== false) {
     if (hours >= 40) {
       allowanceHours = 8;
     } else {
@@ -99,12 +116,43 @@ export function calculateWeeklyAllowance({
   else if (taxType === "four") deductionRate = employeeInsuranceRate2026();
 
   const netMonthlyWage = Math.floor(grossMonthlyWage * (1 - deductionRate));
+  for (const [name, value] of Object.entries({ baseWeeklyWage, weeklyAllowance, totalWeeklyWage, grossMonthlyWage, netMonthlyWage })) {
+    requireAmount(name, value);
+  }
 
   return {
     year: 2026,
+    ratesEffectiveFrom: RATES_EFFECTIVE_FROM,
+    isEstimate: true,
     hourlyWage: wage,
+    statutoryMinimumWage: MIN_WAGE_2026,
+    warnings,
     weeklyHours: hours,
     isEligible,
+    eligibility: {
+      status: isEligible === null ? 'unknown' : isEligible ? 'self_confirmed' : 'conditions_not_met',
+      hoursThresholdMet,
+      employedWholeWeek: employedWholeWeek ?? null,
+      completedScheduledDays: completedScheduledDays ?? null,
+      isLegalDetermination: false,
+      basis: 'Four-week average contractual hours (actual employment period if shorter); a seven-day employment relationship and attendance on obligated working days. No next-week employment requirement. Public holidays without a work obligation are not absence.',
+    },
+    allowanceAssumesEligibility: isEligible === null,
+    calculationModel: {
+      id: '40h_5day_proportional_comparison',
+      description: 'Comparison assumes a normal 40-hour, five-day week: min(weekly contractual hours, 40) / 40 * 8. Other normal-work schedules may require a different calculation. Overtime premiums are excluded.',
+      weeksPerMonth: 4.345,
+      roundingPolicy: 'floor_weekly_components_then_monthly_totals',
+      allowanceHoursDisplayDecimals: 2,
+      isStatutoryMonthlyMinimum: false,
+      monthlyCaveat: 'The 4.345-week projection is not an actual monthly payroll or the statutory 209-hour monthly minimum example. Component floors and monthly floors are comparison conventions, not a determination of legally required wage rounding.',
+      deductionsCaveat: 'Deductions are a flat-rate scenario without insurance bases/caps, employment classification or individual income tax assessment.',
+    },
+    sources: [
+      'https://1350.moel.go.kr/rtmview.do?id=1000278823&page=1&type=ALL',
+      'https://1350.moel.go.kr/rtmview.do?id=1000320034',
+      'https://www.law.go.kr/expcInfoP.do?expcSeq=340053',
+    ],
     allowanceHours: Number(allowanceHours.toFixed(2)),
     weeklyAllowance,
     effectiveHourlyWage,
