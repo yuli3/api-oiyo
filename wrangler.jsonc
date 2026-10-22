@@ -3,6 +3,8 @@
   "main": "src/worker.mjs",
   "compatibility_date": "2026-10-12",
   "workers_dev": false,
+  "preview_urls": true,
+  "previews": {},
   "routes": [{ "pattern": "api.oiyo.net", "custom_domain": true }],
   "observability": { "enabled": false }
 }
