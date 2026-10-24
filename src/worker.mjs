@@ -42,6 +42,8 @@ import {
 import { OPENAPI_SPEC } from "./modules/openapi.mjs";
 import { KR_RATES_2026 } from "./modules/kr-rates-2026.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
+import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
+import { handleMcp } from "./modules/mcp.mjs";
 import {
   DOCS_HTML,
   ROBOTS_TXT,
@@ -78,11 +80,13 @@ const commonHeaders = {
 // in search results, hence noindex without nofollow.
 const MACHINE_FILE_ROBOTS = { "X-Robots-Tag": "noindex" };
 
-export default {
+const worker = {
   async fetch(request) {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+
+    if (path === "/mcp") return handleMcp(request, (restRequest) => worker.fetch(restRequest));
 
     // 1. CORS Preflight
     if (method === "OPTIONS") {
@@ -298,6 +302,23 @@ export default {
           },
         }
       );
+    }
+
+    // 2026-10-25: versioned minimum wage is independent of the 2026 payroll engine.
+    if (path === "/v1/labor/kr/minimum-wage") {
+      if (method !== "GET" && method !== "HEAD") {
+        return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
+      }
+      const supplied = url.searchParams.get("year");
+      try {
+        const result = minimumWageForYear(supplied === null ? undefined : supplied.trim() === "" ? NaN : Number(supplied));
+        return new Response(method === "HEAD" ? null : JSON.stringify(result), {
+          // 2026-10-25 review: an omitted year must not stay cached across KST New Year.
+          headers: supplied === null ? { ...commonHeaders, "Cache-Control": "no-store" } : commonHeaders,
+        });
+      } catch (error) {
+        return Response.json({ error: error.message }, { status: 400, headers: commonHeaders });
+      }
     }
 
     // 3. Calendar: Holidays
@@ -1441,3 +1462,5 @@ export default {
     );
   },
 };
+
+export default worker;

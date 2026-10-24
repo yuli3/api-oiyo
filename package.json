@@ -6,5 +6,9 @@
     "test": "node --test",
     "check": "node --check src/worker.mjs",
     "deploy": "npm run check && npm test && python3 scripts/deploy.py"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.6.7"
   }
 }
