@@ -18,6 +18,7 @@ export const DOCS_HTML = `<!doctype html>
       <h1>OIYO API 사용 안내</h1>
       <p>달력·한국 노동·생활 계산·단위 변환을JSON으로 호출하는 결정적 연산 API예요. 요청·응답과 입력 조건은 아래 OpenAPI 문서에서 확인할 수 있어요.</p>
       <p>세금·수당 결과는 모의계산이며 신고·수급 자격 확정이나 전문가 상담을 대체하지 않아요. 근로소득세는 연간 환산 추정치예요. 사주 연주·월주는 단순 근사이며 정밀 절기·시간대 계산을 제공하지 않아요.</p>
+      <section id="mcp"><h2>MCP 연결과 연도별 요율</h2><p>MCP를 지원하는 클라이언트에는 <code>https://api.oiyo.net/mcp</code>를 Streamable HTTP 서버로 등록해요. 공식 SDK가 2026-07-28과 구형 초기화 방식의 요청을 처리해요. 별도 로그인 없이 기존 공개 계산 도구를 호출하며, 앱은 입력을 별도 저장하지 않아요. 개인 생년월일·재정 정보를 보내기 전 클라이언트가 전송할 입력을 확인해 주세요.</p><p><code>tools/list</code>로 목록을 확인하고 <code>tools/call</code>로 호출해요. 예: <code>convert_units</code>에 value=1, from=m, to=cm → 100cm; <code>get_kr_minimum_wage</code>에 year=2027 → 시급10,700원; <code>calculate_weekly_allowance</code>는 고용기간·출근 확인값을 명시해요. 최저임금의 월209시간 환산은 예시이며 2027 실수령액 계산 지원을 뜻하지 않아요. <a href="https://minimumwage.go.kr/minWage/policy/decisionMain.do">최저임금위원회 공식 결정현황</a></p></section>
       <nav aria-label="API 참고 자료"><a href="/openapi.json">OpenAPI 명세</a> · <a href="/tools.json">에이전트 도구 정의</a> · <a href="/llms-full.txt">전체 사용 가이드</a> · <a href="/health">서비스 상태</a></nav>
       <p>공개 문서 화면은 방문 통계와 광고를 사용해요. JSON API 응답에는 브라우저 통계·광고 스크립트를 넣지 않아요. <a href="https://blog.oiyo.net/ko/privacy/">개인정보 처리방침</a></p>
     </main>
@@ -61,6 +62,9 @@ https://api.oiyo.net
 - Agent Tool Schemas: https://api.oiyo.net/tools.json
 - Interactive Docs: https://api.oiyo.net/docs
 - Full Agent Guide: https://api.oiyo.net/llms-full.txt
+- MCP Streamable HTTP: https://api.oiyo.net/mcp (POST; official SDK, 2026-07-28 and legacy stateless initialization)
+- MCP tools/list and tools/call reuse the same deterministic REST dispatcher, with no LLM calls or application-level input persistence. Review personal birth/financial inputs before sending them. Browser Origin is restricted; native clients without Origin are supported.
+- GET /v1/labor/kr/minimum-wage?year=2027: verified KR minimum wage and explicit 8/209-hour examples. Not 2027 net pay; missing insurance is not_collected, not confirmed unpublished.
 
 ## Endpoints
 - GET /health: Health status check

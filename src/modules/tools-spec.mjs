@@ -13,6 +13,14 @@ export const TOOLS_SPEC = {
     {
       type: "function",
       function: {
+        name: "get_kr_minimum_wage",
+        description: "Verified Korean minimum wage by year, effective dates and 8/209-hour examples. Not a 2027 net-salary calculator; uncollected insurance is unavailable.",
+        parameters: { type: "object", properties: { year: { type: "integer", enum: [2026, 2027], description: "Korean applicable year; omission uses Asia/Seoul current year" } } },
+      },
+    },
+    {
+      type: "function",
+      function: {
         name: "get_kr_holidays",
         description: "Get official South Korea public holidays, substitute holidays, and solar terms for a given year.",
         parameters: {
@@ -86,6 +94,8 @@ export const TOOLS_SPEC = {
             hourlyWage: { type: "number", description: "Hourly wage in KRW (2026 minimum wage: 10,320 KRW)" },
             hours: { type: "number", description: "Contractual working hours per week (must be >= 15 for allowance)" },
             tax: { type: "string", enum: ["none", "income33", "fourMajor"], description: "Tax deduction option" },
+            employedWholeWeek: { type: "boolean", description: "Explicitly confirm employment through the entire applicable week" },
+            completedScheduledDays: { type: "boolean", description: "Explicitly confirm attendance on all scheduled working days" },
           },
           required: ["hourlyWage", "hours"],
         },
@@ -235,7 +245,7 @@ export const TOOLS_SPEC = {
           properties: {
             principal: { type: "number", description: "Initial lump sum principal investment amount in KRW or local currency" },
             rate: { type: "number", description: "Annual return / interest rate in percent (e.g. 7 for 7%)" },
-            years: { type: "number", description: "Investment duration in years" },
+            years: { type: "number", minimum: 0, maximum: 100, description: "Investment duration in years (maximum 100)" },
             monthlyContribution: { type: "number", description: "Optional monthly recurring savings or investment amount" },
             compoundingFrequency: { type: "string", enum: ["monthly", "annually"], description: "Compounding cycle (default monthly)" },
           },
@@ -378,3 +388,29 @@ export const TOOLS_SPEC = {
     },
   ],
 };
+
+// 2026-10-25: routing metadata accompanies the schema SSOT; MCP never guesses paths.
+export const TOOL_ENDPOINTS = Object.freeze({
+  get_kr_holidays: { path: "/v1/kr/calendar/holidays" },
+  check_kr_business_day: { path: "/v1/kr/calendar/is-business-day" },
+  calculate_saju_astrology: { path: "/v1/astrology/saju/calculate", method: "POST" },
+  calculate_unemployment_benefits: { path: "/v1/labor/kr/unemployment-benefits" },
+  calculate_weekly_allowance: { path: "/v1/labor/kr/weekly-allowance" },
+  calculate_overtime_pay: { path: "/v1/labor/kr/overtime-pay" },
+  calculate_net_salary: { path: "/v1/labor/kr/net-salary" },
+  calculate_severance_pay: { path: "/v1/labor/kr/severance-pay" },
+  calculate_annual_leave: { path: "/v1/labor/kr/annual-leave" },
+  calculate_military_service: { path: "/v1/military/kr/service-calculator" },
+  calculate_gas_bill: { path: "/v1/energy/kr/gas-bill" },
+  convert_units: { path: "/v1/math/units/convert" },
+  calculate_cagr: { path: "/v1/finance/cagr" },
+  calculate_compound_interest: { path: "/v1/finance/compound-interest" },
+  calculate_health_insurance: { path: "/v1/insurance/health" },
+  diagnose_hug_guarantee: { path: "/v1/real-estate/hug-guarantee" },
+  calculate_capital_gains_tax: { path: "/v1/tax/capital-gains" },
+  compare_vat_tax: { path: "/v1/tax/vat-comparison" },
+  calculate_inheritance_gift_tax: { path: "/v1/tax/inheritance-gift" },
+  calculate_loan_refinance: { path: "/v1/finance/loan-refinance" },
+  calculate_card_tax_deduction: { path: "/v1/tax/card-deduction" },
+  get_kr_minimum_wage: { path: "/v1/labor/kr/minimum-wage" },
+});

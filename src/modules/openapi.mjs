@@ -1,3 +1,5 @@
+import { TOOLS_SPEC, TOOL_ENDPOINTS } from "./tools-spec.mjs";
+
 /**
  * OpenAPI 3.0 Specification for api.oiyo.net
  */
@@ -13,6 +15,15 @@ export const OPENAPI_SPEC = {
     { url: "https://api.oiyo.net", description: "Production Gateway" }
   ],
   paths: {
+    "/v1/labor/kr/minimum-wage": {
+      get: {
+        operationId: "get_kr_minimum_wage",
+        summary: "Verified Korean minimum wage (2026 or 2027)",
+        description: "Examples assume 8 hours/day or 209 hours/month, not universal monthly salary. Missing insurance rates do not enable 2027 net-pay calculation.",
+        parameters: [{ name: "year", in: "query", schema: { type: "integer", enum: [2026, 2027] }, description: "Omission uses the current year in Asia/Seoul; unsupported years fail." }],
+        responses: { "200": { description: "KR scope, dates, official source, checkedAt, hourly wage and explicit examples" }, "400": { description: "Invalid or unsupported year" } },
+      },
+    },
     "/health": {
       get: {
         summary: "Service Health Check",
@@ -721,3 +732,21 @@ export const OPENAPI_SPEC = {
     }
   }
 };
+
+// 2026-10-25: every declared MCP tool also has an identifiable REST operation;
+// preserve richer existing documentation, generate only missing operations.
+for (const { function: tool } of TOOLS_SPEC.tools) {
+  const endpoint = TOOL_ENDPOINTS[tool.name];
+  const method = (endpoint.method || "GET").toLowerCase();
+  const path = OPENAPI_SPEC.paths[endpoint.path] ??= {};
+  const operation = path[method] ??= {
+    summary: tool.description,
+    responses: { "200": { description: "Deterministic calculation result" }, "400": { description: "Invalid calculation input" } },
+  };
+  operation.operationId = tool.name;
+  if (!operation.parameters && method === "get") {
+    operation.parameters = Object.entries(tool.parameters.properties).map(([name, schema]) => ({
+      name, in: "query", required: (tool.parameters.required || []).includes(name), schema,
+    }));
+  }
+}
