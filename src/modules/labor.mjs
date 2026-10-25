@@ -186,11 +186,14 @@ export function calculateOvertimePay({
   holidayHours8orLess = 0,
   holidayHoursOver8 = 0,
 }) {
-  const wage = Math.max(MIN_WAGE_2026, Number(hourlyWage) || MIN_WAGE_2026);
-  const otH = Math.max(0, Number(overtimeHours) || 0);
-  const ntH = Math.max(0, Number(nightHours) || 0);
-  const hol8H = Math.max(0, Number(holidayHours8orLess) || 0);
-  const holOverH = Math.max(0, Number(holidayHoursOver8) || 0);
+  // WHY 2026-10-25: silently replacing malformed wages/hours produces plausible pay.
+  // Keep the existing minimum-wage policy, but reject invalid input before applying it.
+  for (const [name, value] of Object.entries({ hourlyWage, overtimeHours, nightHours, holidayHours8orLess, holidayHoursOver8 })) requireAmount(name, value);
+  const wage = Math.max(MIN_WAGE_2026, hourlyWage);
+  const otH = overtimeHours;
+  const ntH = nightHours;
+  const hol8H = holidayHours8orLess;
+  const holOverH = holidayHoursOver8;
 
   // Overtime pay: 150% (base 100% + premium 50%)
   const overtimePay = Math.floor(otH * wage * 1.5);
@@ -206,6 +209,7 @@ export function calculateOvertimePay({
   // 연장·휴일은 기본 100%를 포함한 총액, 야간은 가산 50%만이다. 합계는 "가산수당"만이 아니라 이 수당들의 합이다.
   // 가산 지급(제56조)은 상시 5명 이상 사업장에만 적용된다(제11조, 시행령 별표1).
   const totalExtraPay = overtimePay + nightPay + totalHolidayPay;
+  for (const [name, value] of Object.entries({ overtimePay, nightPay, totalHolidayPay, totalExtraPay })) requireAmount(name, value);
 
   return {
     year: 2026,

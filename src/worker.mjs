@@ -625,11 +625,11 @@ const worker = {
         return Response.json({ error: "method_not_allowed" }, { status: 405, headers: commonHeaders });
       }
 
-      const hourlyWage = url.searchParams.get("hourlyWage") || KR_RATES_2026.minimumWage;
-      const overtimeHours = url.searchParams.get("overtimeHours") || 0;
-      const nightHours = url.searchParams.get("nightHours") || 0;
-      const holidayHours8orLess = url.searchParams.get("holidayHours8orLess") || 0;
-      const holidayHoursOver8 = url.searchParams.get("holidayHoursOver8") || 0;
+      const hourlyWage = laborNumber(url.searchParams, "hourlyWage", KR_RATES_2026.minimumWage);
+      const overtimeHours = laborNumber(url.searchParams, "overtimeHours", 0);
+      const nightHours = laborNumber(url.searchParams, "nightHours", 0);
+      const holidayHours8orLess = laborNumber(url.searchParams, "holidayHours8orLess", 0);
+      const holidayHoursOver8 = laborNumber(url.searchParams, "holidayHoursOver8", 0);
 
       try {
         const res = calculateOvertimePay({
