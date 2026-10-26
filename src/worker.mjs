@@ -44,6 +44,7 @@ import { KR_RATES_2026 } from "./modules/kr-rates-2026.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
 import { handleMcp } from "./modules/mcp.mjs";
+import { recordUsage } from "./modules/usage.mjs";
 import {
   DOCS_HTML,
   ROBOTS_TXT,
@@ -81,12 +82,29 @@ const commonHeaders = {
 const MACHINE_FILE_ROBOTS = { "X-Robots-Tag": "noindex" };
 
 const worker = {
-  async fetch(request) {
+  async fetch(request, env) {
+    const started = Date.now();
+    const response = await route(request, env);
+    recordUsage(env, request, response, Date.now() - started, new URL(request.url).pathname === "/mcp" ? "mcp" : "rest");
+    return response;
+  },
+};
+
+async function route(request, env) {
+  // The extra block keeps the pre-2026-10-27 handler body (and its multi-line strings) byte-identical.
+  {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
 
-    if (path === "/mcp") return handleMcp(request, (restRequest) => worker.fetch(restRequest));
+    if (path === "/mcp") {
+      return handleMcp(request, async (restRequest) => {
+        const started = Date.now();
+        const response = await route(restRequest, env);
+        recordUsage(env, restRequest, response, Date.now() - started, "mcp-tool");
+        return response;
+      });
+    }
 
     // 1. CORS Preflight
     if (method === "OPTIONS") {
@@ -1460,7 +1478,7 @@ const worker = {
       JSON.stringify({ error: "not_found", message: `Route ${path} does not exist.` }),
       { status: 404, headers: commonHeaders }
     );
-  },
-};
+  }
+}
 
 export default worker;
