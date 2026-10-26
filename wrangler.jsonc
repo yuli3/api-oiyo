@@ -6,5 +6,6 @@
   "preview_urls": true,
   "previews": {},
   "routes": [{ "pattern": "api.oiyo.net", "custom_domain": true }],
-  "observability": { "enabled": false }
+  "observability": { "enabled": false },
+  "analytics_engine_datasets": [{ "binding": "API_USAGE", "dataset": "api_oiyo_usage" }]
 }
