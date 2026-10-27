@@ -26,3 +26,25 @@ test("HTTP passes perfect-attendance months and rejects omission", async () => {
   assert.equal(result.status,200);
   assert.equal((await result.json()).statutoryLeaveDays,3);
 });
+
+
+test("severance tenure uses completed calendar year, not 365 elapsed days", async () => {
+  for (const [startDate, endDate, days, eligible] of [
+    ["2024-01-01", "2024-12-31", 365, false],
+    ["2024-01-01", "2025-01-01", 366, true],
+    ["2025-01-01", "2026-01-01", 365, true],
+    ["2024-02-29", "2025-02-28", 365, false],
+    ["2024-02-29", "2025-03-01", 366, true],
+  ]) {
+    const input = {startDate, endDate, threeMonthSalary: 9000000};
+    const calculated = calculateSeverancePay(input);
+    assert.equal(calculated.serviceDays, days);
+    assert.equal(calculated.isEligible, eligible);
+    assert.equal(calculated.severancePay > 0, eligible);
+    const response = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/severance-pay?" + new URLSearchParams(input)));
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.isEligible, eligible);
+    assert.equal(body.severancePay, calculated.severancePay);
+  }
+});

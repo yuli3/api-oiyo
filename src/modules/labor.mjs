@@ -330,7 +330,15 @@ export function calculateSeverancePay({
   const diffTime = end.getTime() - start.getTime();
   const serviceDays = Math.floor(diffTime / 86400000);
 
-  const isEligible = serviceDays >= 365;
+  // 2026-10-27: one calendar year is a tenure condition, unlike the /365
+  // amount formula (MOEL Art. 4/8 guidance). Leap years can contain 365 days
+  // before the first anniversary. Feb 29 rolls to March 1 in a non-leap year,
+  // after completion of Feb 28; endDate is the first non-employed date.
+  // Civil Act 159/160 calendar-period interpretation; not a full eligibility ruling.
+  // https://www.law.go.kr/법령/민법/제160조
+  const anniversary = new Date(start);
+  anniversary.setUTCFullYear(start.getUTCFullYear() + 1);
+  const isEligible = end >= anniversary;
 
   // 3-month bonus and leave share
   const bonusShare = Math.floor((Number(annualBonus) || 0) * (3 / 12));
