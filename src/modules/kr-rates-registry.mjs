@@ -19,6 +19,6 @@ export function minimumWageForYear(year = koreaYear()) {
     examples: { eightHours: hourly * 8, month209Hours: hourly * 209 },
     assumptions: { dailyHours: 8, monthlyHours: 209, monthlyExampleNotUniversalSalary: true },
     payrollSupported: !is2027,
-    ...(is2027 ? { insurance: KR_RATES_2027.insurance } : {}),
+    ...(is2027 ? { insurance: KR_RATES_2027.insurance, insuranceEvidence: KR_RATES_2027.insuranceEvidence } : {}),
   };
 }
