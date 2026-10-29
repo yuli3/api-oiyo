@@ -33,3 +33,17 @@ test("public minimum-wage endpoint refuses invalid years and keeps source metada
   }
   assert.equal((await worker.fetch(new Request(path, { method: "POST" }))).status, 405);
 });
+
+test("partial official insurance evidence cannot enable 2027 payroll or enact a proposal", () => {
+  const next = minimumWageForYear(2027);
+  assert.equal(next.insuranceEvidence.complete, false);
+  assert.equal(next.insuranceEvidence.nationalPension.employee, 0.05);
+  assert.equal(next.insuranceEvidence.nationalPension.total, 0.10);
+  assert.equal(next.insuranceEvidence.healthInsurance.total, 0.0719);
+  assert.equal(next.insuranceEvidence.healthInsurance.status, "decision_announced");
+  assert.ok(next.insuranceEvidence.unresolved.includes("longTermCare"));
+  assert.equal(next.insurance.value, null);
+  assert.equal(next.payrollSupported, false);
+  assert.equal(KR_RATES_2027.freelancerProposal.legalStatus, "proposal");
+  assert.equal(Object.hasOwn(minimumWageForYear(2026), "insuranceEvidence"), false);
+});
