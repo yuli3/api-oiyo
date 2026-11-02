@@ -313,6 +313,7 @@ export function calculateSeverancePay({
   annualLeaveAllowance = 0,
   hourlyWage = MIN_WAGE_2026,
   dailyHours = 8,
+  weeklyHoursCondition = "unknown",
 }) {
   for (const [name, value] of Object.entries({ threeMonthSalary, annualBonus, annualLeaveAllowance, hourlyWage })) requireAmount(name, value);
   requireAmount("dailyHours", dailyHours, Number.MIN_VALUE, 8);
@@ -338,7 +339,12 @@ export function calculateSeverancePay({
   // https://www.law.go.kr/법령/민법/제160조
   const anniversary = new Date(start);
   anniversary.setUTCFullYear(start.getUTCFullYear() + 1);
-  const isEligible = end >= anniversary;
+  const meetsServiceYear = end >= anniversary;
+  if (!["all_at_least_15", "all_below_15", "mixed", "unknown"].includes(weeklyHoursCondition)) throw new RangeError("Invalid weeklyHoursCondition");
+  // WHY 2026-11-02: MOEL 1350 id1000319752 requires reverse four-week
+  // blocks for mixed schedules. Calendar tenure alone cannot establish eligibility.
+  const isEligible = !meetsServiceYear || weeklyHoursCondition === "all_below_15" ? false
+    : weeklyHoursCondition === "all_at_least_15" ? true : null;
 
   // 3-month bonus and leave share
   const bonusShare = Math.floor((Number(annualBonus) || 0) * (3 / 12));
@@ -360,17 +366,23 @@ export function calculateSeverancePay({
   const effectiveDailyWage = Math.max(dailyAverageWage, dailyOrdinaryWage);
 
   // Formula: (1일 평균임금 x 30일) x (재직일수 / 365)
-  const severancePay = isEligible
+  const comparisonPay = meetsServiceYear
     ? Math.floor(effectiveDailyWage * 30 * (serviceDays / 365))
     : 0;
 
-  for (const [name, value] of Object.entries({ totalThreeMonthWage, dailyOrdinaryWage, severancePay })) requireAmount(name, value);
+  const severancePay = isEligible === false ? 0 : isEligible === true ? comparisonPay : null;
+  for (const [name, value] of Object.entries({ totalThreeMonthWage, dailyOrdinaryWage, comparisonPay })) requireAmount(name, value);
 
   return {
     year: 2026,
     serviceDays,
     threeMonthDays,
     isEligible,
+    meetsServiceYear,
+    weeklyHoursCondition,
+    eligibility: {status: isEligible === null ? "review_required" : isEligible ? "self_confirmed" : "conditions_not_met", isFinalDecision: false,
+      source: "https://1350.moel.go.kr/rtmview.do?id=1000319752&page=1&type=ALL",
+      note: "전 기간의 4주 평균 주 소정근로시간을 확인해 주세요. 15시간 이상·미만 혼합기간, 제외기간·특수계약은 별도 확인이 필요해요."},
     dailyAverageWage,
     dailyOrdinaryWage,
     effectiveDailyWage,

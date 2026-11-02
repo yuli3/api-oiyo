@@ -199,7 +199,7 @@ test("net-salary endpoint computes monthly net wage and insurance breakdown", as
 });
 
 test("severance-pay endpoint computes statutory retirement pay", async () => {
-  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/severance-pay?startDate=2024-01-01&endDate=2026-01-01&threeMonthSalary=9000000"));
+  const res = await worker.fetch(new Request("https://api.oiyo.net/v1/labor/kr/severance-pay?startDate=2024-01-01&endDate=2026-01-01&threeMonthSalary=9000000&weeklyHoursCondition=all_at_least_15"));
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.isEligible, true);
@@ -476,8 +476,8 @@ test("insurance health endpoint calculates monthly regional premium and evaluate
   assert.ok(data1.monthlyIncomePremium > 0);
   assert.ok(data1.monthlyPropertyPremium > 0);
   assert.equal(data1.monthlyTotal, data1.monthlyHealthPremium + data1.monthlyCarePremium);
-  assert.equal(data1.dependentEligibility.isEligible, false);
-  assert.equal(data1.dependentEligibility.status, "disqualified");
+  assert.equal(data1.dependentEligibility.basicCriteriaMet, false);
+  assert.equal(data1.dependentEligibility.status, "review_required");
   assert.ok(data1.dependentEligibility.reasons.length > 0);
 
   // Case 2: Low income, no property, dependent retained
@@ -486,8 +486,8 @@ test("insurance health endpoint calculates monthly regional premium and evaluate
   );
   assert.equal(res2.status, 200);
   const data2 = await res2.json();
-  assert.equal(data2.dependentEligibility.isEligible, true);
-  assert.equal(data2.dependentEligibility.status, "eligible");
+  assert.equal(data2.dependentEligibility.basicCriteriaMet, true);
+  assert.equal(data2.dependentEligibility.status, "review_required");
   assert.equal(data2.monthlyHealthPremium, 20160); // 2026 floor (before: 19,780)
 });
 

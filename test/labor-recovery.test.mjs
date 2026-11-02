@@ -36,7 +36,7 @@ test("severance tenure uses completed calendar year, not 365 elapsed days", asyn
     ["2024-02-29", "2025-02-28", 365, false],
     ["2024-02-29", "2025-03-01", 366, true],
   ]) {
-    const input = {startDate, endDate, threeMonthSalary: 9000000};
+    const input = {startDate, endDate, threeMonthSalary: 9000000, weeklyHoursCondition: "all_at_least_15"};
     const calculated = calculateSeverancePay(input);
     assert.equal(calculated.serviceDays, days);
     assert.equal(calculated.isEligible, eligible);

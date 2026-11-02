@@ -776,6 +776,7 @@ async function route(request, env) {
         const res = calculateSeverancePay({
           startDate,
           endDate,
+          weeklyHoursCondition: url.searchParams.get("weeklyHoursCondition") ?? "unknown",
           threeMonthSalary: Number(threeMonthSalary),
           annualBonus: Number(annualBonus),
           annualLeaveAllowance: Number(annualLeaveAllowance),

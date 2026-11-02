@@ -276,8 +276,9 @@ export const OPENAPI_SPEC = {
     "/v1/labor/kr/severance-pay": {
       get: {
         summary: "South Korea Statutory Severance Pay Calculator",
-        description: "Retirement-benefit simulation using actual preceding three calendar months. Weekly-hours eligibility and excluded wage periods are not assessed. Blank, nonfinite or negative numeric inputs are rejected.",
+        description: "Retirement-benefit simulation using actual preceding three calendar months. Provide weeklyHoursCondition only after checking four-week contractual hours across the entire service period. Unknown or mixed schedules return null eligibility and null severancePay; self-confirmation is not an official entitlement ruling. Excluded periods are not modeled. Blank, nonfinite or negative numeric inputs are rejected.",
         parameters: [
+          { name: "weeklyHoursCondition", in: "query", schema: { type: "string", enum: ["all_at_least_15", "all_below_15", "mixed", "unknown"], default: "unknown" }, description: "Four-week average contractual hours over the entire service period; mixed schedules require separate period review" },
           { name: "startDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2023-01-01" }, description: "Start date (YYYY-MM-DD)" },
           { name: "endDate", in: "query", required: true, schema: { type: "string", format: "date", default: "2026-01-01" }, description: "First date no longer employed, after last workday (YYYY-MM-DD); excluded from service days" },
           { name: "threeMonthSalary", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 9000000 }, description: "Total salary for the last 3 months" },
@@ -295,11 +296,12 @@ export const OPENAPI_SPEC = {
                   type: "object",
                   properties: {
                     serviceDays: { type: "integer" },
-                    isEligible: { type: "boolean" },
+                    isEligible: { type: "boolean", nullable: true },
                     dailyAverageWage: { type: "number" },
                     dailyOrdinaryWage: { type: "number" },
                     effectiveDailyWage: { type: "number" },
-                    severancePay: { type: "number" }
+                    severancePay: { type: "number", nullable: true },
+                    meetsServiceYear: { type: "boolean" }
                   }
                 }
               }
@@ -750,3 +752,13 @@ for (const { function: tool } of TOOLS_SPEC.tools) {
     }));
   }
 }
+
+// WHY 2026-11-02: generic tool docs must expose the screening/eligibility boundary to agents too.
+OPENAPI_SPEC.paths["/v1/insurance/health"].get.responses["200"] = {
+ description: "Premium estimate and preliminary screening; no final dependent eligibility ruling",
+ content: {"application/json": {schema: {type: "object", properties: {dependentEligibility: {type: "object", properties: {
+ isEligible: {type: "boolean", nullable: true, description: "Always null: unmodeled statutory conditions prevent a final ruling"},
+ basicCriteriaMet: {type: "boolean", description: "Preliminary numeric screening only; statutory exceptions may alter the result"},
+ status: {type: "string", enum: ["review_required"]}, unassessedCriteria: {type: "array", items: {type: "string"}}
+ }}}}}}
+};
