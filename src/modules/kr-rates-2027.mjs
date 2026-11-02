@@ -15,7 +15,7 @@ export const KR_RATES_2027 = Object.freeze({
   // 2026-10-29: partial source evidence is not a complete payroll model. Keep
   // the legacy insurance aggregate unknown until every required field is checked.
   insuranceEvidence: Object.freeze({
-    checkedAt: "2026-11-01", complete: false,
+    checkedAt: "2026-11-02", complete: false,
     nationalPension: Object.freeze({
       total: 0.10, employee: 0.05, employer: 0.05, unit: "ratio",
       effectiveFrom: "2027-01-01", status: "official_guidance",
@@ -33,7 +33,16 @@ export const KR_RATES_2027 = Object.freeze({
       sourceUrl: "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156787374",
       implementingRuleVerified: false,
     }),
-    unresolved: Object.freeze(["healthImplementingRule", "longTermCareImplementingRule", "employmentInsurance", "healthBounds", "pensionBoundsFromJuly2027"]),
+    // WHY 2026-11-02: MOEL reported the 1.8%->2.0% unemployment-account rise to the
+    // Employment Insurance Committee for 2027; the decree amendment is still pending.
+    employmentInsurance: Object.freeze({
+      unemploymentAccountTotal: 0.020, employee: 0.010, employer: 0.010, unit: "ratio",
+      effectiveFrom: "2027-01-01", status: "committee_deliberated", sourceDate: "2026-09-01",
+      sourceUrl: "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19866",
+      implementingRuleVerified: false,
+      excludes: "employer-only job-stability/vocational-training rates (size-based) are not covered",
+    }),
+    unresolved: Object.freeze(["healthImplementingRule", "longTermCareImplementingRule", "employmentInsuranceImplementingRule", "healthBounds", "pensionBoundsFromJuly2027"]),
   }),
   freelancerProposal: Object.freeze({
     value: 0.022, unit: "ratio", legalStatus: "proposal", absenceState: null,
