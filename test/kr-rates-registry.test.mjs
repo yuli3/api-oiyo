@@ -46,6 +46,12 @@ test("partial official insurance evidence cannot enable 2027 payroll or enact a 
   assert.equal(next.insuranceEvidence.longTermCare.status, "decision_announced");
   assert.equal(next.insuranceEvidence.longTermCare.implementingRuleVerified, false);
   assert.ok(next.insuranceEvidence.unresolved.includes("longTermCareImplementingRule"));
+  assert.equal(next.insuranceEvidence.employmentInsurance.unemploymentAccountTotal, 0.02);
+  assert.equal(next.insuranceEvidence.employmentInsurance.employee, 0.01);
+  assert.equal(next.insuranceEvidence.employmentInsurance.status, "committee_deliberated");
+  assert.equal(next.insuranceEvidence.employmentInsurance.implementingRuleVerified, false);
+  assert.ok(next.insuranceEvidence.unresolved.includes("employmentInsuranceImplementingRule"));
+  assert.equal(next.insurance.value, null);
   assert.equal(next.insurance.value, null);
   assert.equal(next.payrollSupported, false);
   assert.equal(KR_RATES_2027.freelancerProposal.legalStatus, "proposal");
