@@ -1226,9 +1226,20 @@ async function route(request, env) {
       const otherIncome = url.searchParams.get("otherIncome") || 0;
       const propertyTaxBase = url.searchParams.get("propertyTaxBase") || 0;
       const hasBusinessRegistration = url.searchParams.get("hasBusinessRegistration") === "true";
+      const triBool = (name) => {
+        const v = url.searchParams.get(name);
+        return v === "true" ? true : v === "false" ? false : null;
+      };
 
       try {
         const res = calculateHealthInsurance({
+          relationship: url.searchParams.get("relationship") || "unknown",
+          isMarried: triBool("isMarried"),
+          spouseMeetsIncomeCriteria: triBool("spouseMeetsIncomeCriteria"),
+          age: url.searchParams.get("age"),
+          siblingUnmarried: triBool("siblingUnmarried"),
+          isDisabledOrMerit: triBool("isDisabledOrMerit"),
+          hasHousingRentalIncome: triBool("hasHousingRentalIncome"),
           businessIncome: Number(businessIncome),
           financialIncome: Number(financialIncome),
           otherIncome: Number(otherIncome),
