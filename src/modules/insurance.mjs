@@ -39,7 +39,12 @@ export function calculateHealthInsurance({
   const propBase = Math.max(0, Number(propertyTaxBase) || 0);
   const isRegistered = Boolean(hasBusinessRegistration);
 
-  const totalAnnualIncome = bizInc + finInc + othInc;
+  // 2026-11-02: interest + dividends of 10M KRW or less are not reported to NHIS as income,
+  // so they do not count toward the dependent 20M test either (same rule regionalHealthPremium2026
+  // applies). Above 10M the whole amount counts. Earned/pension income counts in full here; the
+  // 50% factor is only for the regional premium.
+  const countedFinancialIncome = finInc > 10000000 ? finInc : 0;
+  const totalAnnualIncome = bizInc + countedFinancialIncome + othInc;
   const premium = regionalHealthPremium2026({
     businessIncome: bizInc,
     financialIncome: finInc,
