@@ -130,6 +130,7 @@ test("calculateSeverancePay calculates standard 2 years severance", () => {
     annualLeaveAllowance: 0,
     hourlyWage: 12000,
     dailyHours: 8,
+    weeklyHoursCondition: "all_at_least_15",
   });
 
   assert.equal(res.year, 2026);

@@ -140,10 +140,11 @@ export const TOOLS_SPEC = {
       type: "function",
       function: {
         name: "calculate_severance_pay",
-        description: "Calculates statutory severance retirement pay (퇴직금) under Korea Labor Standards Act.",
+        description: "South Korean statutory severance arithmetic. Unknown or mixed four-week hours return null eligibility and amount; all-period self-confirmation is required for an estimate.",
         parameters: {
           type: "object",
           properties: {
+            weeklyHoursCondition: { type: "string", enum: ["all_at_least_15", "all_below_15", "mixed", "unknown"], description: "Whole service period four-week contractual hours, not hours in the last week" },
             startDate: { type: "string", description: "Enlistment/joining date in YYYY-MM-DD" },
             endDate: { type: "string", description: "Resignation/leaving date in YYYY-MM-DD" },
             threeMonthSalary: { type: "number", description: "Total gross base salary received during last 3 months in KRW" },
@@ -257,7 +258,7 @@ export const TOOLS_SPEC = {
       type: "function",
       function: {
         name: "calculate_health_insurance",
-        description: "Calculates South Korea regional health insurance premiums and evaluates dependent (피부양자) eligibility under 2024-2026 statutory rules.",
+        description: "Calculates Korean regional insurance premiums and preliminary income/property flags only. dependentEligibility.isEligible is null: family support, spouse/sibling conditions, housing rental income and statutory exceptions require NHIS review.",
         parameters: {
           type: "object",
           properties: {

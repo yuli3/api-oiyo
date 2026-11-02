@@ -98,12 +98,18 @@ export function calculateHealthInsurance({
     assessedAnnualIncome: premium.assessedAnnualIncome,
     isMinPremiumApplied: premium.lowIncomeFloorApplied || premium.healthPremium === H.monthlyFloor,
     dependentEligibility: {
-      isEligible,
-      status: isEligible ? "eligible" : "disqualified",
+      // WHY 2026-11-02: NHIS 별표1/1의2 require family/support and exceptions
+      // absent from these inputs. Numeric screening is not an eligibility verdict.
+      isEligible: null,
+      basicCriteriaMet: isEligible,
+      status: "review_required",
+      isFinalDecision: false,
+      unassessedCriteria: ["부양관계·동거 여부", "기혼자의 배우자 소득요건", "형제자매의 나이·혼인·재산 요건", "주택임대소득", "장애인·국가유공자 등 사업소득 예외", "공단의 소득자료 반영·인정 예외"],
+      source: "https://www.nhis.or.kr/nhis/policy/wbhada07400m01.do",
       reasons: disqualificationReasons,
       summary: isEligible
-        ? "피부양자 자격을 유지할 수 있어요."
-        : "피부양자 자격 상실 대상이에요. 지역가입자로 건강보험료가 부과돼요.",
+        ? "입력한 일반 소득·재산 기준에서 초과 항목이 없어요. 미검토 요건과 공단 확인이 남아 있어요."
+        : "입력한 일반 기준에서 확인할 항목이 있어요. 예외 적용·자격 상실·지역가입 전환은 공단에 확인해 주세요.",
     },
     meta: {
       incomeTaxRate: RG.incomeRate,
