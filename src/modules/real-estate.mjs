@@ -1,5 +1,6 @@
 // Real Estate calculation module for South Korea B2A
 // Pure mathematical and statutory formulas for Brokerage Fees & Acquisition Tax
+import { acquisitionTax, propertyTax as libPropertyTax } from "./vendor/tools-tax/kr-real-estate-tax.mjs";
 
 /**
  * Calculates statutory brokerage commission fee (부동산 중개보수 요율 및 상한액)
@@ -101,36 +102,27 @@ export function calculateAcquisitionTax({
     throw new Error("Price must be a positive number");
   }
 
-  let baseRate = 0.01;
-  if (houseCount === "1" || houseCount === "2_non_reg") {
-    if (p <= 600000000) {
-      baseRate = 0.01;
-    } else if (p <= 900000000) {
-      baseRate = (p * (2 / 300000000) - 3) / 100;
-    } else {
-      baseRate = 0.03;
-    }
-  } else if (houseCount === "2_reg" || houseCount === "3_non_reg") {
-    baseRate = 0.08;
-  } else {
-    baseRate = 0.12;
-  }
-
-  let mainTax = p * baseRate;
+  // WHY 2026-11-09: one formula for every OIYO surface. The hand-written rates here matched the law
+  // but rounded differently (지방세 10원 미만 절사); delegate to the tools-oiyo library.
+  const LEGACY_HOUSES = {
+    "1": [1, false], "2_non_reg": [2, false], "2_reg": [2, true],
+    "3_non_reg": [3, false], "3_reg": [3, true], "4_multi": [4, true],
+  };
+  const [houses, regulated] = LEGACY_HOUSES[houseCount] ?? LEGACY_HOUSES["1"];
+  const lib = acquisitionTax({ price: p, houses, regulated, temporaryTwo: false, over85: Boolean(areaOver85) });
+  const baseRate = lib.rate;
+  let mainTax = lib.tax;
   let discountAmount = 0;
 
-  if (Boolean(isFirstHome) && p <= 1200000000) {
+  // 생애최초 주택 취득세 감면(지방세특례제한법 제36조의3): 12억 이하, 200만 원 한도.
+  if (Boolean(isFirstHome) && p <= 1200000000 && !lib.heavy) {
     discountAmount = Math.min(mainTax, 2000000);
     mainTax = Math.max(0, mainTax - discountAmount);
   }
 
-  const eduRate = baseRate <= 0.03 ? baseRate * 0.1 : 0.004;
-  const educationTax = p * eduRate;
-
-  const ruralRate = Boolean(areaOver85) ? (baseRate >= 0.08 ? 0.01 : 0.002) : 0;
-  const ruralTax = p * ruralRate;
-
-  const totalTax = Math.round(mainTax + educationTax + ruralTax);
+  const educationTax = lib.education;
+  const ruralTax = lib.rural;
+  const totalTax = mainTax + educationTax + ruralTax;
 
   return {
     price: p,
@@ -138,11 +130,13 @@ export function calculateAcquisitionTax({
     areaOver85: Boolean(areaOver85),
     isFirstHome: Boolean(isFirstHome),
     baseRatePercent: Number((baseRate * 100).toFixed(2)),
-    mainTax: Math.round(mainTax),
-    educationTax: Math.round(educationTax),
-    ruralTax: Math.round(ruralTax),
-    discountAmount: Math.round(discountAmount),
+    mainTax,
+    educationTax,
+    ruralTax,
+    discountAmount,
     totalTax,
+    deprecated: true,
+    replacement: "/v1/tax/kr/acquisition-tax",
   };
 }
 
@@ -173,36 +167,14 @@ export function calculatePropertyTax({
   const count = Number(houseCount) || 1;
 
   // 1. Property Tax (주택분 재산세)
-  const propTaxBase = p * 0.6; // Fair market value ratio 60%
-  let propBaseTax = 0;
-
-  if (isSingle && p <= 900000000) {
-    // 1-homeowner special discounted rates
-    if (propTaxBase <= 60000000) {
-      propBaseTax = propTaxBase * 0.0005;
-    } else if (propTaxBase <= 150000000) {
-      propBaseTax = 30000 + (propTaxBase - 60000000) * 0.001;
-    } else if (propTaxBase <= 300000000) {
-      propBaseTax = 120000 + (propTaxBase - 150000000) * 0.002;
-    } else {
-      propBaseTax = 420000 + (propTaxBase - 300000000) * 0.0035;
-    }
-  } else {
-    // Standard rates
-    if (propTaxBase <= 60000000) {
-      propBaseTax = propTaxBase * 0.001;
-    } else if (propTaxBase <= 150000000) {
-      propBaseTax = 60000 + (propTaxBase - 60000000) * 0.0015;
-    } else if (propTaxBase <= 300000000) {
-      propBaseTax = 195000 + (propTaxBase - 150000000) * 0.0025;
-    } else {
-      propBaseTax = 570000 + (propTaxBase - 300000000) * 0.004;
-    }
-  }
-
-  const urbanTax = Boolean(includeUrban) ? propTaxBase * 0.0014 : 0;
-  const eduTax = propBaseTax * 0.2;
-  const totalPropTax = Math.round(propBaseTax + urbanTax + eduTax);
+  // WHY 2026-11-09: the old code used a 60% fair market value ratio for one-home households too
+  // (2026: 43·44·45%, 지방세법 시행령 제109조). Delegate to the tools-oiyo library.
+  const prop = libPropertyTax(p, isSingle, Boolean(includeUrban));
+  const propTaxBase = prop.base;
+  const propBaseTax = prop.tax;
+  const urbanTax = prop.urban;
+  const eduTax = prop.education;
+  const totalPropTax = prop.total;
 
   // 2. Comprehensive Holding Tax (종합부동산세)
   const exemption = isSingle ? 1200000000 : 900000000;
@@ -278,10 +250,11 @@ export function calculatePropertyTax({
     ownerType,
     houseCount: count,
     propertyTax: {
-      taxBase: Math.round(propTaxBase),
-      baseTax: Math.round(propBaseTax),
-      urbanTax: Math.round(urbanTax),
-      educationTax: Math.round(eduTax),
+      fairMarketRatio: prop.ratio,
+      taxBase: propTaxBase,
+      baseTax: propBaseTax,
+      urbanTax,
+      educationTax: eduTax,
       total: totalPropTax,
       julyInstallment: Math.round(totalPropTax / 2),
       septemberInstallment: totalPropTax - Math.round(totalPropTax / 2),
@@ -298,6 +271,8 @@ export function calculatePropertyTax({
       total: totalCompTax,
     },
     totalAnnualHoldingTax,
+    deprecated: true,
+    replacement: "/v1/tax/kr/property-tax (재산세만, 종합부동산세 제외)",
   };
 }
 

@@ -1,6 +1,7 @@
 // Finance & Investment calculation module for South Korea & Global B2A
 // Pure mathematical financial formulas for CAGR and compound interest
 import { inheritanceGiftTax2026, cardDeduction2026, progressiveIncomeTax, KR_RATES_2026 } from "./kr-rates-2026.mjs";
+import { freelancerSettlement } from "./vendor/tools-tax/kr-income-tax-2026.mjs";
 
 /**
  * Calculates Compound Annual Growth Rate (CAGR, 연평균 복합 성장률)
@@ -545,64 +546,39 @@ export function calculateFreelancerTax({
   const depCount = Math.max(1, parseInt(dependents, 10) || 1);
   const extraDeduction = Math.max(0, Number(additionalDeduction) || 0);
 
-  // 1. 3.3% Withholding tax (Prepaid)
-  const incomeTaxPrepaid = Math.floor(rev * 0.03);
-  const localTaxPrepaid = Math.floor(incomeTaxPrepaid * 0.1);
-  const totalPrepaidTax = incomeTaxPrepaid + localTaxPrepaid;
-
-  // 2. Simple expense rate by job code
-  const EXPENSE_RATES = {
-    creator: 0.642,
-    developer: 0.641,
-    designer: 0.737,
-    writer: 0.587,
-    general: 0.640,
-  };
-  const expenseRate = EXPENSE_RATES[jobCode] ?? 0.640;
-  const recognizedExpense = Math.round(rev * expenseRate);
-  const incomeAmount = Math.max(0, rev - recognizedExpense);
-
-  // 3. Income deductions (기본공제 1인당 150만 원, 소득세법 제50조 — SSOT)
-  const personalDeduction = depCount * KR_RATES_2026.incomeTax.personalDeductionPerPerson;
-  const totalDeductions = personalDeduction + extraDeduction;
-  const taxBase = Math.max(0, incomeAmount - totalDeductions);
-
-  // 4. 소득세법 제55조 기본세율(2023 귀속~, 8단계 6~45%)을 kr-rates-2026 정본에서 계산한다.
-  // WHY: 이전 코드는 2022년 이전 누진공제(14%−112만, 24%−612만…)와 38% 상한을 하드코딩해 15% 이상 구간을 과다 계산했다.
-  const calculatedIncomeTax = progressiveIncomeTax(taxBase);
-
-  // 5. Tax credits (Standard 70,000 KRW + Electronic Filing 20,000 KRW)
-  const taxCredits = Math.min(calculatedIncomeTax, 90000);
-  const finalIncomeTax = Math.max(0, calculatedIncomeTax - taxCredits);
-  const finalLocalTax = Math.floor(finalIncomeTax * 0.1);
-  const finalTotalTax = finalIncomeTax + finalLocalTax;
-
-  // 6. Refund or additional payment
-  const refundAmount = totalPrepaidTax - finalTotalTax;
-  const isRefund = refundAmount >= 0;
+  // WHY 2026-11-09: the old per-job expense rates (creator 64.2%, designer 73.7%, writer 58.7%) had no
+  // source, ignored the 4천만 원 초과분 자가율, and added a 2만 원 e-filing credit. All jobs now use the
+  // tools-oiyo 940909 simple expense rate (same as tools.oiyo.net and /v1/tax/kr/freelancer-income-tax).
+  // jobCode is accepted for compatibility only; additionalDeduction is added to income deductions (as before).
+  const r = freelancerSettlement(rev, "simple", depCount, extraDeduction);
+  const prepaidTotal = r.withheld + r.withheldLocal;
+  const finalTotalTax = r.determined + r.local;
+  const refundAmount = prepaidTotal - finalTotalTax;
 
   return {
     revenue: rev,
     jobCode,
-    expenseRatePercent: Number((expenseRate * 100).toFixed(1)),
-    recognizedExpense,
-    incomeAmount,
+    expenseRatePercent: Number(((r.expense / rev) * 100).toFixed(1)),
+    recognizedExpense: r.expense,
+    incomeAmount: r.business,
     dependents: depCount,
-    personalDeduction,
-    totalDeductions,
-    taxBase,
-    calculatedIncomeTax,
-    taxCredits,
-    finalIncomeTax,
-    finalLocalTax,
+    personalDeduction: depCount * KR_RATES_2026.incomeTax.personalDeductionPerPerson,
+    totalDeductions: r.deductions,
+    taxBase: r.base,
+    calculatedIncomeTax: r.calculated,
+    taxCredits: r.credits,
+    finalIncomeTax: r.determined,
+    finalLocalTax: r.local,
     finalTotalTax,
     prepaidTax: {
-      incomeTax: incomeTaxPrepaid,
-      localTax: localTaxPrepaid,
-      total: totalPrepaidTax,
+      incomeTax: r.withheld,
+      localTax: r.withheldLocal,
+      total: prepaidTotal,
     },
-    isRefund,
+    isRefund: refundAmount >= 0,
     refundAmount: Math.abs(refundAmount),
+    deprecated: true,
+    replacement: "/v1/tax/kr/freelancer-income-tax",
   };
 }
 

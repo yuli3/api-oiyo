@@ -33,7 +33,7 @@
 - 연말정산·3.3%·취득세·재산세 공식은 tools-oiyo `src/lib/kr-*.ts`가 정본이다. 이 저장소는 `node scripts/sync-tools-tax.mjs`(Node 22.13+)로 만든 `src/modules/vendor/tools-tax/*.mjs` 복사본만 쓴다. 손으로 고치지 않는다.
 - tools 세금 라이브러리를 고치면 이 저장소에서 sync를 다시 돌리고 같은 내용의 PR을 연다. `test/kr-personal-tax.test.mjs`가 로컬 tools 체크아웃과 다르면 실패한다(CI에는 체크아웃이 없어 skip).
 - `src/modules/kr-personal-tax.mjs`는 입력 확인과 응답 모양만 맡는다. 모르는 입력·지원하지 않는 연도는 추정하지 않고 400으로 거부하고, 결과에 `basis`(근거 조문)·`notCovered`·`disclaimer`를 붙인다.
-- 예전 `/v1/real-estate/acquisition-tax`·`/v1/real-estate/property-tax`·`/v1/tax/freelancer`는 tools와 공식이 달라(1주택 공정시장가액비율 60% 고정, 임의 직종 경비율 등) MCP에 노출하지 않는다.
+- 예전 `/v1/real-estate/acquisition-tax`·`/v1/real-estate/property-tax`(재산세 부분)·`/v1/tax/freelancer`는 2026-11-09부터 같은 tools 라이브러리를 쓰는 호환용 경로다(응답 필드 유지, `deprecated: true`, `replacement`). 새 기능은 `/v1/tax/kr/*`에만 넣는다. 종합부동산세 계산은 아직 예전 property-tax 경로에만 있다.
 
 ## MCP Registry (2026-11-09)
 - `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api.oiyo.net/mcp`). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).

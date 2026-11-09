@@ -754,25 +754,39 @@ test("card-deduction: 2026 child-based base limit, transit 40%, culture over 7�
   assert.equal(high.isEstimate, true);
 });
 
-test("tax freelancer uses 소득세법 제55조 2023~ brackets from the SSOT (15% − 126만 등)", async () => {
-  // [revenue, jobCode, expected taxBase, expected calculatedIncomeTax]
+test("legacy tax freelancer route uses the tools 940909 simple expense rate and 제55조 brackets", async () => {
+  // [revenue, expected taxBase, expected calculatedIncomeTax]
+  // 2026-11-09: expense = 4천만 × 64.1% + 초과분 × 49.7% (all jobCodes), deductions 150만, 표준세액공제 7만.
   const vectors = [
-    [100000000, "general", 34500000, 3915000], // 34.5M × 15% − 1,260,000
-    [400000000, "developer", 142100000, 34295000], // 142.1M × 35% − 15,440,000
-    [600000000, "general", 214500000, 61570000], // 214.5M × 38% − 19,940,000 (구 코드: −20,300,000)
-    [30000000, "general", 9300000, 558000], // 6% 구간
+    [100000000, 43040000, 5196000], // 840,000 + 29.04M × 15%
+    [400000000, 193940000, 53757200], // … + 43.94M × 38%
+    [600000000, 294540000, 91985200],
+    [30000000, 9270000, 556200], // 6% 구간
   ];
-  for (const [revenue, jobCode, taxBase, tax] of vectors) {
-    const res = await worker.fetch(new Request(`https://api.oiyo.net/v1/tax/freelancer?revenue=${revenue}&jobCode=${jobCode}&dependents=1`));
+  for (const [revenue, taxBase, tax] of vectors) {
+    const res = await worker.fetch(new Request(`https://api.oiyo.net/v1/tax/freelancer?revenue=${revenue}&jobCode=designer&dependents=1`));
     const data = await res.json();
     assert.equal(data.taxBase, taxBase, `taxBase for ${revenue}`);
     assert.equal(data.calculatedIncomeTax, tax, `tax for ${revenue}`);
+    assert.equal(data.replacement, "/v1/tax/kr/freelancer-income-tax");
   }
   const data = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/freelancer?revenue=100000000&jobCode=general"))).json();
-  assert.equal(data.finalIncomeTax, 3825000); // − 표준 7만 − 전자신고 2만
-  assert.equal(data.finalTotalTax, 4207500);
+  assert.equal(data.finalIncomeTax, 5126000); // − 표준 7만
+  assert.equal(data.finalTotalTax, 5638600);
   assert.equal(data.isRefund, false);
-  assert.equal(data.refundAmount, 907500); // 4,207,500 − 3,300,000
+  assert.equal(data.refundAmount, 2338600); // 5,638,600 − 3,300,000
+  const modern = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/kr/freelancer-income-tax?revenue=100000000"))).json();
+  assert.equal(modern.result.due, 2338600, "legacy and new routes agree");
+});
+
+test("legacy property-tax route uses the 2026 one-home fair market value ratio", async () => {
+  const data = await (await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/property-tax?price=500000000&ownerType=single"))).json();
+  assert.equal(data.propertyTax.fairMarketRatio, 0.44); // was 0.6 before 2026-11-09
+  const modern = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/kr/property-tax?officialPrice=500000000"))).json();
+  assert.equal(data.propertyTax.total, modern.result.total);
+  const acq = await (await worker.fetch(new Request("https://api.oiyo.net/v1/real-estate/acquisition-tax?price=700000000&houseCount=1"))).json();
+  const acqModern = await (await worker.fetch(new Request("https://api.oiyo.net/v1/tax/kr/acquisition-tax?price=700000000"))).json();
+  assert.equal(acq.totalTax, acqModern.result.total);
 });
 
 test("inheritance-gift treats marriageBirthDeduction=true as the full 1억, not 1원", async () => {
