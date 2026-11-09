@@ -27,6 +27,17 @@
 - `GET /v1/military/kr/service-calculator`: 군 복무기간 및 계급 진급일 계산
 - `GET /v1/energy/kr/gas-bill`: 도시가스 요금 계산
 - `GET /v1/math/units/convert`: 단위 변환 (길이, 넓이, 무게, 온도)
+- `POST /v1/tax/kr/year-end-settlement`, `GET /v1/tax/kr/freelancer-income-tax`, `GET /v1/tax/kr/acquisition-tax`, `GET /v1/tax/kr/property-tax`: 개인 세금(연말정산·3.3% 종소세·취득세·재산세). MCP 도구로도 노출
+
+## 개인 세금 계산 정본 (2026-11-09)
+- 연말정산·3.3%·취득세·재산세 공식은 tools-oiyo `src/lib/kr-*.ts`가 정본이다. 이 저장소는 `node scripts/sync-tools-tax.mjs`(Node 22.13+)로 만든 `src/modules/vendor/tools-tax/*.mjs` 복사본만 쓴다. 손으로 고치지 않는다.
+- tools 세금 라이브러리를 고치면 이 저장소에서 sync를 다시 돌리고 같은 내용의 PR을 연다. `test/kr-personal-tax.test.mjs`가 로컬 tools 체크아웃과 다르면 실패한다(CI에는 체크아웃이 없어 skip).
+- `src/modules/kr-personal-tax.mjs`는 입력 확인과 응답 모양만 맡는다. 모르는 입력·지원하지 않는 연도는 추정하지 않고 400으로 거부하고, 결과에 `basis`(근거 조문)·`notCovered`·`disclaimer`를 붙인다.
+- 예전 `/v1/real-estate/acquisition-tax`·`/v1/real-estate/property-tax`·`/v1/tax/freelancer`는 tools와 공식이 달라(1주택 공정시장가액비율 60% 고정, 임의 직종 경비율 등) MCP에 노출하지 않는다.
+
+## MCP Registry (2026-11-09)
+- `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api.oiyo.net/mcp`). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
+- main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
 
 ## 2026 요율 단일 정본 (2026-10-17)
 - 급여·4대보험·구직급여·육아휴직·지역건보 요율과 공식은 `src/modules/kr-rates-2026.mjs` 하나에만 둔다. labor·insurance 모듈에 숫자 요율을 새로 쓰지 않는다.

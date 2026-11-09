@@ -27,6 +27,10 @@ const fixtures = {
   calculate_inheritance_gift_tax: { assetValue: 100000000, mode: "gift", relationship: "child_adult" },
   calculate_loan_refinance: { loanBalance: 200000000, currentRate: 4.8, newRate: 3.9 },
   calculate_card_tax_deduction: { annualSalary: 50000000 },
+  calculate_kr_year_end_settlement: { salary: 50000000, persons: 1, withheld: 2000000 },
+  calculate_kr_freelancer_income_tax: { revenue: 30000000 },
+  calculate_kr_acquisition_tax: { price: 700000000 },
+  calculate_kr_property_tax: { officialPrice: 500000000 },
 };
 
 function rpcRequest(method, params = {}, headers = {}) {

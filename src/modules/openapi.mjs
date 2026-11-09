@@ -757,6 +757,15 @@ for (const { function: tool } of TOOLS_SPEC.tools) {
   }
 }
 
+// 2026-11-09: the year-end settlement takes many optional fields, so it is a JSON body (GET query also works).
+{
+  const yearEnd = TOOLS_SPEC.tools.find(t => t.function.name === "calculate_kr_year_end_settlement").function;
+  OPENAPI_SPEC.paths["/v1/tax/kr/year-end-settlement"].post.requestBody = {
+    required: true,
+    content: { "application/json": { schema: { ...yearEnd.parameters, additionalProperties: false } } },
+  };
+}
+
 // WHY 2026-11-02: generic tool docs must expose the screening/eligibility boundary to agents too.
 OPENAPI_SPEC.paths["/v1/insurance/health"].get.responses["200"] = {
  description: "Premium estimate and preliminary screening; no final dependent eligibility ruling",

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.yuli3/oiyo-calculations",
+  "title": "OIYO Korea Calculators",
+  "description": "Korean personal tax, payroll, labor, real estate and calendar calculators. Code, no LLM.",
+  "websiteUrl": "https://api.oiyo.net/docs",
+  "repository": {
+    "url": "https://github.com/yuli3/api-oiyo",
+    "source": "github"
+  },
+  "version": "1.3.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.oiyo.net/mcp"
+    }
+  ]
+}
