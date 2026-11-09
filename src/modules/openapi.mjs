@@ -313,13 +313,16 @@ export const OPENAPI_SPEC = {
     "/v1/labor/kr/annual-leave": {
       get: {
         summary: "South Korea Statutory Annual Leave & Allowance Calculator",
-        description: "Annual leave simulation. Workplace coverage, weekly-hours and attendance eligibility are not assessed. First-year accrual requires completedPerfectMonths. Unused days are supplied by the caller. Blank, nonfinite or negative numeric inputs are rejected.",
+        description: "Annual leave simulation. Workplace size, weekly-hours and attendance (1+ years) are optional self-confirmed inputs; unknown ones are listed in eligibility.unassessedCriteria and the response is never a final ruling. Under-5 workplaces or below-15 weekly hours give 0 days; below-80% attendance gives completedPerfectMonths days. First-year accrual requires completedPerfectMonths. Unused days are supplied by the caller. Blank, nonfinite or negative numeric inputs are rejected.",
         parameters: [
           { name: "yearsOfService", in: "query", required: false, schema: { type: "number", minimum: 0, default: 1 }, description: "Completed years of service" },
           { name: "completedPerfectMonths", in: "query", required: false, schema: { type: "integer", minimum: 0, maximum: 11 }, description: "Required when yearsOfService is less than 1: actual completed perfect-attendance months, not the maximum first-year allowance" },
           { name: "hourlyWage", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 10320 }, description: "Ordinary hourly wage; minimum-wage floor applied" },
           { name: "dailyHours", in: "query", required: false, schema: { type: "number", minimum: 0, exclusiveMinimum: true, maximum: 8, default: 8 }, description: "Daily working hours" },
-          { name: "unusedDays", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 }, description: "Remaining unused leave days, including fractional days" }
+          { name: "unusedDays", in: "query", required: false, schema: { type: "number", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 }, description: "Remaining unused leave days, including fractional days" },
+          { name: "workplaceSize", in: "query", required: false, schema: { type: "string", enum: ["5_or_more", "under_5", "unknown"], default: "unknown" }, description: "Regular employees at the workplace; Art. 60 does not apply to 4 or fewer" },
+          { name: "weeklyHoursCondition", in: "query", required: false, schema: { type: "string", enum: ["at_least_15", "below_15", "unknown"], default: "unknown" }, description: "Four-week average contractual weekly hours; Art. 60 does not apply below 15 (Art. 18(3))" },
+          { name: "attendanceCondition", in: "query", required: false, schema: { type: "string", enum: ["at_least_80", "below_80", "unknown"], default: "unknown" }, description: "Past-year attendance rate for 1+ years of service; below_80 requires completedPerfectMonths (Art. 60(2))" }
         ],
         responses: {
           "200": {
@@ -333,7 +336,8 @@ export const OPENAPI_SPEC = {
                     statutoryLeaveDays: { type: "integer" },
                     dailyOrdinaryWage: { type: "number" },
                     unusedDays: { type: "number" },
-                    unusedLeaveAllowance: { type: "number" }
+                    unusedLeaveAllowance: { type: "number" },
+                    eligibility: { type: "object", properties: { status: { type: "string", enum: ["self_confirmed", "review_required", "conditions_not_met"] }, isFinalDecision: { type: "boolean" }, unassessedCriteria: { type: "array", items: { type: "string" } } } }
                   }
                 }
               }
