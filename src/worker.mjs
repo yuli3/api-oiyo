@@ -44,6 +44,7 @@ import { KR_RATES_2026 } from "./modules/kr-rates-2026.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
 import { handleMcp } from "./modules/mcp.mjs";
+import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { recordUsage } from "./modules/usage.mjs";
 import {
   DOCS_HTML,
@@ -1487,6 +1488,10 @@ async function route(request, env) {
         return Response.json({ error: err.message }, { status: 400, headers: commonHeaders });
       }
     }
+
+    // 2026-11-09: 연말정산·3.3% 종소세·취득세·재산세 (tools-oiyo libraries, see kr-personal-tax.mjs)
+    const personalTax = await handlePersonalTax(request, url, commonHeaders);
+    if (personalTax) return personalTax;
 
     // 404 Fallback
     return new Response(

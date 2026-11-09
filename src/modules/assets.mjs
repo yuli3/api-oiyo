@@ -85,6 +85,11 @@ https://api.oiyo.net
 - GET /v1/math/units/convert?value=...&from=...&to=...: Exact engineering unit converter (length, area, mass, temperature)
 - GET /v1/finance/cagr?initialValue=...&finalValue=...&years=...: Compound Annual Growth Rate (CAGR) calculation
 - GET /v1/finance/compound-interest?principal=...&rate=...&years=...&monthlyContribution=...: Compound interest & savings simulator
+- POST /v1/tax/kr/year-end-settlement: 2026 귀속 year-end tax settlement (연말정산) with refund estimate (JSON body; MCP calculate_kr_year_end_settlement)
+- GET /v1/tax/kr/freelancer-income-tax?revenue=...: Freelancer 3.3% May income tax estimate, 2025-2026 귀속
+- GET /v1/tax/kr/acquisition-tax?price=...&houses=...: 2026 housing acquisition tax with education and rural taxes
+- GET /v1/tax/kr/property-tax?officialPrice=...&oneHouse=...: 2026 housing property tax from the official price
+- Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 
 ## Operational Guarantees
 - All responses are UTF-8 JSON.

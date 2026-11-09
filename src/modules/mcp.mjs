@@ -28,7 +28,7 @@ function inputSchema(parameters) {
 }
 
 export function createCalculationServer(dispatch) {
-  const server = new McpServer({ name: "oiyo-calculations", version: "1.0.0" });
+  const server = new McpServer({ name: "oiyo-calculations", version: TOOLS_SPEC.version });
   for (const { function: tool } of TOOLS_SPEC.tools) {
     const endpoint = TOOL_ENDPOINTS[tool.name];
     if (!endpoint) throw new Error("Tool endpoint missing");
