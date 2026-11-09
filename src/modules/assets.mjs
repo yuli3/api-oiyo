@@ -181,7 +181,8 @@ This is a simplified model: the year boundary approximates February 4 and the mo
   - \`hourlyWage\` (finite nonnegative ordinary hourly wage; default 10,320)
   - \`dailyHours\` (greater than 0, at most 8; default 8)
 - Uses the actual preceding three calendar months, not a fixed 90/92-day denominator.
-- Simulation only: weekly-hours eligibility and excluded wage periods are not assessed.
+  - \`weeklyHoursCondition\` ("all_at_least_15" | "all_below_15" | "mixed" | "unknown", optional)
+- Weekly-hours eligibility is a self-confirmed input; excluded wage periods are not assessed and the result is never a final ruling.
 
 ### GET /v1/labor/kr/annual-leave
 - Query Parameters:
@@ -191,7 +192,10 @@ This is a simplified model: the year boundary approximates February 4 and the mo
   - \`unusedDays\` (number, optional)
   - \`dailyHours\` (greater than 0, at most 8; default 8)
 - Blank, nonfinite and negative amounts are rejected with HTTP 400; omitted optional inputs use defaults.
-- Simulation only: workplace coverage, weekly-hours and attendance eligibility must be checked separately. Unused days are supplied by the caller, not determined by this API.
+  - \`workplaceSize\` ("5_or_more" | "under_5" | "unknown", optional)
+  - \`weeklyHoursCondition\` ("at_least_15" | "below_15" | "unknown", optional)
+  - \`attendanceCondition\` ("at_least_80" | "below_80" | "unknown", optional; below_80 requires completedPerfectMonths)
+- Eligibility inputs are self-confirmed; unknown ones are returned in eligibility.unassessedCriteria and the result is never a final ruling. Unused days are supplied by the caller, not determined by this API.
 
 ---
 

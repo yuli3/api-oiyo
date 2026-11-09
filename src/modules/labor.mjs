@@ -399,6 +399,12 @@ export function calculateSeverancePay({
  * @param {number} [params.hourlyWage=10320] - Ordinary hourly wage in KRW
  * @param {number} [params.dailyHours=8] - Contractual working hours per day
  * @param {number} [params.unusedDays=0] - Remaining unused leave days
+ * @param {string} [params.workplaceSize="unknown"] - "5_or_more" | "under_5" | "unknown". Art. 60 does not apply to
+ *   workplaces with four or fewer regular employees (Enforcement Decree Art. 7, Annex 1).
+ * @param {string} [params.weeklyHoursCondition="unknown"] - "at_least_15" | "below_15" | "unknown". Art. 18(3):
+ *   Art. 60 does not apply when four-week average contractual weekly hours are below 15.
+ * @param {string} [params.attendanceCondition="unknown"] - "at_least_80" | "below_80" | "unknown" (only for 1+ years).
+ *   Art. 60(2): below 80% attendance in the past year gives 1 day per completed perfect-attendance month instead.
  */
 export function calculateAnnualLeave({
   yearsOfService = 1,
@@ -406,7 +412,13 @@ export function calculateAnnualLeave({
   dailyHours = 8,
   unusedDays = 0,
   completedPerfectMonths,
+  workplaceSize = "unknown",
+  weeklyHoursCondition = "unknown",
+  attendanceCondition = "unknown",
 }) {
+  if (!["5_or_more", "under_5", "unknown"].includes(workplaceSize)) throw new RangeError("Invalid workplaceSize");
+  if (!["at_least_15", "below_15", "unknown"].includes(weeklyHoursCondition)) throw new RangeError("Invalid weeklyHoursCondition");
+  if (!["at_least_80", "below_80", "unknown"].includes(attendanceCondition)) throw new RangeError("Invalid attendanceCondition");
   for (const [name, value] of Object.entries({ hourlyWage, unusedDays })) requireAmount(name, value);
   requireAmount("dailyHours", dailyHours, Number.MIN_VALUE, 8);
   if (!Number.isFinite(yearsOfService) || yearsOfService < 0) throw new RangeError("Invalid yearsOfService");
@@ -422,11 +434,33 @@ export function calculateAnnualLeave({
       throw new RangeError("completedPerfectMonths is required (integer 0 to 11) for first-year accrual");
     }
     statutoryDays = completedPerfectMonths;
+  } else if (attendanceCondition === "below_80") {
+    // 2026-11-09: Art. 60(2) — below 80% attendance: 1 day per completed perfect-attendance month, no Art. 60(4) bonus.
+    if (!Number.isInteger(completedPerfectMonths) || completedPerfectMonths < 0 || completedPerfectMonths > 11) {
+      throw new RangeError("completedPerfectMonths is required (integer 0 to 11) when attendanceCondition is below_80");
+    }
+    statutoryDays = completedPerfectMonths;
   } else {
     // 1년 이상: 기본 15일 + 3년차부터 매 2년마다 1일 가산, 최대 25일
     const additionalDays = Math.floor((years - 1) / 2);
     statutoryDays = Math.min(25, 15 + additionalDays);
   }
+
+  const notCovered = workplaceSize === "under_5" || weeklyHoursCondition === "below_15";
+  if (notCovered) statutoryDays = 0;
+  const unassessedCriteria = [];
+  if (workplaceSize === "unknown") unassessedCriteria.push("상시 근로자 5인 이상 사업장 여부");
+  if (weeklyHoursCondition === "unknown") unassessedCriteria.push("4주 평균 주 15시간 이상 여부");
+  if (years >= 1 && attendanceCondition === "unknown") unassessedCriteria.push("지난 1년 출근율 80% 이상 여부");
+  const eligibility = {
+    status: notCovered ? "conditions_not_met" : unassessedCriteria.length ? "review_required" : "self_confirmed",
+    isFinalDecision: false,
+    workplaceSize,
+    weeklyHoursCondition,
+    attendanceCondition: years >= 1 ? attendanceCondition : "not_applicable",
+    unassessedCriteria,
+    basis: "근로기준법 제60조(연차 유급휴가), 제18조 제3항(주 15시간 미만 적용 제외), 시행령 제7조 별표1(4인 이하 사업장 제60조 미적용). 입력은 사용자 자기확인이며 최종 판정이 아니에요.",
+  };
 
   const dailyWage = wage * hours;
   const unusedAllowance = Math.floor(unused * dailyWage);
@@ -440,6 +474,7 @@ export function calculateAnnualLeave({
     dailyOrdinaryWage: dailyWage,
     unusedDays: unused,
     unusedLeaveAllowance: unusedAllowance,
+    eligibility,
   };
 }
 

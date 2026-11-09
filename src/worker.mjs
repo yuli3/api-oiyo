@@ -811,6 +811,9 @@ async function route(request, env) {
           hourlyWage: Number(hourlyWage),
           dailyHours: Number(dailyHours),
           unusedDays: Number(unusedDays),
+          workplaceSize: url.searchParams.get("workplaceSize") ?? "unknown",
+          weeklyHoursCondition: url.searchParams.get("weeklyHoursCondition") ?? "unknown",
+          attendanceCondition: url.searchParams.get("attendanceCondition") ?? "unknown",
         });
         return new Response(method === "HEAD" ? null : JSON.stringify(res), {
           status: 200,
