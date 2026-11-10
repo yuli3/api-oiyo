@@ -5,7 +5,7 @@
 
 export const TOOLS_SPEC = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  version: "1.3.0",
+  version: "1.3.1",
   service: "api.oiyo.net",
   description: "Deterministic B2A tool specifications for LLM agent function calling (OpenAI / Claude / Gemini / AutoGen compatible)",
   baseUrl: "https://api.oiyo.net",
