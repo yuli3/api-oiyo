@@ -161,3 +161,15 @@ test("workers.dev host serves the same MCP tools and redirects everything else t
   assert.equal(docs.headers.get("Location"), "https://api.oiyo.net/docs?x=1");
   assert.equal((await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/robots.txt"))).status, 301);
 });
+
+test("MCP Origin allowlist admits Glama health checks exactly, nothing broader", async () => {
+  const init = (origin, host = "https://api-oiyo.861106.workers.dev") => new Request(`${host}/mcp`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", Origin: origin }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "glama", version: "1" } } }) });
+  for (const host of ["https://api-oiyo.861106.workers.dev", "https://api.oiyo.net"]) {
+    const ok = await worker.fetch(init("https://glama.ai", host));
+    assert.equal(ok.status, 200);
+    assert.equal(ok.headers.get("Access-Control-Allow-Origin"), "https://glama.ai");
+  }
+  for (const origin of ["https://evil.example", "https://www.glama.ai", "https://glama.ai.evil.example", "http://glama.ai", "https://x.glama.ai"]) {
+    assert.equal((await worker.fetch(init(origin))).status, 403, origin);
+  }
+});
