@@ -12,23 +12,24 @@ export function clientKind(userAgent) {
 }
 
 // channel: "rest"(직접 호출) · "mcp"(/mcp 전송 요청) · "mcp-tool"(MCP가 내부에서 부른 REST 경로)
-export function usagePoint(request, response, latencyMs, channel = "rest") {
+export function usagePoint(request, response, latencyMs, channel = "rest", medium = "") {
   const url = new URL(request.url);
   const status = response?.status ?? 0;
   // 없는 주소는 임의 문자열이라 그대로 쓰면 카디널리티만 늘고 쓸모가 없다.
   const path = status === 404 ? "(not-found)" : url.pathname.slice(0, MAX_PATH);
   return {
     indexes: [path],
-    blobs: [path, request.method, channel, `${Math.floor(status / 100)}xx`, request.cf?.country || "XX", clientKind(request.headers.get("user-agent"))],
+    // blob 7 (2026-11-12 MCP pilot): registry ref or client family for /mcp, "" otherwise. No inputs.
+    blobs: [path, request.method, channel, `${Math.floor(status / 100)}xx`, request.cf?.country || "XX", clientKind(request.headers.get("user-agent")), medium],
     doubles: [status, Math.max(0, Math.round(latencyMs))],
   };
 }
 
-export function recordUsage(env, request, response, latencyMs, channel) {
+export function recordUsage(env, request, response, latencyMs, channel, medium) {
   const dataset = env?.API_USAGE;
   if (!dataset || typeof dataset.writeDataPoint !== "function") return;
   try {
-    dataset.writeDataPoint(usagePoint(request, response, latencyMs, channel));
+    dataset.writeDataPoint(usagePoint(request, response, latencyMs, channel, medium));
   } catch {
     // 계측 실패가 응답을 막으면 안 된다.
   }

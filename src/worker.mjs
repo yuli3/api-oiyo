@@ -46,6 +46,7 @@ import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
 import { handleMcp } from "./modules/mcp.mjs";
 import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { recordUsage } from "./modules/usage.mjs";
+import { mcpMedium } from "./modules/source-pages.mjs";
 import {
   DOCS_HTML,
   ROBOTS_TXT,
@@ -86,7 +87,8 @@ const worker = {
   async fetch(request, env) {
     const started = Date.now();
     const response = await route(request, env);
-    recordUsage(env, request, response, Date.now() - started, new URL(request.url).pathname === "/mcp" ? "mcp" : "rest");
+    const isMcp = new URL(request.url).pathname === "/mcp";
+    recordUsage(env, request, response, Date.now() - started, isMcp ? "mcp" : "rest", isMcp ? mcpMedium(request) : "");
     return response;
   },
 };

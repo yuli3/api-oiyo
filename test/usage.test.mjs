@@ -7,7 +7,7 @@ test("usage point keeps the route, never the query string", () => {
   const request = new Request("https://api.oiyo.net/v1/labor/kr/net-salary?annualSalary=52000000", { headers: { "user-agent": "python-requests/2.32" } });
   const point = usagePoint(request, new Response("{}", { status: 200 }), 12.4);
   assert.deepEqual(point.indexes, ["/v1/labor/kr/net-salary"]);
-  assert.deepEqual(point.blobs, ["/v1/labor/kr/net-salary", "GET", "rest", "2xx", "XX", "client"]);
+  assert.deepEqual(point.blobs, ["/v1/labor/kr/net-salary", "GET", "rest", "2xx", "XX", "client", ""]);
   assert.deepEqual(point.doubles, [200, 12]);
   assert.ok(!JSON.stringify(point).includes("52000000"));
 });
@@ -34,4 +34,12 @@ test("worker writes one point per request and tolerates a missing or broken bind
   assert.equal((await worker.fetch(new Request("https://api.oiyo.net/health"))).status, 200);
   const broken = { API_USAGE: { writeDataPoint: () => { throw new Error("quota"); } } };
   assert.equal((await worker.fetch(new Request("https://api.oiyo.net/health"), broken)).status, 200);
+});
+
+test("MCP transport points carry the registry or client medium, never inputs", async () => {
+  const points = [];
+  const env = { API_USAGE: { writeDataPoint: (p) => points.push(p) } };
+  await worker.fetch(new Request("https://api.oiyo.net/mcp?ref=smithery", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } } }) }), env);
+  const transport = points.find(p => p.blobs[2] === "mcp");
+  assert.equal(transport.blobs[6], "smithery");
 });

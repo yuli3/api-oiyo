@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import worker from "../src/worker.mjs";
 import { TOOLS_SPEC, TOOL_ENDPOINTS } from "../src/modules/tools-spec.mjs";
 import { OPENAPI_SPEC } from "../src/modules/openapi.mjs";
+import { SOURCE_PAGES, mcpMedium, sourcePageUrl } from "../src/modules/source-pages.mjs";
 
 const fixtures = {
   get_kr_minimum_wage: { year: 2027 },
@@ -82,8 +83,11 @@ for (const [name, args] of Object.entries(fixtures)) {
     const expected = await rest.json();
     const body = await rpc("tools/call", { name, arguments: args });
     assert.equal(body.result.isError, false);
-    assert.deepEqual(body.result.structuredContent, expected);
-    assert.deepEqual(JSON.parse(body.result.content[0].text), expected);
+    const { sourcePage, ...restFields } = body.result.structuredContent;
+    assert.deepEqual(restFields, expected);
+    assert.deepEqual(JSON.parse(body.result.content[0].text), body.result.structuredContent);
+    assert.equal(sourcePage, sourcePageUrl(name, "unknown"));
+    assert.equal(body.result.content[1].text, `Interactive calculator (Korean, OIYO): ${sourcePage}`);
   });
 }
 
@@ -115,4 +119,30 @@ test("legacy initialize stays available without persistent sessions", async () =
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("mcp-session-id"), null);
   assert.match(await response.text(), /2025-06-18/);
+});
+
+test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
+  assert.deepEqual(Object.keys(SOURCE_PAGES).sort(), Object.keys(TOOL_ENDPOINTS).sort());
+  for (const name of Object.keys(TOOL_ENDPOINTS)) {
+    const url = new URL(sourcePageUrl(name, "smithery"));
+    assert.match(url.origin, /^https:\/\/(tools\.)?oiyo\.net$/);
+    assert.ok(url.pathname.startsWith("/ko/") && url.pathname.endsWith("/"));
+    assert.equal(url.searchParams.get("utm_source"), "mcp");
+    assert.equal(url.searchParams.get("utm_medium"), "smithery");
+    assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");
+    assert.equal(url.searchParams.get("utm_content"), name);
+  }
+});
+
+test("MCP medium trusts only listed registry refs, then the client family", async () => {
+  const req = (query, ua) => new Request(`https://api.oiyo.net/mcp${query}`, { method: "POST", headers: ua ? { "user-agent": ua } : {} });
+  assert.equal(mcpMedium(req("?ref=glama", "Claude-User")), "glama");
+  assert.equal(mcpMedium(req("?ref=<script>", "Claude-User")), "claude");
+  assert.equal(mcpMedium(req("", "openai-mcp/1.0")), "chatgpt");
+  assert.equal(mcpMedium(req("", "Cursor/2.1")), "cursor");
+  assert.equal(mcpMedium(req("", "python-httpx/0.28")), "other");
+  assert.equal(mcpMedium(req("", "")), "unknown");
+  const call = await worker.fetch(new Request("https://api.oiyo.net/mcp?ref=cursor-directory", rpcRequest("tools/call", { name: "convert_units", arguments: { value: 1, from: "m", to: "cm" } })));
+  const body = await call.json();
+  assert.equal(new URL(body.result.structuredContent.sourcePage).searchParams.get("utm_medium"), "cursor-directory");
 });
