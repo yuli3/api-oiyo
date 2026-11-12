@@ -82,6 +82,7 @@ const commonHeaders = {
 // Machine files stay crawlable (robots.txt Allow) so agents can fetch them, but must not appear
 // in search results, hence noindex without nofollow.
 const MACHINE_FILE_ROBOTS = { "X-Robots-Tag": "noindex" };
+const MCP_WORKERS_DEV_HOST = "api-oiyo.861106.workers.dev";
 
 const worker = {
   async fetch(request, env) {
@@ -99,6 +100,12 @@ async function route(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+
+    // 2026-11-12: the workers.dev host exists only so MCP clients avoid oiyo.net zone Bot Fight Mode.
+    // Everything else there redirects to the canonical api.oiyo.net (no duplicate docs/robots/sitemap).
+    if (url.hostname === MCP_WORKERS_DEV_HOST && path !== "/mcp") {
+      return new Response(null, { status: 301, headers: { Location: `https://api.oiyo.net${path}${url.search}`, "Cache-Control": "no-store" } });
+    }
 
     if (path === "/mcp") {
       return handleMcp(request, async (restRequest) => {

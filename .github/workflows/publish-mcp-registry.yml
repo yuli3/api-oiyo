@@ -1,4 +1,4 @@
-# Publishes server.json (remote server https://api.oiyo.net/mcp) to the official MCP Registry.
+# Publishes server.json (remote servers https://api-oiyo.861106.workers.dev/mcp, alias https://api.oiyo.net/mcp) to the official MCP Registry.
 # The io.github.yuli3/* name is verified with GitHub OIDC, so no secret is needed.
 # Runs when server.json changes on main (bump "version" together with tools-spec.mjs), or by hand.
 name: Publish to MCP Registry

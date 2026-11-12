@@ -146,3 +146,18 @@ test("MCP medium trusts only listed registry refs, then the client family", asyn
   const body = await call.json();
   assert.equal(new URL(body.result.structuredContent.sourcePage).searchParams.get("utm_medium"), "cursor-directory");
 });
+
+test("workers.dev host serves the same MCP tools and redirects everything else to api.oiyo.net", async () => {
+  const init = { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "User-Agent": "python-httpx/0.28.1" } };
+  const list = await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/mcp", { ...init, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } } }) }));
+  assert.equal(list.status, 200);
+  const tools = await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/mcp", { ...init, headers: { ...init.headers, "MCP-Protocol-Version": "2025-06-18" }, body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }) }));
+  assert.equal(tools.status, 200);
+  const text = await tools.text();
+  const payload = JSON.parse(text.startsWith("{") ? text : text.split("\n").find((l) => l.startsWith("data:")).slice(5));
+  assert.equal(payload.result.tools.length, (await import("../src/modules/tools-spec.mjs")).TOOLS_SPEC.tools.length);
+  const docs = await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/docs?x=1"));
+  assert.equal(docs.status, 301);
+  assert.equal(docs.headers.get("Location"), "https://api.oiyo.net/docs?x=1");
+  assert.equal((await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/robots.txt"))).status, 301);
+});

@@ -94,5 +94,8 @@ test("server.json for the MCP Registry matches the served tool catalog version",
   assert.match(server.name, /^io\.github\.yuli3\/[a-zA-Z0-9._-]+$/);
   assert.ok(server.description.length <= 100);
   assert.equal(server.version, TOOLS_SPEC.version, "bump server.json version with tools-spec.mjs");
-  assert.deepEqual(server.remotes, [{ type: "streamable-http", url: "https://api.oiyo.net/mcp" }]);
+  assert.deepEqual(server.remotes, [
+    { type: "streamable-http", url: "https://api-oiyo.861106.workers.dev/mcp" },
+    { type: "streamable-http", url: "https://api.oiyo.net/mcp" },
+  ]);
 });

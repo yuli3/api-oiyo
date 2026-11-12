@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "oiyo-calculations": {
-      "url": "https://api.oiyo.net/mcp?ref=cursor-directory"
+      "url": "https://api-oiyo.861106.workers.dev/mcp?ref=cursor-directory"
     }
   }
 }
