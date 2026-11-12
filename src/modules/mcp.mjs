@@ -3,8 +3,10 @@ import * as z from "zod";
 import { TOOLS_SPEC, TOOL_ENDPOINTS } from "./tools-spec.mjs";
 import { mcpMedium, sourcePageUrl } from "./source-pages.mjs";
 
+// 2026-11-12 세운 승인: Glama health checks send Origin https://glama.ai; allow exactly that origin.
 const ALLOWED_ORIGINS = new Set([
   "https://api.oiyo.net", "https://oiyo.net", "https://tools.oiyo.net",
+  "https://glama.ai",
 ]);
 
 function inputSchema(parameters) {
