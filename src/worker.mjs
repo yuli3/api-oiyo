@@ -83,12 +83,17 @@ const commonHeaders = {
 // in search results, hence noindex without nofollow.
 const MACHINE_FILE_ROBOTS = { "X-Robots-Tag": "noindex" };
 const MCP_WORKERS_DEV_HOST = "api-oiyo.861106.workers.dev";
+// 2026-11-12: clients (Glama) also call /mcp/ with a trailing slash. Serve it here; never redirect an
+// MCP path off workers.dev into the oiyo.net zone, where Bot Fight Mode challenges datacenter clients.
+const MCP_PATHS = new Set(["/mcp", "/mcp/"]);
+// Glama probes /.well-known/glama.json on the server host for ownership; same content as repo glama.json.
+const GLAMA_JSON = JSON.stringify({ $schema: "https://glama.ai/mcp/schemas/server.json", maintainers: ["yuli3"] });
 
 const worker = {
   async fetch(request, env) {
     const started = Date.now();
     const response = await route(request, env);
-    const isMcp = new URL(request.url).pathname === "/mcp";
+    const isMcp = MCP_PATHS.has(new URL(request.url).pathname);
     recordUsage(env, request, response, Date.now() - started, isMcp ? "mcp" : "rest", isMcp ? mcpMedium(request) : "");
     return response;
   },
@@ -103,11 +108,15 @@ async function route(request, env) {
 
     // 2026-11-12: the workers.dev host exists only so MCP clients avoid oiyo.net zone Bot Fight Mode.
     // Everything else there redirects to the canonical api.oiyo.net (no duplicate docs/robots/sitemap).
-    if (url.hostname === MCP_WORKERS_DEV_HOST && path !== "/mcp") {
+    if (path === "/.well-known/glama.json" && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : GLAMA_JSON, { status: 200, headers: { ...commonHeaders, ...MACHINE_FILE_ROBOTS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+    }
+
+    if (url.hostname === MCP_WORKERS_DEV_HOST && !MCP_PATHS.has(path)) {
       return new Response(null, { status: 301, headers: { Location: `https://api.oiyo.net${path}${url.search}`, "Cache-Control": "no-store" } });
     }
 
-    if (path === "/mcp") {
+    if (MCP_PATHS.has(path)) {
       return handleMcp(request, async (restRequest) => {
         const started = Date.now();
         const response = await route(restRequest, env);
