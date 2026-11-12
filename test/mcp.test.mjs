@@ -173,3 +173,31 @@ test("MCP Origin allowlist admits Glama health checks exactly, nothing broader",
     assert.equal((await worker.fetch(init(origin))).status, 403, origin);
   }
 });
+
+test("/mcp/ with a trailing slash is served as MCP on workers.dev and api.oiyo.net, never redirected", async () => {
+  const headers = { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "User-Agent": "node" };
+  const initBody = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "glama", version: "1" } } });
+  const listBody = JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
+  const count = (await import("../src/modules/tools-spec.mjs")).TOOLS_SPEC.tools.length;
+  for (const host of ["https://api-oiyo.861106.workers.dev", "https://api.oiyo.net"]) {
+    const init = await worker.fetch(new Request(`${host}/mcp/`, { method: "POST", headers, body: initBody }));
+    assert.equal(init.status, 200, host);
+    assert.equal(init.headers.get("Location"), null);
+    const list = await worker.fetch(new Request(`${host}/mcp/`, { method: "POST", headers: { ...headers, "MCP-Protocol-Version": "2025-06-18" }, body: listBody }));
+    const text = await list.text();
+    const payload = JSON.parse(text.startsWith("{") ? text : text.split("\n").find((l) => l.startsWith("data:")).slice(5));
+    assert.equal(payload.result.tools.length, count);
+    assert.equal((await worker.fetch(new Request(`${host}/mcp/`))).status, 405);
+  }
+  assert.equal((await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/mcp/sse"))).status, 301, "non-MCP subpaths keep redirecting");
+});
+
+test("/.well-known/glama.json is served on both hosts and matches the repo glama.json", async () => {
+  const { readFileSync } = await import("node:fs");
+  const expected = JSON.parse(readFileSync(new URL("../glama.json", import.meta.url), "utf8"));
+  for (const host of ["https://api-oiyo.861106.workers.dev", "https://api.oiyo.net"]) {
+    const response = await worker.fetch(new Request(`${host}/.well-known/glama.json`));
+    assert.equal(response.status, 200, host);
+    assert.deepEqual(await response.json(), expected);
+  }
+});
