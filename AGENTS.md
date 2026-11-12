@@ -36,7 +36,7 @@
 - 예전 `/v1/real-estate/acquisition-tax`·`/v1/real-estate/property-tax`(재산세 부분)·`/v1/tax/freelancer`는 2026-11-09부터 같은 tools 라이브러리를 쓰는 호환용 경로다(응답 필드 유지, `deprecated: true`, `replacement`). 새 기능은 `/v1/tax/kr/*`에만 넣는다. 종합부동산세 계산은 아직 예전 property-tax 경로에만 있다.
 
 ## MCP Registry (2026-11-09)
-- `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api.oiyo.net/mcp`). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
+- `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api-oiyo.861106.workers.dev/mcp` 우선, `https://api.oiyo.net/mcp` 보조). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
 
 ## MCP 출처 링크·등재 (2026-11-12, 파일럿 #1)

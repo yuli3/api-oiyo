@@ -2,7 +2,8 @@
 
 Deterministic calculators for South Korea: payroll and net salary, minimum wage, weekly holiday allowance, overtime, severance, annual leave, unemployment benefits, health insurance, year-end tax settlement, freelancer 3.3% income tax, acquisition/property/capital-gains/inheritance-gift tax, public holidays and business days, saju (Four Pillars), unit conversion and more.
 
-- **Remote MCP endpoint (Streamable HTTP):** `https://api.oiyo.net/mcp`
+- **Remote MCP endpoint (Streamable HTTP):** `https://api-oiyo.861106.workers.dev/mcp`
+  (`https://api.oiyo.net/mcp` serves the same tools, but its site-wide bot protection may challenge some datacenter clients)
 - **No sign-in, no API key.** Every tool is read-only.
 - **No LLM inside.** Results are plain code, so the same input always gives the same output.
 - REST + OpenAPI: <https://api.oiyo.net/docs> · [`openapi.json`](https://api.oiyo.net/openapi.json) · [`tools.json`](https://api.oiyo.net/tools.json) · [`llms.txt`](https://api.oiyo.net/llms.txt)
@@ -13,34 +14,34 @@ Each successful result includes a `sourcePage` link to the matching interactive 
 ## Connect
 
 ### Claude (claude.ai / Desktop)
-Settings → Connectors → **Add custom connector** → URL `https://api.oiyo.net/mcp`.
+Settings → Connectors → **Add custom connector** → URL `https://api-oiyo.861106.workers.dev/mcp`.
 
 ### Claude Code
 ```bash
-claude mcp add --transport http oiyo https://api.oiyo.net/mcp
+claude mcp add --transport http oiyo https://api-oiyo.861106.workers.dev/mcp
 ```
 
 ### Cursor
 Add to `.cursor/mcp.json` (or use the [`.mcp.json`](./.mcp.json) in this repo):
 ```json
-{ "mcpServers": { "oiyo-calculations": { "url": "https://api.oiyo.net/mcp" } } }
+{ "mcpServers": { "oiyo-calculations": { "url": "https://api-oiyo.861106.workers.dev/mcp" } } }
 ```
 
 ### VS Code (GitHub Copilot agent mode)
 `.vscode/mcp.json`:
 ```json
-{ "servers": { "oiyo-calculations": { "type": "http", "url": "https://api.oiyo.net/mcp" } } }
+{ "servers": { "oiyo-calculations": { "type": "http", "url": "https://api-oiyo.861106.workers.dev/mcp" } } }
 ```
 
 ### ChatGPT
-With developer mode enabled: Settings → Apps & Connectors → **Create** → MCP server URL `https://api.oiyo.net/mcp`, authentication **None**.
+With developer mode enabled: Settings → Apps & Connectors → **Create** → MCP server URL `https://api-oiyo.861106.workers.dev/mcp`, authentication **None**.
 
 ### Grok (xAI API)
 ```json
 {
   "model": "grok-4",
   "input": [{ "role": "user", "content": "What is the 2026 net monthly pay in Korea on a 3,500,000 KRW salary?" }],
-  "tools": [{ "type": "mcp", "server_url": "https://api.oiyo.net/mcp", "server_label": "oiyo" }]
+  "tools": [{ "type": "mcp", "server_url": "https://api-oiyo.861106.workers.dev/mcp", "server_label": "oiyo" }]
 }
 ```
 

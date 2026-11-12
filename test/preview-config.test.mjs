@@ -6,6 +6,7 @@ test('branch previews have explicit isolated settings without changing productio
   const config = JSON.parse(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
   assert.deepEqual(config.previews, {});
   assert.equal(config.preview_urls, true);
-  assert.equal(config.workers_dev, false);
+  // 2026-11-12: workers.dev serves /mcp outside the oiyo.net zone (Bot Fight Mode challenged MCP clients).
+  assert.equal(config.workers_dev, true);
   assert.deepEqual(config.routes, [{ pattern: 'api.oiyo.net', custom_domain: true }]);
 });
