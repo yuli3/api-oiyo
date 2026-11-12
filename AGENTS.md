@@ -39,6 +39,11 @@
 - `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api.oiyo.net/mcp`). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
 
+## MCP 출처 링크·등재 (2026-11-12, 파일럿 #1)
+- 성공한 MCP 도구 결과에는 `sourcePage`(tools.oiyo.net/ko 또는 oiyo.net/ko 계산기 페이지 + `utm_source=mcp&utm_medium=<등재처|클라이언트>&utm_campaign=mcp-pilot&utm_content=<도구>`)를 붙인다. 정본은 `src/modules/source-pages.mjs`. 새 도구를 추가하면 매핑도 추가한다(테스트가 누락을 막는다). REST 응답 필드는 그대로 둔다.
+- 등재처 URL은 `/mcp?ref=<등재처>`로 단다(허용 목록만 신뢰). 사용량 점의 blob 7이 이 값이다. 입력값은 남기지 않는다.
+- `README.md`(영문 연결 안내), `.mcp.json`(cursor.directory), `glama.json`(Glama 소유권)은 등재 메타데이터다.
+
 ## 2026 요율 단일 정본 (2026-10-17)
 - 급여·4대보험·구직급여·육아휴직·지역건보 요율과 공식은 `src/modules/kr-rates-2026.mjs` 하나에만 둔다. labor·insurance 모듈에 숫자 요율을 새로 쓰지 않는다.
 - tools는 같은 파일을 `src/lib/kr-rates-2026.mjs`로 바이트 동일하게 복사해 쓴다(tools `npm run sync:kr-rates`). 이 파일을 고치면 tools에도 같은 PR을 연다.

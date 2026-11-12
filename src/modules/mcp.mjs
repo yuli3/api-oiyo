@@ -1,6 +1,7 @@
 import { McpServer, createMcpHandler } from "@modelcontextprotocol/server";
 import * as z from "zod";
 import { TOOLS_SPEC, TOOL_ENDPOINTS } from "./tools-spec.mjs";
+import { mcpMedium, sourcePageUrl } from "./source-pages.mjs";
 
 const ALLOWED_ORIGINS = new Set([
   "https://api.oiyo.net", "https://oiyo.net", "https://tools.oiyo.net",
@@ -27,7 +28,7 @@ function inputSchema(parameters) {
   return z.strictObject(shape);
 }
 
-export function createCalculationServer(dispatch) {
+export function createCalculationServer(dispatch, medium = "unknown") {
   const server = new McpServer({ name: "oiyo-calculations", version: TOOLS_SPEC.version });
   for (const { function: tool } of TOOLS_SPEC.tools) {
     const endpoint = TOOL_ENDPOINTS[tool.name];
@@ -49,9 +50,18 @@ export function createCalculationServer(dispatch) {
       }
       const response = await dispatch(new Request(url, options));
       const result = await response.json();
+      if (!response.ok) {
+        return { content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result, isError: true };
+      }
+      // Additive field only: every REST field stays byte-for-byte the same (see test/mcp.test.mjs).
+      const sourcePage = sourcePageUrl(tool.name, medium);
+      const structured = { ...result, sourcePage };
       return {
-        content: [{ type: "text", text: JSON.stringify(result) }],
-        structuredContent: result, isError: !response.ok,
+        content: [
+          { type: "text", text: JSON.stringify(structured) },
+          { type: "text", text: `Interactive calculator (Korean, OIYO): ${sourcePage}` },
+        ],
+        structuredContent: structured, isError: false,
       };
     });
   }
@@ -72,7 +82,8 @@ export async function handleMcp(request, dispatch) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
   if (request.method !== "POST") return Response.json({ error: "method_not_allowed" }, { status: 405, headers: { ...headers, Allow: "POST, OPTIONS" } });
   // No server subscriptions, persistence, or shared session state in this gateway.
-  const handler = createMcpHandler(() => createCalculationServer(dispatch), {
+  const medium = mcpMedium(request);
+  const handler = createMcpHandler(() => createCalculationServer(dispatch, medium), {
     responseMode: "auto", maxRequestBodySize: 32768, maxSubscriptions: 0,
   });
   try {
