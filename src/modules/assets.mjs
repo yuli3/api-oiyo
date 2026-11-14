@@ -98,6 +98,10 @@ https://api.oiyo.net
 - GET /v1/tax/kr/freelancer-income-tax?revenue=...: Freelancer 3.3% May income tax estimate, 2025-2026 귀속
 - GET /v1/tax/kr/acquisition-tax?price=...&houses=...: 2026 housing acquisition tax with education and rural taxes
 - GET /v1/tax/kr/property-tax?officialPrice=...&oneHouse=...: 2026 housing property tax from the official price
+- POST /v1/tax/kr/unlisted-share-valuation: 상증법 unlisted share valuation (net income 3 : net assets 2, 80% floor, largest-shareholder premium)
+- POST /v1/tax/kr/family-business-inheritance: family business inheritance deduction (30/40/60B KRW caps) and tax with vs without it
+- POST /v1/tax/kr/incorporation-conversion: sole proprietor → corporation: minimum capital, deferred capital gains tax, 50% acquisition tax relief
+- POST /v1/finance/dcf-valuation: DCF enterprise/equity value with CAPM WACC builder and sensitivity table
 - Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 
 ## Operational Guarantees

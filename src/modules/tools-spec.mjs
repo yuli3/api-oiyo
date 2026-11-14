@@ -5,7 +5,7 @@
 
 export const TOOLS_SPEC = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  version: "1.3.3",
+  version: "1.4.0",
   service: "api.oiyo.net",
   description: "Deterministic B2A tool specifications for LLM agent function calling (OpenAI / Claude / Gemini / AutoGen compatible)",
   baseUrl: "https://api.oiyo.net",
@@ -498,6 +498,105 @@ export const TOOLS_SPEC = {
         },
       },
     },
+    {
+      type: "function",
+      function: {
+        name: "value_kr_unlisted_shares",
+        description: "South Korea unlisted share valuation for inheritance/gift tax (상증법 보충적 평가): 3-year weighted (3:2:1) net income value at 10% capitalization and net asset value, blended 3:2 (2:3 when real estate ≥ 50% of assets, net asset value only at ≥ 80% or 시행령 제54조 ④ cases), floored at 80% of net asset value, plus the 20% largest-shareholder premium unless exempt (SMEs, mid-sized firms under 500B KRW revenue). Same formulas as tools.oiyo.net. Inputs are the user's figures; returns statute basis and what is not covered.",
+        parameters: {
+          type: "object",
+          properties: {
+            sharesOutstanding: { type: "integer", minimum: 1, description: "Issued shares excluding treasury shares" },
+            netIncome1: { type: "number", description: "Net income (순손익액) of the latest fiscal year before the valuation date, whole company, KRW; may be negative" },
+            netIncome2: { type: "number", description: "Net income two years before, KRW" },
+            netIncome3: { type: "number", description: "Net income three years before, KRW" },
+            netAssets: { type: "number", description: "Net asset value at the valuation date under 상증법 market values (assets − liabilities), KRW" },
+            goodwill: { type: "number", minimum: 0, description: "Goodwill value to add (시행령 제59조 ②), KRW; default 0" },
+            realEstateRatio: { type: "number", minimum: 0, maximum: 1, description: "Real estate and real-estate rights share of total assets, 0-1" },
+            netAssetOnlyReason: { type: "boolean", description: "A 시행령 제54조 ④ case applies (under 3 years of business, closure/liquidation, shares ≥ 80% of assets, etc.)" },
+            heldShares: { type: "integer", minimum: 0, description: "Shares being valued (held by the person)" },
+            isMajorityHolder: { type: "boolean", description: "The holder is a largest shareholder (최대주주 등)" },
+            premiumExempt: { type: "boolean", description: "Premium exemption applies (SME, mid-sized firm under 500B KRW 3-year average revenue, 3 straight loss years, etc.). Default true" },
+          },
+          required: ["sharesOutstanding", "netIncome1", "netIncome2", "netIncome3", "netAssets", "heldShares"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate_kr_family_business_deduction",
+        description: "South Korea family business inheritance deduction (가업상속공제, 상증법 제18조의2) and inheritance tax with vs without it: cap 30B/40B/60B KRW for 10/20/30+ years of operation, qualifying value = share value × (1 − non-business asset ratio), plus lump-sum 500M, spouse and financial asset deductions and the 3% filing credit. Same formulas as tools.oiyo.net. Does not judge eligibility requirements or post-management; the 2026-08 reform proposal is not applied.",
+        parameters: {
+          type: "object",
+          properties: {
+            businessValue: { type: "number", minimum: 0, description: "Value of the family business shares (or sole-proprietor business assets), KRW" },
+            unrelatedAssetRatio: { type: "number", minimum: 0, maximum: 1, description: "Non-business assets ÷ total assets of the company, 0-1 (0 for a sole proprietorship)" },
+            years: { type: "integer", minimum: 0, description: "Years the deceased operated the business" },
+            size: { type: "string", enum: ["sme", "midsize", "ineligible"], description: "sme, midsize (3-year average revenue under 500B KRW) or ineligible" },
+            otherEstate: { type: "number", minimum: 0, description: "Other inherited property outside the business, KRW" },
+            netFinancial: { type: "number", minimum: 0, description: "Net financial assets among the other property, KRW" },
+            debts: { type: "number", minimum: 0, description: "Debts of the deceased, KRW" },
+            funeralSpent: { type: "number", minimum: 0, description: "Funeral costs, KRW (5M-10M deduction)" },
+            hasSpouse: { type: "boolean", description: "A surviving spouse inherits" },
+            spouseInherited: { type: "number", minimum: 0, description: "Amount the spouse actually inherits, KRW" },
+          },
+          required: ["businessValue", "years", "size"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate_kr_incorporation_conversion",
+        description: "South Korea sole proprietor to corporation conversion (개인사업자 법인전환): minimum capital (net asset value at market), capital gains tax deferred by 조특법 제32조 이월과세 on business real estate, and the 50% acquisition tax relief (지특법 제57조의2 ④, through 2027-12-31, not for real estate rental) net of the 20% rural special tax. Same formulas as tools.oiyo.net. Houses are excluded from the deferral.",
+        parameters: {
+          type: "object",
+          properties: {
+            business: { type: "string", enum: ["general", "realEstateRental", "consumptionService"], description: "Business type; consumption services (lodging, bars) get no deferral or relief" },
+            realEstateMarket: { type: "number", minimum: 0, description: "Market value of business real estate (not houses), KRW" },
+            realEstateCost: { type: "number", minimum: 0, description: "Acquisition cost plus necessary expenses of that real estate, KRW" },
+            holdYears: { type: "number", minimum: 0, description: "Years held" },
+            otherAssets: { type: "number", minimum: 0, description: "Other business assets at market value, KRW" },
+            liabilities: { type: "number", minimum: 0, description: "Business liabilities including provisions, KRW" },
+            acquisitionBase: { type: "number", minimum: 0, description: "Acquisition tax base if different from market value, KRW; 0 uses market value" },
+          },
+          required: ["realEstateMarket", "realEstateCost", "holdYears"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "calculate_dcf_valuation",
+        description: "Discounted cash flow (DCF) enterprise and equity valuation: 3-10 year FCFF forecast with growth fading to the terminal rate, Gordon terminal value, optional mid-year convention, WACC given directly or built with CAPM, plus a WACC × terminal growth sensitivity table. Ratios are decimals (0.1 = 10%). Same engine as tools.oiyo.net.",
+        parameters: {
+          type: "object",
+          properties: {
+            revenue0: { type: "number", minimum: 0, description: "Last fiscal year revenue" },
+            growth: { type: "number", minimum: -1, maximum: 1, description: "Year-1 revenue growth (e.g. 0.1)" },
+            ebitMargin: { type: "number", minimum: -1, maximum: 1, description: "EBIT margin" },
+            taxRate: { type: "number", minimum: 0, maximum: 1, description: "Effective tax rate incl. local tax, default 0.22" },
+            daRatio: { type: "number", minimum: 0, maximum: 1, description: "Depreciation and amortization ÷ revenue" },
+            capexRatio: { type: "number", minimum: 0, maximum: 1, description: "Capital expenditure ÷ revenue" },
+            nwcRatio: { type: "number", minimum: -1, maximum: 1, description: "Net working capital increase ÷ revenue increase" },
+            wacc: { type: "number", minimum: 0, maximum: 1, description: "WACC; omit to build it from the CAPM inputs" },
+            riskFree: { type: "number", minimum: 0, maximum: 1, description: "Risk-free rate for CAPM" },
+            beta: { type: "number", minimum: 0, description: "Levered beta for CAPM" },
+            marketPremium: { type: "number", minimum: 0, maximum: 1, description: "Market risk premium" },
+            sizePremium: { type: "number", minimum: 0, maximum: 1, description: "Size / private company premium, default 0" },
+            preTaxCostOfDebt: { type: "number", minimum: 0, maximum: 1, description: "Pre-tax cost of debt" },
+            debtWeight: { type: "number", minimum: 0, maximum: 1, description: "Debt weight D/(D+E)" },
+            terminalGrowth: { type: "number", minimum: -1, maximum: 1, description: "Perpetual growth rate, below WACC" },
+            netDebt: { type: "number", description: "Net debt (debt − cash); negative for net cash" },
+            shares: { type: "integer", minimum: 1, description: "Shares outstanding" },
+            years: { type: "integer", enum: [3, 4, 5, 6, 7, 8, 9, 10], description: "Forecast years, default 5" },
+            midYear: { type: "boolean", description: "Use the mid-year discounting convention" },
+          },
+          required: ["revenue0", "growth", "ebitMargin", "terminalGrowth", "shares"],
+        },
+      },
+    },
   ],
 };
 
@@ -529,4 +628,8 @@ export const TOOL_ENDPOINTS = Object.freeze({
   calculate_kr_freelancer_income_tax: { path: "/v1/tax/kr/freelancer-income-tax" },
   calculate_kr_acquisition_tax: { path: "/v1/tax/kr/acquisition-tax" },
   calculate_kr_property_tax: { path: "/v1/tax/kr/property-tax" },
+  value_kr_unlisted_shares: { path: "/v1/tax/kr/unlisted-share-valuation", method: "POST" },
+  calculate_kr_family_business_deduction: { path: "/v1/tax/kr/family-business-inheritance", method: "POST" },
+  calculate_kr_incorporation_conversion: { path: "/v1/tax/kr/incorporation-conversion", method: "POST" },
+  calculate_dcf_valuation: { path: "/v1/finance/dcf-valuation", method: "POST" },
 });

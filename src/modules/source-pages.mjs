@@ -32,6 +32,10 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kr_freelancer_income_tax: `${TOOLS}freelancer-tax-calculator/`,
   calculate_kr_acquisition_tax: `${TOOLS}acquisition-tax-calculator/`,
   calculate_kr_property_tax: `${TOOLS}property-tax-calculator/`,
+  value_kr_unlisted_shares: `${TOOLS}unlisted-share-valuation-calculator/`,
+  calculate_kr_family_business_deduction: `${TOOLS}family-business-inheritance-calculator/`,
+  calculate_kr_incorporation_conversion: `${TOOLS}incorporation-conversion-calculator/`,
+  calculate_dcf_valuation: `${TOOLS}dcf-valuation-calculator/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.

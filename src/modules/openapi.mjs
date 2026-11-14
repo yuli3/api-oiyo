@@ -766,6 +766,15 @@ for (const { function: tool } of TOOLS_SPEC.tools) {
   };
 }
 
+// 2026-11-14: advisory tools are POST with JSON bodies (GET query also works).
+for (const name of ["value_kr_unlisted_shares", "calculate_kr_family_business_deduction", "calculate_kr_incorporation_conversion", "calculate_dcf_valuation"]) {
+  const tool = TOOLS_SPEC.tools.find(t => t.function.name === name).function;
+  OPENAPI_SPEC.paths[TOOL_ENDPOINTS[name].path].post.requestBody = {
+    required: true,
+    content: { "application/json": { schema: { ...tool.parameters, additionalProperties: false } } },
+  };
+}
+
 // WHY 2026-11-02: generic tool docs must expose the screening/eligibility boundary to agents too.
 OPENAPI_SPEC.paths["/v1/insurance/health"].get.responses["200"] = {
  description: "Premium estimate and preliminary screening; no final dependent eligibility ruling",
