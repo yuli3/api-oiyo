@@ -75,6 +75,10 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_freelancer_income_tax` | South Korea freelancer (3.3% withholding, 사업소득) May comprehensive income tax estimate: simple expense rate 940909 (64.1%, 49.7% above 40M KRW) or a given expense ratio, compared with the tax already withheld to show refund or extra payment. Same formulas as tools.oiyo.net. Tax years 2025 and 2026 only; refuses unknown inputs. |
 | `calculate_kr_acquisition_tax` | South Korea 2026 housing acquisition tax (주택 취득세) with local education tax and rural special tax: 1-3% standard rate (6-900M KRW sliding formula) or 8%/12% multi-home surcharge. Same formulas as tools.oiyo.net. Returns statute basis; does not judge house counts or first-home relief. |
 | `calculate_kr_property_tax` | South Korea 2026 housing property tax (주택 재산세) from the official price: fair market value ratio (43-45% for one-home households, 60% otherwise), one-home special rate up to 900M KRW, urban area tax and local education tax. Same formulas as tools.oiyo.net. Excludes comprehensive real estate holding tax and the burden cap. |
+| `value_kr_unlisted_shares` | South Korea unlisted share valuation for inheritance/gift tax (상증법 보충적 평가): net income value 3 : net asset value 2 (2:3 for real-estate-heavy companies), 80% net asset floor, 20% largest-shareholder premium unless exempt. |
+| `calculate_kr_family_business_deduction` | South Korea family business inheritance deduction (가업상속공제): 30/40/60B KRW caps by years operated, non-business asset exclusion, inheritance tax with vs without it. |
+| `calculate_kr_incorporation_conversion` | South Korea sole proprietor → corporation conversion: minimum capital, capital gains tax deferred under 조특법 제32조, 50% acquisition tax relief through 2027. |
+| `calculate_dcf_valuation` | DCF enterprise and equity value: FCFF forecast, Gordon terminal value, CAPM WACC builder, WACC × growth sensitivity table. |
 
 ## Limits and disclaimers
 

@@ -35,6 +35,12 @@
 - `src/modules/kr-personal-tax.mjs`는 입력 확인과 응답 모양만 맡는다. 모르는 입력·지원하지 않는 연도는 추정하지 않고 400으로 거부하고, 결과에 `basis`(근거 조문)·`notCovered`·`disclaimer`를 붙인다.
 - 예전 `/v1/real-estate/acquisition-tax`·`/v1/real-estate/property-tax`(재산세 부분)·`/v1/tax/freelancer`는 2026-11-09부터 같은 tools 라이브러리를 쓰는 호환용 경로다(응답 필드 유지, `deprecated: true`, `replacement`). 새 기능은 `/v1/tax/kr/*`에만 넣는다. 종합부동산세 계산은 아직 예전 property-tax 경로에만 있다.
 
+## 세무·회계 실무 도구 (2026-11-14)
+- `POST|GET /v1/tax/kr/unlisted-share-valuation`, `/v1/tax/kr/family-business-inheritance`, `/v1/tax/kr/incorporation-conversion`, `/v1/finance/dcf-valuation`. MCP 도구 `value_kr_unlisted_shares`·`calculate_kr_family_business_deduction`·`calculate_kr_incorporation_conversion`·`calculate_dcf_valuation`.
+- 공식 정본은 tools-oiyo `src/lib/kr-advisory-2026.ts`(sync 대상에 추가). `src/modules/kr-advisory.mjs`는 입력 확인·응답 모양만 맡고 개인 세금과 같은 규칙(모르는 입력 400, basis·notCovered·disclaimer)을 따른다.
+- 국회를 통과하지 않은 세법개정안(최대주주 할증 폐지, 2026-08 가업상속 개편)은 넣지 않는다. 통과되면 tools lib부터 고친다.
+- 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/kr-tax-advisor`(다운로드 tools.oiyo.net/downloads/oiyo-kr-tax-advisor-skill.zip).
+
 ## MCP Registry (2026-11-09)
 - `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api-oiyo.861106.workers.dev/mcp` 우선, `https://api.oiyo.net/mcp` 보조). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.

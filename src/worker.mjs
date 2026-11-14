@@ -45,6 +45,7 @@ import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
 import { handleMcp } from "./modules/mcp.mjs";
 import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
+import { handleAdvisory } from "./modules/kr-advisory.mjs";
 import { recordUsage } from "./modules/usage.mjs";
 import { mcpMedium } from "./modules/source-pages.mjs";
 import {
@@ -1510,6 +1511,10 @@ async function route(request, env) {
     // 2026-11-09: 연말정산·3.3% 종소세·취득세·재산세 (tools-oiyo libraries, see kr-personal-tax.mjs)
     const personalTax = await handlePersonalTax(request, url, commonHeaders);
     if (personalTax) return personalTax;
+
+    // 2026-11-14: 세무·회계 실무(비상장주식 평가·가업상속공제·법인전환·DCF), tools-oiyo kr-advisory-2026
+    const advisory = await handleAdvisory(request, url, commonHeaders);
+    if (advisory) return advisory;
 
     // 404 Fallback
     return new Response(

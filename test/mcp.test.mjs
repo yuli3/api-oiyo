@@ -32,6 +32,10 @@ const fixtures = {
   calculate_kr_freelancer_income_tax: { revenue: 30000000 },
   calculate_kr_acquisition_tax: { price: 700000000 },
   calculate_kr_property_tax: { officialPrice: 500000000 },
+  value_kr_unlisted_shares: { sharesOutstanding: 100000, netIncome1: 600000000, netIncome2: 500000000, netIncome3: 400000000, netAssets: 3000000000, heldShares: 60000 },
+  calculate_kr_family_business_deduction: { businessValue: 10000000000, years: 15, size: "sme" },
+  calculate_kr_incorporation_conversion: { realEstateMarket: 1000000000, realEstateCost: 400000000, holdYears: 10 },
+  calculate_dcf_valuation: { revenue0: 10000000000, growth: 0.1, ebitMargin: 0.12, terminalGrowth: 0.02, shares: 1000000, wacc: 0.1 },
 };
 
 function rpcRequest(method, params = {}, headers = {}) {

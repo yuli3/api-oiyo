@@ -8,7 +8,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stripTypeScriptTypes } from "node:module";
 
-export const TOOLS_TAX_FILES = ["kr-vat-2026", "kr-payroll-2026", "kr-income-tax-2026", "kr-real-estate-tax", "kr-year-end-2026"];
+export const TOOLS_TAX_FILES = ["kr-vat-2026", "kr-payroll-2026", "kr-income-tax-2026", "kr-real-estate-tax", "kr-year-end-2026", "kr-advisory-2026"];
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const VENDOR_DIR = resolve(repoRoot, "src/modules/vendor/tools-tax");
 
