@@ -46,6 +46,7 @@ import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
 import { handleMcp } from "./modules/mcp.mjs";
 import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { handleAdvisory } from "./modules/kr-advisory.mjs";
+import { handleBiz } from "./modules/biz-strategy.mjs";
 import { recordUsage } from "./modules/usage.mjs";
 import { mcpMedium } from "./modules/source-pages.mjs";
 import {
@@ -1515,6 +1516,10 @@ async function route(request, env) {
     // 2026-11-14: 세무·회계 실무(비상장주식 평가·가업상속공제·법인전환·DCF), tools-oiyo kr-advisory-2026
     const advisory = await handleAdvisory(request, url, commonHeaders);
     if (advisory) return advisory;
+
+    // 2026-11-15: 경영 도구(의사결정 트리·일정·SWOT·BCG·포지셔닝·단위경제·우선순위·사업자 세무 일정), tools-oiyo biz-strategy
+    const biz = await handleBiz(request, url, commonHeaders);
+    if (biz) return biz;
 
     // 404 Fallback
     return new Response(

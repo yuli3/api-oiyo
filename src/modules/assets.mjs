@@ -102,6 +102,15 @@ https://api.oiyo.net
 - POST /v1/tax/kr/family-business-inheritance: family business inheritance deduction (30/40/60B KRW caps) and tax with vs without it
 - POST /v1/tax/kr/incorporation-conversion: sole proprietor → corporation: minimum capital, deferred capital gains tax, 50% acquisition tax relief
 - POST /v1/finance/dcf-valuation: DCF enterprise/equity value with CAPM WACC builder and sensitivity table
+- POST /v1/biz/decision-tree: decision tree expected value (simple options or full tree), breakeven success probability
+- POST /v1/biz/critical-path: CPM/PERT project schedule, critical path, on-time probability, calendar dates
+- POST /v1/biz/swot: SWOT stance with TOWS pairs, IFE/EFE scores and IE matrix
+- POST /v1/biz/bcg: BCG growth-share matrix with revenue mix and recommended moves
+- POST /v1/biz/positioning-map: brand positioning map, nearest competitors and the largest empty spot
+- POST /v1/biz/unit-economics-runway: LTV/CAC, payback, cash runway, default alive, break-even units
+- POST /v1/biz/priorities: RICE ranking or weighted decision matrix with weight flips
+- GET /v1/tax/kr/business-calendar?year=...&entity=corp|indiv&vat=general|simple|exempt&employer=...: Korean business filing calendar with holiday-shifted due dates and must-do checklist
+- Business routes validate against the published tool schema, refuse unknown inputs (400 invalid_input with problems[]) and return the method and a disclaimer.
 - Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 
 ## Operational Guarantees

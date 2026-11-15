@@ -36,6 +36,14 @@ const fixtures = {
   calculate_kr_family_business_deduction: { businessValue: 10000000000, years: 15, size: "sme" },
   calculate_kr_incorporation_conversion: { realEstateMarket: 1000000000, realEstateCost: 400000000, holdYears: 10 },
   calculate_dcf_valuation: { revenue0: 10000000000, growth: 0.1, ebitMargin: 0.12, terminalGrowth: 0.02, shares: 1000000, wacc: 0.1 },
+  evaluate_decision_tree: { question: "신규 매장?", options: [{ label: "열기", successProb: 0.4, ifSuccess: 500, ifFail: -100, cost: 50 }, { label: "보류", successProb: 1, ifSuccess: 60, ifFail: 60 }] },
+  schedule_critical_path: { tasks: [{ id: "a", name: "기획", duration: 3 }, { id: "b", name: "개발", duration: 10, deps: ["a"], optimistic: 7, pessimistic: 16 }], deadline: 14, startDate: "2026-11-16", workdaysOnly: true },
+  analyze_swot: { items: [{ kind: "S", text: "충성 고객", impact: 5, weight: 0.6, rating: 4 }, { kind: "T", text: "대기업 진입", impact: 4, weight: 1, rating: 2 }] },
+  classify_bcg_portfolio: { units: [{ name: "매장", revenue: 3000, marketGrowth: 0.02, share: 0.18, rivalShare: 0.12 }, { name: "구독", revenue: 400, marketGrowth: 0.25, share: 0.02, rivalShare: 0.1 }] },
+  map_brand_positioning: { brands: [{ name: "우리", x: -2, y: 4, ours: true }, { name: "A사", x: 7, y: 7 }, { name: "B사", x: -6, y: -5 }], idealX: 3, idealY: 6 },
+  calculate_unit_economics_runway: { arpu: 50000, grossMargin: 0.7, monthlyChurn: 0.04, cac: 300000, cash: 300000000, revenue: 20000000, revenueGrowth: 0.06, expenses: 45000000, expenseGrowth: 0.01 },
+  rank_priorities: { method: "weighted", criteria: [{ name: "비용", weight: 2 }, { name: "속도", weight: 1 }], options: [{ name: "X", scores: [5, 1] }, { name: "Y", scores: [2, 4] }] },
+  get_kr_business_tax_calendar: { year: 2026, entity: "corp", vat: "general", employer: true, from: "2026-11-15", stage: "hire" },
 };
 
 function rpcRequest(method, params = {}, headers = {}) {

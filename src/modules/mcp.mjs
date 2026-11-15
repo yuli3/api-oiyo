@@ -9,22 +9,38 @@ const ALLOWED_ORIGINS = new Set([
   "https://glama.ai",
 ]);
 
+// 2026-11-15: business tools take arrays of objects, so the converter is recursive. Objects with
+// properties are strict (unknown keys refused); an object without properties (a decision tree) is
+// passed through and checked by the REST validator, which is the same code path as public REST.
+function propertySchema(property) {
+  let schema;
+  if (property.enum) schema = z.union(property.enum.map(value => z.literal(value)));
+  else if (property.type === "boolean") schema = z.boolean();
+  else if (property.type === "integer") schema = z.number().int().safe();
+  else if (property.type === "number") schema = z.number().finite();
+  else if (property.type === "string") {
+    schema = z.string().max(property.maxLength ?? 200);
+    if (property.pattern) schema = schema.regex(new RegExp(property.pattern));
+  } else if (property.type === "array") {
+    schema = z.array(propertySchema(property.items));
+    if (property.minItems !== undefined) schema = schema.min(property.minItems);
+    if (property.maxItems !== undefined) schema = schema.max(property.maxItems);
+  } else if (property.type === "object" && property.properties) schema = inputSchema(property);
+  else if (property.type === "object") schema = z.record(z.string(), z.unknown());
+  else throw new Error("Unsupported tool schema type");
+  if (!property.enum && (property.type === "number" || property.type === "integer")) {
+    if (property.minimum !== undefined) schema = schema.min(property.minimum);
+    if (property.maximum !== undefined) schema = schema.max(property.maximum);
+  }
+  if (property.description) schema = schema.describe(property.description);
+  return schema;
+}
+
 function inputSchema(parameters) {
   const required = new Set(parameters.required || []);
   const shape = {};
   for (const [name, property] of Object.entries(parameters.properties)) {
-    let schema;
-    if (property.enum) schema = z.union(property.enum.map(value => z.literal(value)));
-    else if (property.type === "boolean") schema = z.boolean();
-    else if (property.type === "integer") schema = z.number().int().safe();
-    else if (property.type === "number") schema = z.number().finite();
-    else if (property.type === "string") schema = z.string().max(200);
-    else throw new Error("Unsupported tool schema type");
-    if (property.type === "number" || property.type === "integer") {
-      if (property.minimum !== undefined) schema = schema.min(property.minimum);
-      if (property.maximum !== undefined) schema = schema.max(property.maximum);
-    }
-    if (property.description) schema = schema.describe(property.description);
+    const schema = propertySchema(property);
     shape[name] = required.has(name) ? schema : schema.optional();
   }
   return z.strictObject(shape);

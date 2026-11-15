@@ -1,4 +1,5 @@
 import { TOOLS_SPEC, TOOL_ENDPOINTS } from "./tools-spec.mjs";
+import { BIZ_ENDPOINTS } from "./biz-tools-spec.mjs";
 
 /**
  * OpenAPI 3.0 Specification for api.oiyo.net
@@ -770,6 +771,16 @@ for (const { function: tool } of TOOLS_SPEC.tools) {
 for (const name of ["value_kr_unlisted_shares", "calculate_kr_family_business_deduction", "calculate_kr_incorporation_conversion", "calculate_dcf_valuation"]) {
   const tool = TOOLS_SPEC.tools.find(t => t.function.name === name).function;
   OPENAPI_SPEC.paths[TOOL_ENDPOINTS[name].path].post.requestBody = {
+    required: true,
+    content: { "application/json": { schema: { ...tool.parameters, additionalProperties: false } } },
+  };
+}
+
+// 2026-11-15: business tools take JSON bodies with arrays of objects (business calendar is GET).
+for (const [name, endpoint] of Object.entries(BIZ_ENDPOINTS)) {
+  if (endpoint.method !== "POST") continue;
+  const tool = TOOLS_SPEC.tools.find(t => t.function.name === name).function;
+  OPENAPI_SPEC.paths[endpoint.path].post.requestBody = {
     required: true,
     content: { "application/json": { schema: { ...tool.parameters, additionalProperties: false } } },
   };

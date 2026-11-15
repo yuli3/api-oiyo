@@ -79,6 +79,14 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_family_business_deduction` | South Korea family business inheritance deduction (가업상속공제): 30/40/60B KRW caps by years operated, non-business asset exclusion, inheritance tax with vs without it. |
 | `calculate_kr_incorporation_conversion` | South Korea sole proprietor → corporation conversion: minimum capital, capital gains tax deferred under 조특법 제32조, 50% acquisition tax relief through 2027. |
 | `calculate_dcf_valuation` | DCF enterprise and equity value: FCFF forecast, Gordon terminal value, CAPM WACC builder, WACC × growth sensitivity table. |
+| `evaluate_decision_tree` | Decision tree expected value from simple options or a full decision/chance/outcome tree: best path, outcome distribution, loss probability, breakeven success probability. |
+| `schedule_critical_path` | Project schedule by CPM with PERT estimates: slack, critical path, duration, on-time probability for a deadline, calendar dates. |
+| `analyze_swot` | SWOT stance (SO/ST/WO/WT) with TOWS strategy pairs, IFE/EFE weighted scores and the IE matrix cell. |
+| `classify_bcg_portfolio` | BCG matrix: star / cash cow / question mark / dog from market growth and relative share, revenue mix and recommended moves. |
+| `map_brand_positioning` | Positioning map: nearest competitor per brand, crowded brands, largest empty spot, distance to a customer ideal point. |
+| `calculate_unit_economics_runway` | LTV, LTV/CAC grade, CAC payback; monthly cash runway, break-even month and default alive; break-even units. |
+| `rank_priorities` | RICE ranking or a weighted decision matrix with the weight each criterion would need to flip the winner. |
+| `get_kr_business_tax_calendar` | South Korea business filing calendar (VAT, corporate/income tax, withholding, payment statements) with holiday-shifted due dates, plus must-do / must-not-do checklists by stage or role. |
 
 ## Limits and disclaimers
 
