@@ -2,10 +2,11 @@
  * OpenAPI & Agent Function Calling Tool Specification for api.oiyo.net
  * Standard tool schemas directly consumable by OpenAI, Anthropic, Gemini, and LangChain agents.
  */
+import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
 export const TOOLS_SPEC = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  version: "1.4.0",
+  version: "1.5.0",
   service: "api.oiyo.net",
   description: "Deterministic B2A tool specifications for LLM agent function calling (OpenAI / Claude / Gemini / AutoGen compatible)",
   baseUrl: "https://api.oiyo.net",
@@ -597,6 +598,8 @@ export const TOOLS_SPEC = {
         },
       },
     },
+    // 2026-11-15: 경영 도구(의사결정 트리·일정·SWOT·BCG·포지셔닝·단위경제·우선순위·세무 일정)
+    ...BIZ_TOOLS,
   ],
 };
 
@@ -632,4 +635,5 @@ export const TOOL_ENDPOINTS = Object.freeze({
   calculate_kr_family_business_deduction: { path: "/v1/tax/kr/family-business-inheritance", method: "POST" },
   calculate_kr_incorporation_conversion: { path: "/v1/tax/kr/incorporation-conversion", method: "POST" },
   calculate_dcf_valuation: { path: "/v1/finance/dcf-valuation", method: "POST" },
+  ...BIZ_ENDPOINTS,
 });

@@ -41,6 +41,12 @@
 - 국회를 통과하지 않은 세법개정안(최대주주 할증 폐지, 2026-08 가업상속 개편)은 넣지 않는다. 통과되면 tools lib부터 고친다.
 - 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/kr-tax-advisor`(다운로드 tools.oiyo.net/downloads/oiyo-kr-tax-advisor-skill.zip).
 
+## 경영 도구 (2026-11-15)
+- `POST /v1/biz/decision-tree`·`critical-path`·`swot`·`bcg`·`positioning-map`·`unit-economics-runway`·`priorities`, `GET /v1/tax/kr/business-calendar`. MCP 도구 8개(`src/modules/biz-tools-spec.mjs`의 `BIZ_TOOLS`).
+- 공식 정본은 tools-oiyo `src/lib/biz-strategy.ts`·`biz-checklist.ts`·`kr-business-day.ts`(sync 대상). `src/modules/biz-strategy.mjs`는 입력 확인·응답 모양만 맡는다. 입력 확인은 도구 스키마(`BIZ_TOOLS`) 하나로 REST·MCP가 같이 쓰고, 모르는 입력은 400으로 거부한다.
+- 배열·객체 입력이 있어 `mcp.mjs`의 스키마 변환이 재귀다. 속성 없는 object(의사결정 트리)는 MCP에서 통과시키고 REST 검사(`readTree`, 12단계·200노드 한도)가 막는다.
+- 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/oiyo-business-strategist`(다운로드 tools.oiyo.net/downloads/oiyo-business-strategist-skill.zip).
+
 ## MCP Registry (2026-11-09)
 - `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api-oiyo.861106.workers.dev/mcp` 우선, `https://api.oiyo.net/mcp` 보조). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
