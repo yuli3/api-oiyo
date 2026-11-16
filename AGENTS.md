@@ -39,6 +39,7 @@
 - `POST|GET /v1/tax/kr/unlisted-share-valuation`, `/v1/tax/kr/family-business-inheritance`, `/v1/tax/kr/incorporation-conversion`, `/v1/finance/dcf-valuation`. MCP 도구 `value_kr_unlisted_shares`·`calculate_kr_family_business_deduction`·`calculate_kr_incorporation_conversion`·`calculate_dcf_valuation`.
 - 공식 정본은 tools-oiyo `src/lib/kr-advisory-2026.ts`(sync 대상에 추가). `src/modules/kr-advisory.mjs`는 입력 확인·응답 모양만 맡고 개인 세금과 같은 규칙(모르는 입력 400, basis·notCovered·disclaimer)을 따른다.
 - 국회를 통과하지 않은 세법개정안(최대주주 할증 폐지, 2026-08 가업상속 개편)은 넣지 않는다. 통과되면 tools lib부터 고친다.
+- 2026-11-16 법령 길잡이 3종(MCP `start_kr_law_intake`, `search_kr_statutes`, `get_kr_professional_scope`, REST `/v1/law/kr/*`)은 tools-oiyo `src/lib/kr-expert-guide-2026.ts`가 정본(sync 대상, kr-legal-2026·kr-business-day 함께). 스키마 `src/modules/law-guide-spec.mjs`. 자격 명칭(세무사·노무사 등)을 도구 설명·응답에서 자칭하지 않아요(유사명칭 금지, 세무사법 제20조③). 스킬은 tools-oiyo `skills/oiyo-kr-law-guide`.
 - 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/kr-tax-advisor`(다운로드 tools.oiyo.net/downloads/oiyo-kr-tax-advisor-skill.zip).
 
 ## 경영 도구 (2026-11-15)

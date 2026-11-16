@@ -4,6 +4,7 @@
 // the single source for MCP input validation (mcp.mjs), REST validation (biz-strategy.mjs) and OpenAPI.
 
 import { WELFARE_ENDPOINTS, WELFARE_TOOLS } from "./welfare-tools-spec.mjs";
+import { LAW_GUIDE_ENDPOINTS, LAW_GUIDE_TOOLS } from "./law-guide-spec.mjs";
 
 const str = (description, maxLength = 120) => ({ type: "string", maxLength, description });
 const num = (description, minimum, maximum) => ({ type: "number", description, ...(minimum !== undefined && { minimum }), ...(maximum !== undefined && { maximum }) });
@@ -253,6 +254,8 @@ export const BIZ_TOOLS = [
     }, ["price", "targetNetIncome", "acquirerNetIncome", "acquirerShares", "sharePrice", "stockPortion", "debtRate", "taxRate", "synergy", "rampYears", "integrationCost"]),
   // 2026-11-16: 생활 지원금·노동권 6종(장려금·출산휴가·대지급금·산재·월세 공제·퇴직연금)
   ...WELFARE_TOOLS,
+  // 2026-11-16: 법령 길잡이 5분야(업무 범위·선제 질문·조문 찾기)
+  ...LAW_GUIDE_TOOLS,
 ];
 
 export const BIZ_ENDPOINTS = {
@@ -273,4 +276,5 @@ export const BIZ_ENDPOINTS = {
   check_sales_rebates: { path: "/v1/biz/sales-rebates", method: "POST" },
   evaluate_acquisition: { path: "/v1/biz/acquisition", method: "POST" },
   ...WELFARE_ENDPOINTS,
+  ...LAW_GUIDE_ENDPOINTS,
 };

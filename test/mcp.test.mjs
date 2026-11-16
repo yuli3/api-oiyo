@@ -64,6 +64,9 @@ const fixtures = {
   calculate_kr_long_term_care_copay: { grade: "3", kind: "home", reduction: "none" },
   check_kr_dependent_deduction: { salary: 50000000, married: true, people: [{ relation: "spouse", birthYear: 1990 }, { relation: "parent", birthYear: 1950 }] },
   calculate_kr_stock_major_shareholder_tax: { market: "kospi", heldValue: 6000000000, gain: 500000000, overOneYear: true },
+  get_kr_professional_scope: { domain: "labor" },
+  start_kr_law_intake: { situation: "회사에서 문자로 해고 통보를 받았어요", answers: { size: "5plus", dismissDate: "2026-10-30" }, today: "2026-11-16" },
+  search_kr_statutes: { query: "경정청구" },
   calculate_kr_housing_rental_income_tax: { houses: 2, annualRent: 12000000, deposits: 0, registered: false, otherIncome: 40000000 },
 };
 
