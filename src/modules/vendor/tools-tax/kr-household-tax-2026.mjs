@@ -2,8 +2,8 @@
 // 집안 세금 판단 2종 (2026-11-16, Gemini 공익 도구 인수 4차): 부양가족 기본공제 판정과 상장주식 대주주 양도소득세.
 // 연말정산 공식은 kr-year-end-2026.ts의 settleYearEnd를 그대로 불러 "넣을 때와 뺄 때"를 비교해요.
 // 화면 components/tools/welfare/, Claude 스킬·MCP는 이 파일을 복사해 써요(drift 테스트).
-import { earnedIncomeDeduction, filingCredit, inheritanceGiftProgressiveTax, RATES, pensionBaseLimits } from "./kr-payroll-2026.mjs";
-import { ADDITIONAL, CHILD_CREDIT, settleYearEnd } from "./kr-year-end-2026.mjs";
+import { basicIncomeTax, earnedIncomeDeduction, filingCredit, inheritanceGiftProgressiveTax, RATES, pensionBaseLimits } from "./kr-payroll-2026.mjs";
+import { ADDITIONAL, CHILD_CREDIT, YOUTH_SME, settleYearEnd } from "./kr-year-end-2026.mjs";
 
 export const HOUSEHOLD_TAX_AS_OF = "2026-11-16";
 const clamp0 = (n                    ) => (typeof n === "number" && Number.isFinite(n) && n > 0 ? n : 0);
@@ -511,5 +511,191 @@ export function commercialRentCheck(input                     ) {
     /** 상한을 넘는 월세(달마다) */
     rentExcess: Math.max(0, newRent - maxRent),
     depositExcess: Math.max(0, newDeposit - maxDeposit),
+  };
+}
+
+// ───────────────────────── 중소기업 취업 청년 소득세 감면 (Gemini 이전 B 2차) ─────────────────────────
+// 조세특례제한법 제30조: 근로계약 체결일 현재 15~34세(병역 기간 최대 6년 빼고 계산) 청년이 중소기업에 취업하면
+// 취업일부터 5년이 되는 날이 속하는 달까지 근로소득세의 90%를 감면(과세기간별 200만 원 한도).
+// 60세 이상·장애인·경력단절자는 3년 70%. 2026년 세법개정안은 2027-01-01 이후 취업분부터 비수도권 감면 기간을 6~10년으로
+// 늘리는 안이에요(국회 통과 전, 계산에는 넣지 않아요).
+
+export const YOUTH_REDUCTION = { minAge: 15, maxAge: YOUTH_SME.maxAge, militaryMaxMonths: 72, years: 5, otherYears: 3, otherRate: 0.7 }         ;
+
+                                
+                       
+                 
+                       
+                   
+                         
+                        
+                                    
+                          
+                       
+                
+ 
+
+/** 4대보험 근로자 부담분 추정(국민연금 4.75%, 건강 3.595% × 장기요양 포함, 고용 0.9%) */
+const insuranceEstimate = (salary        ) => ({
+  nationalPension: Math.floor(salary * RATES.pensionEmployee),
+  healthEmployment: Math.floor(salary * (RATES.healthEmployee * (1 + RATES.longTermCareOfHealth) + RATES.employmentEmployee)),
+});
+
+export function smeYouthReduction(input               ) {
+  const Y = YOUTH_REDUCTION;
+  const salary = clamp0(input.salary);
+  const persons = Math.max(1, Math.floor(input.persons ?? 1));
+  const military = Math.min(Y.militaryMaxMonths, clamp0(input.militaryMonths));
+  const countedAge = Math.floor(clamp0(input.ageAtContract) - military / 12);
+  const ageOk = countedAge >= Y.minAge && countedAge <= Y.maxAge;
+  const base = { salary, persons, ...insuranceEstimate(salary) };
+  const without = settleYearEnd(base);
+  const withR = settleYearEnd({ ...base, youthSme: true });
+  const national = ageOk ? Math.max(0, without.finalTax - withR.finalTax) : 0;
+  const local = ageOk ? Math.max(0, without.localTax - withR.localTax) : 0;
+  const m = /^(\d{4})-(\d{2})$/.exec(input.start ?? "");
+  let endMonth = "";
+  if (m) {
+    const idx = Number(m[1]) * 12 + (Number(m[2]) - 1) + Y.years * 12;
+    endMonth = `${Math.floor(idx / 12)}-${String((idx % 12) + 1).padStart(2, "0")}`;
+  }
+  return {
+    countedAge,
+    ageOk,
+    taxWithout: without.finalTax + without.localTax,
+    taxWith: ageOk ? withR.finalTax + withR.localTax : without.finalTax + without.localTax,
+    national,
+    local,
+    yearly: national + local,
+    capped: ageOk && withR.youthReduction >= YOUTH_SME.cap,
+    /** 감면이 끝나는 달(취업일부터 5년이 되는 날이 속하는 달) */
+    endMonth,
+    /** 같은 급여가 이어진다고 볼 때 5년 합계(추정) */
+    fiveYear: (national + local) * Y.years,
+  };
+}
+
+// ───────────────────────── 노란우산공제 소득공제 ─────────────────────────
+// 조세특례제한법 제86조의3: 소기업·소상공인 공제부금 납입액을 사업소득금액(법인 대표자는 총급여 8천만 원 이하일 때
+// 근로소득금액)에서 공제. 한도 4천만 원 이하 600만, 6천만 이하 500만, 1억 이하 400만, 초과 200만(정부24 소득공제 안내 기준). 부동산임대업 소득금액은 빼고 봐요.
+// 2026-07-01 납입분부터 연 납입 한도 1,800만 원(종전 분기 300만). 임의 해지하면 공제받은 원금·이자가 기타소득(16.5%)이에요.
+
+export const YELLOW_UMBRELLA = {
+  tiers: [
+    { upTo: 40_000_000, limit: 6_000_000 },
+    { upTo: 60_000_000, limit: 5_000_000 },
+    { upTo: 100_000_000, limit: 4_000_000 },
+    { upTo: Infinity, limit: 2_000_000 },
+  ],
+  ceoSalaryMax: 80_000_000,
+  annualPayCap: 18_000_000,
+  localRate: 0.1,
+  surrenderRate: 0.165,
+}         ;
+
+                                      
+                           
+                                                 
+                 
+               
+               
+                                          
+                           
+ 
+
+export function yellowUmbrella(input                     ) {
+  const Y = YELLOW_UMBRELLA;
+  const income = clamp0(input.income);
+  const ceo = input.kind === "ceo";
+  const eligible = !ceo || income <= Y.ceoSalaryMax;
+  const basisIncome = ceo ? Math.max(0, income - earnedIncomeDeduction(income)) : income;
+  const limit = Y.tiers.find((t) => basisIncome <= t.upTo) .limit;
+  const deduction = eligible ? Math.min(clamp0(input.paid), limit) : 0;
+  const base = Math.max(0, basisIncome - clamp0(input.otherDeductions ?? 1_500_000));
+  const before = basicIncomeTax(base);
+  const after = basicIncomeTax(Math.max(0, base - deduction));
+  const saved = Math.floor((before - after) * (1 + Y.localRate));
+  return {
+    eligible,
+    basisIncome,
+    limit,
+    deduction,
+    saved,
+    /** 한도를 넘게 낸 돈(공제는 안 되지만 적립은 돼요) */
+    overLimit: Math.max(0, clamp0(input.paid) - limit),
+    marginalRate: deduction > 0 ? saved / deduction : 0,
+    /** 한도까지 냈을 때 줄어드는 세금 */
+    savedAtLimit: eligible ? Math.floor((before - basicIncomeTax(Math.max(0, base - limit))) * (1 + Y.localRate)) : 0,
+  };
+}
+
+// ───────────────────────── 일반과세 vs 간이과세 ─────────────────────────
+// 부가가치세법 제61조·시행령 제109조(간이과세: 직전 연도 공급대가 1억 400만 원 미만, 부동산임대·과세유흥은 4,800만 원 미만),
+// 제63조(간이 납부세액 = 공급대가 × 업종별 부가가치율 × 10%, 매입 세금계산서 공급대가 × 0.5% 공제, 환급 없음),
+// 제69조(공급대가 4,800만 원 미만 납부 면제), 제36조①(4,800만 원 이상 간이과세자는 세금계산서 발급 의무),
+// 제46조(신용카드 등 매출 1.3%, 연 1천만 원 한도, 일반과세자는 개인·매출 10억 이하).
+// 업종별 부가가치율: 소매·음식 15%, 제조·농림어업 20%, 숙박 25%, 건설·운수창고·정보통신·그 밖 서비스 30%,
+// 금융보험·전문과학기술·사업시설관리·부동산 40%.
+
+export const SIMPLIFIED_VAT = {
+  threshold: 104_000_000,
+  rentThreshold: 48_000_000,
+  exemptBelow: 48_000_000,
+  invoiceFrom: 48_000_000,
+  purchaseCredit: 0.005,
+  cardRate: 0.013,
+  cardCap: 10_000_000,
+  rates: { retail: 0.15, manufacturing: 0.2, lodging: 0.25, construction: 0.3, service: 0.3, professional: 0.4 },
+}         ;
+                                                          
+export const VAT_SECTOR_LABEL                            = {
+  retail: "소매·음식점",
+  manufacturing: "제조·농림어업",
+  lodging: "숙박",
+  construction: "건설·운수·정보통신",
+  service: "그 밖 서비스(미용·교육 등)",
+  professional: "전문서비스·금융·부동산임대",
+};
+
+                               
+                    
+                           
+                
+                                   
+                    
+                              
+                     
+ 
+
+export function vatTypeCompare(input              ) {
+  const S = SIMPLIFIED_VAT;
+  const sales = clamp0(input.sales);
+  const purchases = clamp0(input.purchases);
+  const card = Math.min(S.cardCap, Math.floor(sales * Math.min(1, clamp0(input.cardShare)) * S.cardRate));
+  const outVat = Math.floor((sales / 1.1) * 0.1);
+  const inVat = Math.floor((purchases / 1.1) * 0.1);
+  // 일반과세: 환급 가능(카드 공제는 납부세액까지만)
+  const generalBefore = outVat - inVat;
+  const general = generalBefore > 0 ? generalBefore - Math.min(card, generalBefore) : generalBefore;
+  const rate = S.rates[input.sector];
+  const exempt = sales < S.exemptBelow;
+  const simpleRaw = Math.floor(sales * rate * 0.1) - Math.floor(purchases * S.purchaseCredit);
+  const simple = exempt ? 0 : Math.max(0, simpleRaw - Math.min(card, Math.max(0, simpleRaw)));
+  const limit = input.sector === "professional" ? S.rentThreshold : S.threshold;
+  return {
+    general,
+    simple,
+    saving: general - simple,
+    better: simple < general ? ("simple"         ) : simple > general ? ("general"         ) : ("same"         ),
+    simpleAllowed: sales < limit,
+    limit,
+    exempt,
+    invoiceRequired: !exempt,
+    rate,
+    outVat,
+    inVat,
+    card,
+    /** 일반과세는 매입이 많으면 환급받아요 */
+    generalRefund: general < 0 ? -general : 0,
   };
 }

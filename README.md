@@ -116,6 +116,9 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `check_kr_family_loan_interest` | Family loan gift test: 4.6% statutory interest vs agreed rate, 10M KRW a year threshold, safe rate. |
 | `check_kr_parent_house_free_use` | Rent-free use of a family home: value × 2% × 5-year PV ≥ 100M is a gift; free collateral too. |
 | `check_kr_family_low_price_sale` | Below-market family sale: buyer gift (30%/300M) and seller capital gains at market value (5%/300M). |
+| `calculate_kr_sme_youth_tax_reduction` | SME young-employee income tax reduction (조특법 제30조): 90%, 2M a year cap, end month. |
+| `calculate_kr_yellow_umbrella_deduction` | 노란우산공제 income deduction limits (6M/5M/4M/2M) and tax saved. |
+| `compare_kr_general_vs_simplified_vat` | General vs simplified VAT taxpayer: annual VAT by sector rate, exemption, refunds, invoice duty. |
 | `check_kr_commercial_rent_increase` | Commercial lease 5% rent increase cap, regional converted-deposit limits, 1-year rule, conversion rate. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
 | `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |
