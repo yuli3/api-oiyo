@@ -105,3 +105,14 @@ test("노동권 묶음 A: 해고예고·휴업·육아기 단축·수습·연차
   assert.deepEqual(l.body.result.steps.map((x) => x.due), ["2026-07-10", "2026-07-20", "2026-10-31", "2026-12-31"]);
   assert.equal((await call("/v1/labor/kr/annual-leave-promotion", { kind: "annual", periodEnd: "2026-13-45" })).status, 400);
 });
+
+test("자진퇴사 정당 사유와 하도급 직접 지급", async () => {
+  const q = await call("/v1/labor/kr/voluntary-quit-unemployment", { reasons: ["unpaidWages", "commute"], months: 2, commuteHours: 2, insuredDays: 200 });
+  assert.equal(q.status, 200);
+  assert.equal(q.body.result.verdict, "likely");
+  assert.deepEqual(q.body.result.results.map((r) => r.ok), [true, false]);
+  assert.equal((await call("/v1/labor/kr/voluntary-quit-unemployment", { reasons: ["quitForFun"], insuredDays: 200 })).status, 400);
+  const d = await call("/v1/business/kr/subcontract-direct-payment", { cause: "twoMissed", missedInstallments: 2, requested: true, workValue: 50000000, receivedFromPrime: 10000000, ownerUnpaidToPrime: 30000000, daysSinceDelivery: 125 });
+  assert.equal(d.body.result.direct, 30000000);
+  assert.equal(d.body.result.lateInterest, Math.floor((40000000 * 0.155 * 65) / 365));
+});

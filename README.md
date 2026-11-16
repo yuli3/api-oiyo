@@ -111,6 +111,8 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_reduced_hours_childcare_pay` | Reduced hours for childcare benefit 2026: first 10 h at 100% (cap 2.5M), rest 80% (cap 1.6M). |
 | `check_kr_probation_minimum_wage` | Probation minimum wage: 90% (9,288 KRW) only for 1-year+ contracts, first 3 months, non-manual jobs. |
 | `plan_kr_annual_leave_promotion` | Annual leave use promotion (연차 사용촉진) schedule under 근로기준법 제61조. |
+| `check_kr_voluntary_quit_unemployment` | Justified reasons for voluntary resignation (별표 2) and 180 insured days for unemployment benefit. |
+| `check_kr_subcontract_direct_payment` | Subcontract direct payment grounds (하도급법 제14조), payable range and 15.5% late interest. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
 | `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |
 | `get_kr_professional_scope` | Legal scope and title rules of 세무사·공인회계사·공인노무사·행정사·법무사, with a who-can-do-what matrix. |

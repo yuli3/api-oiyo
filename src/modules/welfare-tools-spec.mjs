@@ -204,6 +204,28 @@ export const WELFARE_TOOLS = [
       kind: { type: "string", enum: ["annual", "firstYear"], description: "annual = leave of workers with 1+ year; firstYear = monthly leave in the first year" },
       periodEnd: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Last day the leave can be used (YYYY-MM-DD), e.g. 2027-12-31 for a fiscal-year system" },
     }, ["kind", "periodEnd"]),
+  fn("check_kr_voluntary_quit_unemployment",
+    "Korean unemployment benefit after voluntary resignation: checks the justified reasons in 고용보험법 시행규칙 별표 2 (amended 2024-07-01). Item 1 (worse conditions, unpaid wages, below minimum wage, overtime limit violations, shutdown pay under 70%) counts only if it lasted 2+ months within the year before leaving; commuting needs 3+ hours round trip; family care needs 30+ days and refused leave; health and pregnancy/childcare need refused leave or transfer. Also checks 180 insured days in the 18 months before leaving (제40조). Returns per-reason results with evidence to bring; the employment center decides.",
+    {
+      reasons: { type: "array", minItems: 0, maxItems: 17, items: { type: "string", enum: ["conditionsWorse","unpaidWages","belowMinWage","overtimeViolation","shutdownUnder70","discrimination","sexualHarassment","workplaceHarassment","closureExpected","recommendedResign","commute","familyCare","safetyHazard","health","pregnancyChildcare","illegalBusiness","contractEnd"] }, description: "Reasons for leaving" },
+      months: num("Months within the year before leaving that an item-1 reason lasted", 0, 12),
+      commuteHours: num("Round-trip commute hours after the change, by ordinary transport", 0, 24),
+      careDays: num("Days of family care needed", 0, 3650),
+      leaveRefused: bool("The employer refused leave, a leave of absence or a job transfer"),
+      insuredDays: num("Insured (paid) days in the 18 months before leaving", 0, 600),
+    }, ["reasons", "insuredDays"]),
+  fn("check_kr_subcontract_direct_payment",
+    "Korean subcontract direct payment (하도급대금 직접 지급, 하도급법 제14조): the client (발주자) must pay the subcontractor directly when the prime contractor stops payment, goes bankrupt or loses its license (on request), the three parties agree, the prime missed 2+ installments (on request), or the prime gave no payment guarantee (on request); blocked when the prime documents the subcontractor's own wage or material arrears (③); limited to what the client has not yet paid the prime (④). Also late interest at 15.5% a year after 60 days from delivery (제13조⑧, FTC notice).",
+    {
+      cause: { type: "string", enum: ["insolvency", "agreement", "twoMissed", "noGuarantee", "none"], description: "Direct payment ground" },
+      missedInstallments: { type: "integer", minimum: 0, maximum: 100, description: "Installments the prime has not paid" },
+      requested: bool("The subcontractor asked the client for direct payment"),
+      primeStopRequest: bool("The prime documented the subcontractor's wage/material arrears and asked the client to stop"),
+      workValue: won("Subcontract price of the work done"),
+      receivedFromPrime: won("Amount already received from the prime"),
+      ownerUnpaidToPrime: won("Amount the client still owes the prime for that work"),
+      daysSinceDelivery: { type: "integer", minimum: 0, maximum: 3650, description: "Days since delivery or completion was accepted" },
+    }, ["cause", "requested", "workValue", "receivedFromPrime", "ownerUnpaidToPrime", "daysSinceDelivery"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -225,4 +247,6 @@ export const WELFARE_ENDPOINTS = {
   calculate_kr_reduced_hours_childcare_pay: { path: "/v1/benefits/kr/reduced-hours-childcare-pay", method: "POST" },
   check_kr_probation_minimum_wage: { path: "/v1/labor/kr/probation-minimum-wage", method: "POST" },
   plan_kr_annual_leave_promotion: { path: "/v1/labor/kr/annual-leave-promotion", method: "POST" },
+  check_kr_voluntary_quit_unemployment: { path: "/v1/labor/kr/voluntary-quit-unemployment", method: "POST" },
+  check_kr_subcontract_direct_payment: { path: "/v1/business/kr/subcontract-direct-payment", method: "POST" },
 };

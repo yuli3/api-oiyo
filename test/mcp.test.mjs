@@ -69,6 +69,8 @@ const fixtures = {
   calculate_kr_reduced_hours_childcare_pay: { monthlyOrdinaryWage: 3000000, afterHours: 20 },
   check_kr_probation_minimum_wage: { hourlyWage: 9300, contractMonths: 0, monthsIntoProbation: 1, simpleLabor: false },
   plan_kr_annual_leave_promotion: { kind: "annual", periodEnd: "2026-12-31" },
+  check_kr_voluntary_quit_unemployment: { reasons: ["unpaidWages"], months: 2, insuredDays: 200 },
+  check_kr_subcontract_direct_payment: { cause: "twoMissed", missedInstallments: 2, requested: true, workValue: 50000000, receivedFromPrime: 10000000, ownerUnpaidToPrime: 30000000, daysSinceDelivery: 125 },
   get_kr_professional_scope: { domain: "labor" },
   start_kr_law_intake: { situation: "회사에서 문자로 해고 통보를 받았어요", answers: { size: "5plus", dismissDate: "2026-10-30" }, today: "2026-11-16" },
   search_kr_statutes: { query: "경정청구" },
