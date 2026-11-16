@@ -260,6 +260,31 @@ export const WELFARE_TOOLS = [
       monthsSinceLast: { type: "integer", minimum: 0, maximum: 600, description: "Months since the contract or the last increase" },
       baseRate: num("Bank of Korea base rate as a decimal (default 0.03)", 0, 0.2),
     }, ["region", "deposit", "monthlyRent", "newDeposit", "newMonthlyRent", "monthsSinceLast"]),
+  fn("calculate_kr_sme_youth_tax_reduction",
+    "Korean income tax reduction for young employees of SMEs (조특법 제30조): 15-34 at contract (military service up to 6 years subtracted), 90% of earned-income tax, capped at 2M KRW per year, for the months through 5 years after starting. Computes year-end tax with and without the reduction (social insurance estimated from salary), the end month and a 5-year estimate. The 2026 tax reform proposal to lengthen the period outside the capital region from 2027 is not applied.",
+    {
+      salary: won("Annual taxable salary"),
+      persons: { type: "integer", minimum: 1, maximum: 20, description: "Basic deduction persons including self (default 1)" },
+      ageAtContract: num("Age at the employment contract", 0, 100),
+      militaryMonths: num("Months of military service (max 72 counted)", 0, 120),
+      start: { type: "string", pattern: "^\\d{4}-\\d{2}$", description: "Start month YYYY-MM" },
+    }, ["salary", "ageAtContract", "start"]),
+  fn("calculate_kr_yellow_umbrella_deduction",
+    "Korean 노란우산공제 (small business mutual aid) income deduction (조특법 제86조의3): payments deducted from business income up to 6M (income ≤ 40M KRW), 5M (≤ 60M), 4M (≤ 100M) or 2M (above); small-company CEOs only with salary ≤ 80M, against earned income. Returns the limit, deduction and tax saved including local tax at progressive rates. Annual payment cap 18M from July 2026.",
+    {
+      kind: { type: "string", enum: ["business", "ceo"], description: "business = sole proprietor; ceo = small-company representative" },
+      income: won("Business income (revenue − expenses, excluding real-estate rental); for ceo the total salary"),
+      paid: won("Payments this year"),
+      otherDeductions: won("Other income deductions such as personal deductions (default 1.5M)"),
+    }, ["kind", "income", "paid"]),
+  fn("compare_kr_general_vs_simplified_vat",
+    "Korean VAT: general vs simplified taxpayer (부가가치세법). Simplified allowed under 104M KRW annual sales including VAT (48M for real-estate rental etc.), pays sales × sector value-added rate (15-40%) × 10% − 0.5% of purchases, no refunds, exempt under 48M; general pays output − input VAT and can get refunds. Both get the 1.3% card-sales credit (cap 10M). Returns both taxes, which is cheaper, eligibility and the tax invoice duty.",
+    {
+      sector: { type: "string", enum: ["retail", "manufacturing", "lodging", "construction", "service", "professional"], description: "retail = retail and restaurants 15%; manufacturing 20%; lodging 25%; construction = construction, transport, ICT 30%; service = other services 30%; professional = professional services, finance, real estate 40%" },
+      sales: won("Annual sales including VAT"),
+      purchases: won("Annual purchases with tax invoices or cards, including VAT"),
+      cardShare: num("Share of sales paid by card or cash receipt (0-1)", 0, 1),
+    }, ["sector", "sales", "purchases"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -287,4 +312,7 @@ export const WELFARE_ENDPOINTS = {
   check_kr_parent_house_free_use: { path: "/v1/tax/kr/parent-house-free-use", method: "POST" },
   check_kr_family_low_price_sale: { path: "/v1/tax/kr/family-low-price-sale", method: "POST" },
   check_kr_commercial_rent_increase: { path: "/v1/lease/kr/commercial-rent-increase", method: "POST" },
+  calculate_kr_sme_youth_tax_reduction: { path: "/v1/tax/kr/sme-youth-reduction", method: "POST" },
+  calculate_kr_yellow_umbrella_deduction: { path: "/v1/tax/kr/yellow-umbrella", method: "POST" },
+  compare_kr_general_vs_simplified_vat: { path: "/v1/tax/kr/vat-type-compare", method: "POST" },
 };

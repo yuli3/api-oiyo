@@ -133,3 +133,16 @@ test("가족 차용·무상 거주·저가 양수도·상가 임대료", async (
   assert.equal(c.body.result.maxRent, 5250000);
   assert.equal((await call("/v1/lease/kr/commercial-rent-increase", { region: "mars", deposit: 1, monthlyRent: 1, newDeposit: 1, newMonthlyRent: 1, monthsSinceLast: 1 })).status, 400);
 });
+
+test("청년 감면·노란우산·일반 vs 간이", async () => {
+  const y = await call("/v1/tax/kr/sme-youth-reduction", { salary: 36000000, ageAtContract: 29, start: "2026-03" });
+  assert.equal(y.status, 200);
+  assert.equal(y.body.result.ageOk, true);
+  assert.equal(y.body.result.endMonth, "2031-03");
+  assert.equal((await call("/v1/tax/kr/sme-youth-reduction", { salary: 36000000, ageAtContract: 29, start: "2026-13" })).status, 400);
+  const u = await call("/v1/tax/kr/yellow-umbrella", { kind: "business", income: 50000000, paid: 6000000 });
+  assert.equal(u.body.result.deduction, 5000000);
+  const v = await call("/v1/tax/kr/vat-type-compare", { sector: "retail", sales: 100000000, purchases: 50000000 });
+  assert.equal(v.body.result.simple, 1250000);
+  assert.equal(v.body.result.better, "simple");
+});

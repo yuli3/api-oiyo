@@ -20,7 +20,7 @@ import {
   dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
-import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
+import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
@@ -509,6 +509,26 @@ function commercialRent(i) {
     "commercial-rent-increase-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
 
+function smeYouth(i) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(i.start ?? "")) throw new InputError(["start: a month YYYY-MM"]);
+  return { ...welfare(smeYouthReduction(i), "Eligible when age at contract − military months (max 72) ÷ 12 is 15-34. Year-end tax is computed twice (with social insurance estimated at 4.75% pension and health + long-term care + employment); reduction = 90% of earned-income tax capped at 2M (+10% local). endMonth = month containing the day 5 years after starting; fiveYear assumes the same salary.",
+    ["조세특례제한법 제30조", "시행령 제27조"],
+    ["Hand the employer the reduction application (with a military record if service is subtracted); withholding drops from the next payroll", "Missed years can be refunded through a correction claim (경정청구) within 5 years", "Excluded industries include professional services, finance and insurance"],
+    "sme-youth-income-tax-reduction-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function umbrella(i) {
+  return { ...welfare(yellowUmbrella(i), "basisIncome = business income (ceo: salary − earned income deduction, only if salary ≤ 80M); limit 6M / 5M / 4M / 2M at ≤ 40M / ≤ 60M / ≤ 100M / above; deduction = min(paid, limit); saved = (tax(base) − tax(base − deduction)) × 1.1 with base = basisIncome − otherDeductions.",
+    ["조세특례제한법 제86조의3", "시행령 제80조의3", "중소기업협동조합법 제115조"],
+    ["Join through the KBIZ 노란우산 site or a bank with the business registration", "Enter the payment certificate amount in the May global income tax return (or year-end settlement for CEOs)", "Voluntary cancellation taxes deducted payments and interest as other income (16.5%)"],
+    "yellow-umbrella-deduction-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function vatType(i) {
+  return { ...welfare(vatTypeCompare(i), "general = sales ÷ 1.1 × 10% − purchases ÷ 1.1 × 10% − card credit (refund if negative); simple = 0 if sales < 48M, else sales × sector rate × 10% − purchases × 0.5% − card credit, floored at 0; card credit = card sales × 1.3%, cap 10M; simpleAllowed when sales < 104M (48M for professional/real estate); saving = general − simple.",
+    ["부가가치세법 제36조·제46조·제61조·제63조·제69조·제70조", "시행령 제109조·제111조"],
+    ["Choose the type at business registration on hometax.go.kr", "Simplified files once a year (January 25), general twice (January and July 25)", "Giving up simplified status locks you into general for 3 years"],
+    "general-vs-simplified-vat-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -600,6 +620,9 @@ const HANDLERS = {
   "/v1/tax/kr/parent-house-free-use": freeUse,
   "/v1/tax/kr/family-low-price-sale": lowPrice,
   "/v1/lease/kr/commercial-rent-increase": commercialRent,
+  "/v1/tax/kr/sme-youth-reduction": smeYouth,
+  "/v1/tax/kr/yellow-umbrella": umbrella,
+  "/v1/tax/kr/vat-type-compare": vatType,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,
