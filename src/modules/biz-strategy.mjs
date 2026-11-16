@@ -16,7 +16,7 @@ import {
 } from "./vendor/tools-tax/biz-ops.mjs";
 import {
   WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
-  wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck,
+  wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck, longTermCareCopay,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
@@ -415,6 +415,12 @@ function rentalTax(i) {
     ["Business status report by February 10 (홈택스)", "Report in the May comprehensive income tax filing even when choosing separate taxation", "Unregistered rental business: 0.2% penalty of revenue may apply", "2026: two-house owners with a high-price house and deposits over 1.2B may owe deemed rent; confirm with the tax office"],
     "housing-rental-income-tax-calculator"), asOf: HOME_TAX_AS_OF };
 }
+function longTermCare(i) {
+  return welfare(longTermCareCopay(i), "Home: min(use, grade limit) × 15% (× 0.6 or 0.4 with reductions, 0 for basic recipients) + use above the limit in full. Facility: daily rate × days × 20% (same reductions) + non-covered daily cost × days.",
+    ["노인장기요양보험법 제40조", "시행령 제15조의8", "보건복지부고시 제2025-247호(2026년 장기요양급여비용)"],
+    ["Apply for long-term care recognition at 국민건강보험공단 (1577-1000): 65+, or under 65 with a geriatric disease", "Assessment visit and doctor's note; a grade is issued in about 30 days", "Grades 3-5 need committee approval for facility care; the cognitive grade cannot use facilities"],
+    "long-term-care-copay-calculator");
+}
 
 const HANDLERS = {
   "/v1/biz/decision-tree": decisionTree,
@@ -443,6 +449,7 @@ const HANDLERS = {
   "/v1/labor/kr/fixed-overtime-check": fixedOt,
   "/v1/tax/kr/comprehensive-real-estate-tax": cre,
   "/v1/tax/kr/housing-rental-income-tax": rentalTax,
+  "/v1/benefits/kr/long-term-care-copay": longTermCare,
 };
 
 export function calculateBiz(path, raw, coerce = false) {

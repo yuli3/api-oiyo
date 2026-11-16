@@ -103,6 +103,7 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_ordinary_wage` | Ordinary wage (통상임금) hourly rate and overtime premiums before/after the 2024-12-19 Supreme Court ruling. |
 | `check_kr_fixed_overtime_pay` | Fixed overtime allowance (포괄임금) shortfall against statutory premiums, up to 36 months. |
 | `calculate_kr_comprehensive_real_estate_tax` | Comprehensive real estate holding tax on housing (종부세) with overlap and one-house credits. |
+| `calculate_kr_long_term_care_copay` | Long-term care insurance copay (노인장기요양) by grade, home vs facility, 2026 limits. |
 | `calculate_kr_housing_rental_income_tax` | Housing rental income tax: deemed rent, separate 14% vs comprehensive. |
 | `get_kr_business_tax_calendar` | South Korea business filing calendar (VAT, corporate/income tax, withholding, payment statements) with holiday-shifted due dates, plus must-do / must-not-do checklists by stage or role. |
 
