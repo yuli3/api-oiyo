@@ -121,6 +121,10 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `compare_kr_general_vs_simplified_vat` | General vs simplified VAT taxpayer: annual VAT by sector rate, exemption, refunds, invoice duty. |
 | `calculate_kr_business_car_expense` | Business car expense limits: 15M KRW without a logbook, 8M depreciation cap with carry-over, lease/rent. |
 | `compare_kr_overseas_stock_vs_etf_tax` | Overseas stocks direct (22% after 2.5M) vs domestic overseas ETF (15.4%, comprehensive above 20M) vs ISA. |
+| `check_kr_officetel_house_count` | Officetel house count for acquisition tax, surcharge/종부세, one-house exemption and subscription; small new-build rule. |
+| `compare_kr_ticket_vs_presale_tax` | Redevelopment member right (입주권) vs pre-sale right (분양권) capital gains tax. |
+| `compare_kr_inherited_house_valuation` | Inherited house: official price vs appraisal, inheritance tax + later capital gains tax. |
+| `plan_kr_inheritance_gift_filing_deadline` | Inheritance (6 months) / gift (3 months) filing deadlines, related dates and late penalties. |
 | `check_kr_commercial_rent_increase` | Commercial lease 5% rent increase cap, regional converted-deposit limits, 1-year rule, conversion rate. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
 | `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |

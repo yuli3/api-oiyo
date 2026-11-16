@@ -157,3 +157,18 @@ test("업무용 승용차·해외주식 vs ETF", async () => {
   assert.equal(o.body.result.breakEven, 8333334);
   assert.equal((await call("/v1/tax/kr/overseas-stock-vs-etf", { gain: -1 })).status, 400);
 });
+
+test("오피스텔·입주권 vs 분양권·상속주택 평가·신고기한", async () => {
+  const o = await call("/v1/tax/kr/officetel-house-count", { price: 250000000, acquired: "2023-05-01", residentialUse: true, areaM2: 30, metro: true, firstSaleNew: false, otherHouses: 1, nextHomePrice: 800000000, nextRegulated: true });
+  assert.equal(o.status, 200);
+  assert.equal(o.body.result.officetelTax, 11500000);
+  assert.equal(o.body.result.acquisitionCount, true);
+  assert.equal((await call("/v1/tax/kr/officetel-house-count", { price: 1, acquired: "x", residentialUse: true, otherHouses: 0 })).status, 400);
+  const t = await call("/v1/tax/kr/ticket-vs-presale", { kind: "ticket", gain: 300000000, holdYears: 8, original: true, preApprovalGain: 150000000, yearsToApproval: 6 });
+  assert.equal(t.body.result.longTerm, 18000000);
+  const v = await call("/v1/tax/kr/inherited-house-valuation", { official: 300000000, appraisal: 450000000, otherEstate: 0, spouse: false, salePrice: 500000000, yearsAfter: 1 });
+  assert.equal(v.body.result.better, "appraisal");
+  const f = await call("/v1/tax/kr/inheritance-gift-filing-deadline", { kind: "inheritance", date: "2026-03-15", tax: 100000000, lateDays: 20 });
+  assert.equal(f.body.result.filingDue, "2026-09-30");
+  assert.equal(f.body.result.extra, 13440000);
+});
