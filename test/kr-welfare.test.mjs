@@ -181,3 +181,10 @@ test("청년월세·정책 주거대출", async () => {
   assert.equal(l.body.result.best, "youthBeotimmok");
   assert.equal((await call("/v1/benefits/kr/policy-housing-loans", { purpose: "rent" })).status, 400);
 });
+
+test("청약 특별공급", async () => {
+  const s = await call("/v1/benefits/kr/special-supply", { sector: "private", householdSize: 3, monthlyIncome: 13000000, dualIncome: true, realEstate: 0, noHome: true, neverOwned: true, marriedYears: 2, childUnder2: false, minorChildren: 1, taxPaid5y: true, elderParent3y: false });
+  assert.equal(s.status, 200);
+  assert.equal(s.body.result.results.find((o) => o.type === "newlywed").tier, "lottery");
+  assert.equal((await call("/v1/benefits/kr/special-supply", { sector: "x" })).status, 400);
+});

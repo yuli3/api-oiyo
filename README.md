@@ -126,6 +126,7 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `compare_kr_inherited_house_valuation` | Inherited house: official price vs appraisal, inheritance tax + later capital gains tax. |
 | `plan_kr_inheritance_gift_filing_deadline` | Inheritance (6 months) / gift (3 months) filing deadlines, related dates and late penalties. |
 | `check_kr_youth_rent_support` | Youth monthly rent support (200k × 24 months): age, income, assets, deposit and rent checks. |
+| `check_kr_special_supply` | Housing subscription special supply eligibility and tier (newlywed, newborn, first-time, multi-child, elderly parent). |
 | `find_kr_policy_housing_loans` | Housing and Urban Fund loans (디딤돌, 버팀목, 신생아 특례, 주택드림, 월세대출): eligibility, max loan, rate range. |
 | `check_kr_commercial_rent_increase` | Commercial lease 5% rent increase cap, regional converted-deposit limits, 1-year rule, conversion rate. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |

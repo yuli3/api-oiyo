@@ -17,7 +17,7 @@ import {
 import {
   WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
   wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck, longTermCareCopay,
-  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck, youthRentSupport, housingLoanBest,
+  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck, youthRentSupport, housingLoanBest, specialSupplyCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare, officetelHouseCount, ticketPresaleTax, inheritedValuation, filingDeadlines } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
@@ -583,6 +583,13 @@ function policyLoans(i) {
     "policy-housing-loan-eligibility-checker");
 }
 
+function specialSupply(i) {
+  return welfare(specialSupplyCheck(i), "ratio = monthlyIncome ÷ urban worker monthly income for the household size (LH table: ≤3 7,533,763; 4 8,802,202; 5 9,326,985; …); each type passes its membership test, then priority / general / lottery by its income lines (dual-income lines higher) and the asset test (private 331M real estate for lottery; public 215.5M real estate and 45.42M car).",
+    ["주택공급에 관한 규칙 제40조~제47조의3", "LH 공급유형별 소득·자산 기준"],
+    ["Check the income and asset table in the announcement on applyhome.co.kr — it prevails", "Special supply can be won only once in a lifetime; the subscription account needs 6+ months and the regional deposit", "Private first-time single-person households may apply only to lottery units of 60㎡ or less"],
+    "special-supply-eligibility-checker");
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -685,6 +692,7 @@ const HANDLERS = {
   "/v1/tax/kr/inheritance-gift-filing-deadline": filingDeadline,
   "/v1/benefits/kr/youth-rent-support": youthRent,
   "/v1/benefits/kr/policy-housing-loans": policyLoans,
+  "/v1/benefits/kr/special-supply": specialSupply,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,
