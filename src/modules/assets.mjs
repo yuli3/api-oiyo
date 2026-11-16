@@ -110,6 +110,7 @@ https://api.oiyo.net
 - POST /v1/biz/unit-economics-runway: LTV/CAC, payback, cash runway, default alive, break-even units
 - POST /v1/biz/priorities: RICE ranking or weighted decision matrix with weight flips
 - GET /v1/tax/kr/business-calendar?year=...&entity=corp|indiv&vat=general|simple|exempt&employer=...: Korean business filing calendar with holiday-shifted due dates and must-do checklist
+- POST /v1/biz/campaign-supply, /influencer-deal, /quality-recovery, /alternative-materials, /big-order, /market-test, /sales-rebates, /acquisition: operating problems (campaign stockout, creator deal ROAS and withholding, recall scope and stock allocation, material switch, big order vs commitments, A/B and market entry, rebate and related-party check, acquisition EPS and payback)
 - Business routes validate against the published tool schema, refuse unknown inputs (400 invalid_input with problems[]) and return the method and a disclaimer.
 - Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 

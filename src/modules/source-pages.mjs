@@ -44,6 +44,14 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_unit_economics_runway: `${TOOLS}unit-economics-runway-calculator/`,
   rank_priorities: `${TOOLS}priority-decision-matrix/`,
   get_kr_business_tax_calendar: `${TOOLS}business-must-do-checklist/`,
+  plan_campaign_supply: `${TOOLS}campaign-supply-planner/`,
+  evaluate_influencer_deal: `${TOOLS}influencer-deal-calculator/`,
+  plan_quality_recovery: `${TOOLS}quality-recovery-planner/`,
+  compare_alternative_materials: `${TOOLS}alternative-material-review/`,
+  check_big_order_capacity: `${TOOLS}big-order-capacity-check/`,
+  analyze_market_test: `${TOOLS}market-test-calculator/`,
+  check_sales_rebates: `${TOOLS}sales-rebate-checker/`,
+  evaluate_acquisition: `${TOOLS}acquisition-integration-check/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.
