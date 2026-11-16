@@ -78,6 +78,8 @@ const fixtures = {
   calculate_kr_sme_youth_tax_reduction: { salary: 36000000, ageAtContract: 29, start: "2026-03" },
   calculate_kr_yellow_umbrella_deduction: { kind: "business", income: 35000000, paid: 6000000 },
   compare_kr_general_vs_simplified_vat: { sector: "retail", sales: 100000000, purchases: 50000000 },
+  calculate_kr_business_car_expense: { ownership: "own", amount: 60000000, otherCosts: 8000000, logbook: false },
+  compare_kr_overseas_stock_vs_etf_tax: { gain: 10000000 },
   get_kr_professional_scope: { domain: "labor" },
   start_kr_law_intake: { situation: "회사에서 문자로 해고 통보를 받았어요", answers: { size: "5plus", dismissDate: "2026-10-30" }, today: "2026-11-16" },
   search_kr_statutes: { query: "경정청구" },

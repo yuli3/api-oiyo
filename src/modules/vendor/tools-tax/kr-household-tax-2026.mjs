@@ -699,3 +699,101 @@ export function vatTypeCompare(input              ) {
     generalRefund: general < 0 ? -general : 0,
   };
 }
+
+// ───────────────────────── 업무용 승용차 비용 한도 (Gemini 이전 B 3차) ─────────────────────────
+// 법인세법 제27조의2·소득세법 제33조의2, 시행령: 업무전용자동차보험 가입 전제. 업무사용비율은 운행기록부가 있으면
+// 업무 거리 ÷ 총 거리, 없으면 1,500만 원 ÷ 총비용(1,500만 원 이하면 100%). 업무사용 감가상각비(5년 정액, 리스는 리스료에서
+// 보험료·자동차세·수선비를 뺀 금액, 렌트는 렌트료의 70%)가 연 800만 원을 넘으면 넘는 몫은 이번 해 비용에서 빼고 다음 해로 넘겨요.
+// 법인 중 부동산임대업 주업 등 특정법인은 500만·400만 원 기준이라 여기 넣지 않았어요.
+
+export const BUSINESS_CAR = { noLogCap: 15_000_000, depreciationCap: 8_000_000, years: 5, rentDepShare: 0.7 }         ;
+
+                                   
+                                      
+                                                     
+                 
+                                                              
+                     
+                   
+                   
+                             
+                         
+                                              
+                        
+ 
+
+export function businessCarExpense(input                  ) {
+  const B = BUSINESS_CAR;
+  const amount = clamp0(input.amount);
+  const dep = input.ownership === "own" ? Math.floor(amount / B.years) : input.ownership === "rent" ? Math.floor(amount * B.rentDepShare) : amount;
+  const leaseOther = input.ownership === "rent" ? amount - dep : 0;
+  const total = dep + leaseOther + clamp0(input.otherCosts);
+  const ratio = input.logbook ? Math.min(1, clamp0(input.businessShare)) : total > 0 ? Math.min(1, B.noLogCap / total) : 1;
+  const businessCost = Math.floor(total * ratio);
+  const businessDep = Math.floor(dep * ratio);
+  const carriedOver = Math.max(0, businessDep - B.depreciationCap);
+  const deductible = businessCost - carriedOver;
+  const rate = Math.min(1, clamp0(input.marginalRate ?? 0.264));
+  return {
+    depreciation: dep,
+    total,
+    ratio,
+    businessCost,
+    businessDep,
+    carriedOver,
+    deductible,
+    disallowed: total - deductible,
+    /** 비용으로 인정된 만큼 줄어든 세금 */
+    taxSaved: Math.floor(deductible * rate),
+    /** 운행기록부를 쓰고 업무 비율이 100%라면 인정될 비용 */
+    deductibleWithFullLog: total - Math.max(0, dep - B.depreciationCap),
+  };
+}
+
+// ───────────────────────── 해외주식 직접 vs 국내상장 해외ETF ─────────────────────────
+// 해외주식 직접 투자: 양도소득(소득세법 제94조①3호다), 연 250만 원 기본공제 뒤 22%(지방세 포함), 분리과세라 금융소득 종합과세와 무관.
+// 국내 상장 해외 ETF: 매매차익이 배당소득(소득세법 제17조, 시행령 제26조의2)이라 15.4% 원천징수, 이자·배당과 합쳐 연 2천만 원을
+// 넘으면 넘는 몫은 종합과세(제14조, 제62조 비교과세). ISA(조특법 제91조의18)는 이익 200만(서민형 400만) 비과세, 넘는 몫 9.9% 분리과세.
+
+export const OVERSEAS_COMPARE = { deduction: 2_500_000, directRate: 0.22, etfRate: 0.154, comprehensiveLine: 20_000_000, isaFree: 2_000_000, isaFreeLow: 4_000_000, isaRate: 0.099 }         ;
+
+                                       
+                    
+               
+                        
+                          
+                                     
+                        
+                   
+                         
+ 
+
+export function overseasCompare(input                      ) {
+  const O = OVERSEAS_COMPARE;
+  const gain = clamp0(input.gain);
+  const other = clamp0(input.otherFinancial);
+  const direct = Math.floor(Math.max(0, gain - O.deduction) * O.directRate);
+  const withheld = Math.floor(gain * O.etfRate);
+  // 2천만 원을 넘는 몫(이번 ETF 이익 중)만 한계세율과 15.4% 차이만큼 더 내요(근사)
+  const over = Math.max(0, Math.min(gain, other + gain - O.comprehensiveLine));
+  const extra = Math.floor(over * Math.max(0, clamp0(input.marginalRate ?? 0.264) - O.etfRate));
+  const etf = withheld + extra;
+  const free = input.isaLowIncome ? O.isaFreeLow : O.isaFree;
+  const isa = Math.floor(Math.max(0, gain - free) * O.isaRate);
+  const options = [
+    { id: "direct"         , tax: direct },
+    { id: "etf"         , tax: etf },
+    { id: "isa"         , tax: isa },
+  ];
+  const best = options.reduce((a, b) => (b.tax < a.tax ? b : a));
+  return {
+    direct,
+    etf,
+    etfExtra: extra,
+    isa,
+    best: best.id,
+    comprehensive: over > 0,
+    /** 직접 투자와 ETF 세금이 같아지는 이익(종합과세 전) */
+    breakEven: Math.ceil((O.deduction * O.directRate) / (O.directRate - O.etfRate)),
+  };
+}
