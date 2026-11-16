@@ -146,3 +146,14 @@ test("청년 감면·노란우산·일반 vs 간이", async () => {
   assert.equal(v.body.result.simple, 1250000);
   assert.equal(v.body.result.better, "simple");
 });
+
+test("업무용 승용차·해외주식 vs ETF", async () => {
+  const c = await call("/v1/tax/kr/business-car-expense", { ownership: "own", amount: 60000000, otherCosts: 8000000, logbook: false });
+  assert.equal(c.status, 200);
+  assert.equal(c.body.result.deductible, 14000000);
+  assert.equal(c.body.result.carriedOver, 1000000);
+  const o = await call("/v1/tax/kr/overseas-stock-vs-etf", { gain: 10000000 });
+  assert.equal(o.body.result.etf, 1540000);
+  assert.equal(o.body.result.breakEven, 8333334);
+  assert.equal((await call("/v1/tax/kr/overseas-stock-vs-etf", { gain: -1 })).status, 400);
+});

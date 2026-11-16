@@ -285,6 +285,24 @@ export const WELFARE_TOOLS = [
       purchases: won("Annual purchases with tax invoices or cards, including VAT"),
       cardShare: num("Share of sales paid by card or cash receipt (0-1)", 0, 1),
     }, ["sector", "sales", "purchases"]),
+  fn("calculate_kr_business_car_expense",
+    "Korean business passenger car expense limits (법인세법 제27조의2, 소득세법 제33조의2): without a logbook only 15M KRW of annual car costs count as business use; business-use depreciation (5-year straight line; lease = lease fee net of insurance/tax/repairs; long-term rent = 70% of rent) above 8M a year is carried over. Returns total, business ratio, deductible, disallowed, carry-over, tax saved and the amount deductible with a full logbook. Requires business-only car insurance; special corporations (500M/400M rules) not covered.",
+    {
+      ownership: { type: "string", enum: ["own", "lease", "rent"], description: "own = purchased; lease; rent = long-term rental" },
+      amount: won("own: purchase price incl. VAT; lease: annual lease fee net of included insurance/tax/repairs; rent: annual rent"),
+      otherCosts: won("Annual fuel, insurance, car tax, repairs, tolls"),
+      logbook: bool("A business-use logbook is kept"),
+      businessShare: num("Business share of distance from the logbook (0-1)", 0, 1),
+      marginalRate: num("Marginal tax rate including local tax (0-1, default 0.264)", 0, 1),
+    }, ["ownership", "amount", "otherCosts", "logbook"]),
+  fn("compare_kr_overseas_stock_vs_etf_tax",
+    "Korean tax on the same gain via overseas stocks held directly (capital gains: 2.5M deduction then 22%, separate), a domestically listed overseas ETF (dividend income 15.4% withheld; above 20M of interest and dividends the excess is taxed at the marginal rate) or such an ETF inside an ISA (2M / 4M tax-free, then 9.9%). Returns the three taxes, the cheapest and the break-even gain (~8.33M).",
+    {
+      gain: won("Realised gain this year"),
+      otherFinancial: won("Other interest and dividend income this year"),
+      marginalRate: num("Marginal rate for comprehensive taxation including local tax (0-1, default 0.264)", 0, 1),
+      isaLowIncome: bool("ISA low-income (서민형·농어민형) type"),
+    }, ["gain"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -315,4 +333,6 @@ export const WELFARE_ENDPOINTS = {
   calculate_kr_sme_youth_tax_reduction: { path: "/v1/tax/kr/sme-youth-reduction", method: "POST" },
   calculate_kr_yellow_umbrella_deduction: { path: "/v1/tax/kr/yellow-umbrella", method: "POST" },
   compare_kr_general_vs_simplified_vat: { path: "/v1/tax/kr/vat-type-compare", method: "POST" },
+  calculate_kr_business_car_expense: { path: "/v1/tax/kr/business-car-expense", method: "POST" },
+  compare_kr_overseas_stock_vs_etf_tax: { path: "/v1/tax/kr/overseas-stock-vs-etf", method: "POST" },
 };

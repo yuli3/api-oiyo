@@ -20,7 +20,7 @@ import {
   dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
-import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
+import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
@@ -529,6 +529,19 @@ function vatType(i) {
     "general-vs-simplified-vat-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
 
+function businessCar(i) {
+  return { ...welfare(businessCarExpense(i), "depreciation = price ÷ 5 (own), lease fee (lease) or rent × 70% (rent); total = depreciation + rest of rent + other costs; ratio = logbook share, or min(1, 15M ÷ total) without a logbook; carriedOver = max(0, depreciation × ratio − 8M); deductible = total × ratio − carriedOver; taxSaved = deductible × marginalRate.",
+    ["법인세법 제27조의2", "소득세법 제33조의2", "법인세법 시행령 제50조의2", "소득세법 시행령 제78조의3"],
+    ["Insure the car with business-only (employee-driver) coverage", "Keep the NTS business-car logbook (date, purpose, distance); commuting counts as business", "File the business-car expense statement with the corporate or global income tax return"],
+    "business-car-expense-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function overseasEtf(i) {
+  return { ...welfare(overseasCompare(i), "direct = max(0, gain − 2.5M) × 22%; etf = gain × 15.4% + (part of gain above 20M with other interest/dividends) × (marginalRate − 15.4%); isa = max(0, gain − 2M or 4M) × 9.9%; breakEven = 2.5M × 22% ÷ (22% − 15.4%).",
+    ["소득세법 제17조·제94조①3호·제103조·제104조", "소득세법 시행령 제26조의2", "조세특례제한법 제91조의18"],
+    ["Realise overseas gains across years to use the 2.5M deduction each year and offset losses in the same year", "Hold domestically listed overseas ETFs inside ISA or pension accounts to defer or cut tax", "Overseas capital gains are filed in May of the next year"],
+    "overseas-stock-vs-etf-tax-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -623,6 +636,8 @@ const HANDLERS = {
   "/v1/tax/kr/sme-youth-reduction": smeYouth,
   "/v1/tax/kr/yellow-umbrella": umbrella,
   "/v1/tax/kr/vat-type-compare": vatType,
+  "/v1/tax/kr/business-car-expense": businessCar,
+  "/v1/tax/kr/overseas-stock-vs-etf": overseasEtf,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,

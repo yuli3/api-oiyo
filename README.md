@@ -119,6 +119,8 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_sme_youth_tax_reduction` | SME young-employee income tax reduction (조특법 제30조): 90%, 2M a year cap, end month. |
 | `calculate_kr_yellow_umbrella_deduction` | 노란우산공제 income deduction limits (6M/5M/4M/2M) and tax saved. |
 | `compare_kr_general_vs_simplified_vat` | General vs simplified VAT taxpayer: annual VAT by sector rate, exemption, refunds, invoice duty. |
+| `calculate_kr_business_car_expense` | Business car expense limits: 15M KRW without a logbook, 8M depreciation cap with carry-over, lease/rent. |
+| `compare_kr_overseas_stock_vs_etf_tax` | Overseas stocks direct (22% after 2.5M) vs domestic overseas ETF (15.4%, comprehensive above 20M) vs ISA. |
 | `check_kr_commercial_rent_increase` | Commercial lease 5% rent increase cap, regional converted-deposit limits, 1-year rule, conversion rate. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
 | `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |

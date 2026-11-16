@@ -79,6 +79,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kr_sme_youth_tax_reduction: `${TOOLS}sme-youth-income-tax-reduction-calculator/`,
   calculate_kr_yellow_umbrella_deduction: `${TOOLS}yellow-umbrella-deduction-calculator/`,
   compare_kr_general_vs_simplified_vat: `${TOOLS}general-vs-simplified-vat-calculator/`,
+  calculate_kr_business_car_expense: `${TOOLS}business-car-expense-calculator/`,
+  compare_kr_overseas_stock_vs_etf_tax: `${TOOLS}overseas-stock-vs-etf-tax-calculator/`,
   get_kr_professional_scope: `${TOOLS}law-guide/`,
   start_kr_law_intake: `${TOOLS}law-guide/`,
   search_kr_statutes: `${TOOLS}law-guide/`,
