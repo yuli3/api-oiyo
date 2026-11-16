@@ -10,6 +10,10 @@ import {
   weightedDecision,
 } from "./vendor/tools-tax/biz-strategy.mjs";
 import { AREA_LABEL, CHECKLIST_AS_OF, filterItems, taxCalendar, upcoming } from "./vendor/tools-tax/biz-checklist.mjs";
+import {
+  INFLUENCER_CHECKS, OPS_AS_OF, PMI_TEMPLATE, acquisitionCheck, campaignSupply, influencerDeal, marketEntry, materialSwitch, orderAllocation,
+  proportionTest, qualityRecovery, rebateCheck, sampleSizePerGroup,
+} from "./vendor/tools-tax/biz-ops.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
 export const BIZ_DISCLAIMER =
@@ -283,6 +287,57 @@ function businessCalendar(i) {
   };
 }
 
+// ───── 2026-11-16: 운영 문제 8유형 ─────
+const OPS_NOTE = "Each result names the departments affected; amounts above contract (hold) and missing data are reported for a person to approve, never auto-resolved.";
+const ops = (result, method, extra = {}) => ({ asOf: OPS_AS_OF, result, method, ...extra, note: OPS_NOTE, disclaimer: BIZ_DISCLAIMER });
+
+function campaign(i) {
+  return ops(campaignSupply(i), "Weekly balance: stock + capacity − demand. Extra production x per week from week lead+1 is the smallest x with cumulative supply ≥ cumulative demand + safety stock in every week.");
+}
+function influencer(i) {
+  return ops(influencerDeal(i), "orders = views × clickRate × conversionRate; contribution = revenue × grossMargin − fee − performance fee. Withholding: 사업소득 3% + local 10% (소득세법 제129조), 기타소득 20% after 60% expenses + local (8.8%).", { checklist: INFLUENCER_CHECKS });
+}
+function quality(i) {
+  const problems = unique(i.customers.map((c) => c.name), "customers");
+  if (problems.length) throw new InputError(problems);
+  return ops(qualityRecovery(i), "Recall scope costs use recall cost for units in market and remake cost for units replaced. Allocation rules: priority, highest penalty first, pro rata; cheapestRule has the lowest total penalty.", { basis: ["화장품법 제5조의2(위해화장품 회수 의무): safety issues follow the statutory recall regardless of cost"] });
+}
+function materials(i) {
+  const problems = unique(i.candidates.map((c) => c.name), "candidates");
+  if (problems.length) throw new InputError(problems);
+  return ops(materialSwitch(i), "Cost and speed are rescaled 1-5 across candidates (cheapest / fastest = 5); quality and supply use the given 1-5 scores; total = weighted average.");
+}
+function bigOrder(i) {
+  const problems = unique(i.existing.map((o) => o.name), "existing");
+  if (i.newOrder.minQty !== undefined && i.newOrder.minQty > i.newOrder.qty) problems.push("newOrder.minQty: at most newOrder.qty");
+  if (problems.length) throw new InputError(problems);
+  return ops(orderAllocation(i), "Existing orders are filled by locked first, then by margin + penalty per unit; profit = delivered margin − shortfall penalties + new order margin − overtime cost.");
+}
+function marketTest(i) {
+  const planGiven = i.baseline !== undefined || i.lift !== undefined;
+  const testKeys = ["convA", "nA", "convB", "nB"];
+  const testGiven = testKeys.some((k) => i[k] !== undefined);
+  const problems = [];
+  if (!planGiven && !testGiven && !i.entry) problems.push("give baseline+lift, convA+nA+convB+nB, or entry");
+  if (planGiven && (i.baseline === undefined || i.lift === undefined)) problems.push("baseline and lift: give both");
+  if (testGiven && testKeys.some((k) => i[k] === undefined)) problems.push(`A/B test: give ${testKeys.join(", ")}`);
+  if (testGiven && (i.convA > i.nA || i.convB > i.nB)) problems.push("conversions cannot exceed visitors");
+  if (problems.length) throw new InputError(problems);
+  return ops({
+    sampleSizePerGroup: planGiven ? sampleSizePerGroup(i.baseline, i.lift, 0.05, i.power ?? 0.8) : null,
+    test: testGiven ? { ...proportionTest(i.convA, i.nA, i.convB, i.nB), significantAt5pct: proportionTest(i.convA, i.nA, i.convB, i.nB).pValue < 0.05 } : null,
+    entry: i.entry ? marketEntry(i.entry) : null,
+  }, "Two-proportion sample size (two-sided alpha 0.05) and pooled z-test. Entry: go if payback ≤ 12 months, extend if ≤ 24, otherwise stop.");
+}
+function rebates(i) {
+  const problems = unique(i.partners.map((p) => p.name), "partners");
+  if (problems.length) throw new InputError(problems);
+  return ops(rebateCheck(i), "Tier by period sales (or group sales when aggregation is allowed); due = floor(sales × rate). Flags: block = request above contract, review = below contract, related-party rate above the unrelated range, or a group that would change tier if combined.");
+}
+function acquisition(i) {
+  return ops(acquisitionCheck(i), "New shares = price × stock ÷ share price; interest after tax = price × (1 − stock) × rate × (1 − tax); synergy ramps linearly; payback counts target income + after-tax synergy − interest against price + after-tax integration cost.", { pmiTemplate: PMI_TEMPLATE, basis: ["독점규제 및 공정거래에 관한 법률 제11조(기업결합 신고) may apply"] });
+}
+
 const HANDLERS = {
   "/v1/biz/decision-tree": decisionTree,
   "/v1/biz/critical-path": criticalPath,
@@ -292,6 +347,14 @@ const HANDLERS = {
   "/v1/biz/unit-economics-runway": economics,
   "/v1/biz/priorities": priorities,
   "/v1/tax/kr/business-calendar": businessCalendar,
+  "/v1/biz/campaign-supply": campaign,
+  "/v1/biz/influencer-deal": influencer,
+  "/v1/biz/quality-recovery": quality,
+  "/v1/biz/alternative-materials": materials,
+  "/v1/biz/big-order": bigOrder,
+  "/v1/biz/market-test": marketTest,
+  "/v1/biz/sales-rebates": rebates,
+  "/v1/biz/acquisition": acquisition,
 };
 
 export function calculateBiz(path, raw, coerce = false) {

@@ -45,6 +45,7 @@
 - `POST /v1/biz/decision-tree`·`critical-path`·`swot`·`bcg`·`positioning-map`·`unit-economics-runway`·`priorities`, `GET /v1/tax/kr/business-calendar`. MCP 도구 8개(`src/modules/biz-tools-spec.mjs`의 `BIZ_TOOLS`).
 - 공식 정본은 tools-oiyo `src/lib/biz-strategy.ts`·`biz-checklist.ts`·`kr-business-day.ts`(sync 대상). `src/modules/biz-strategy.mjs`는 입력 확인·응답 모양만 맡는다. 입력 확인은 도구 스키마(`BIZ_TOOLS`) 하나로 REST·MCP가 같이 쓰고, 모르는 입력은 400으로 거부한다.
 - 배열·객체 입력이 있어 `mcp.mjs`의 스키마 변환이 재귀다. 속성 없는 object(의사결정 트리)는 MCP에서 통과시키고 REST 검사(`readTree`, 12단계·200노드 한도)가 막는다.
+- 2026-11-16 운영 문제 8유형(`/v1/biz/campaign-supply` 등 8개, MCP `plan_campaign_supply`…`evaluate_acquisition`)은 tools-oiyo `src/lib/biz-ops.ts`가 정본(sync 대상). 응답에 `note`(영향 부서·사람 승인 지점)와 disclaimer를 붙인다.
 - 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/oiyo-business-strategist`(다운로드 tools.oiyo.net/downloads/oiyo-business-strategist-skill.zip).
 
 ## MCP Registry (2026-11-09)

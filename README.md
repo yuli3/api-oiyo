@@ -86,6 +86,14 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `map_brand_positioning` | Positioning map: nearest competitor per brand, crowded brands, largest empty spot, distance to a customer ideal point. |
 | `calculate_unit_economics_runway` | LTV, LTV/CAC grade, CAC payback; monthly cash runway, break-even month and default alive; break-even units. |
 | `rank_priorities` | RICE ranking or a weighted decision matrix with the weight each criterion would need to flip the winner. |
+| `plan_campaign_supply` | Campaign stockout week, shortage, fill rate and extra weekly production needed after the lead time. |
+| `evaluate_influencer_deal` | Creator deal: orders, ROAS, contribution, break-even conversion, Korean 3.3% / 8.8% withholding or VAT, disclosure checklist. |
+| `plan_quality_recovery` | Quality incident: recall scope costs and allocation of remaining stock by priority, penalty or pro rata. |
+| `compare_alternative_materials` | Raw material switch: annual saving, test cost payback, weeks to approval, weighted score. |
+| `check_big_order_capacity` | Big order vs existing commitments under capacity: decline / full / partial / overtime / optimal profit. |
+| `analyze_market_test` | Sample size, A/B z-test with p-value, overseas entry payback and go/extend/stop. |
+| `check_sales_rebates` | Sales rebates: tier amounts, related-party groups, overpayment holds, arm's-length range, VAT/corporate tax notes. |
+| `evaluate_acquisition` | Acquisition: EPS accretion/dilution, payback, synergy needed, 100-day integration template. |
 | `get_kr_business_tax_calendar` | South Korea business filing calendar (VAT, corporate/income tax, withholding, payment statements) with holiday-shifted due dates, plus must-do / must-not-do checklists by stage or role. |
 
 ## Limits and disclaimers
