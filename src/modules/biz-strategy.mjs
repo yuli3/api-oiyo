@@ -20,7 +20,7 @@ import {
   dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
-import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
+import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
@@ -484,6 +484,31 @@ function subcontractDirect(i) {
     "subcontract-direct-payment-checker");
 }
 
+function familyLoan(i) {
+  return { ...welfare(familyLoanGift(i), "benefit = principal × 4.6% − principal × agreed rate; gift = benefit when ≥ 10M KRW a year (else 0), recomputed yearly; giftTax = progressive gift tax on (gift − deductionLeft) less 3% filing credit; zeroRateMaxPrincipal = largest interest-free principal under 10M; safeRate = 4.6% − 10M ÷ principal (agree a rate above it); lenderTax = interest received × 27.5%.",
+    ["상속세 및 증여세법 제41조의4", "시행령 제31조의4", "시행규칙 제10조의5(적정이자율 4.6%)", "소득세법 제129조(비영업대금이익 25%)"],
+    ["Write a loan agreement with principal, rate and repayment schedule; date-stamp it (notary or certified mail)", "Repay interest and principal by bank transfer on schedule and keep records", "If a gift arises, file within 3 months after the end of the month (hometax.go.kr)"],
+    "family-loan-interest-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function freeUse(i) {
+  return { ...welfare(freeUseGift(i), "fiveYear = value × 2% × Σ(1/1.1^n, n = 1..5) ≈ value × 7.58%; a gift when ≥ 100M KRW and not co-residing with the owner (valueLine ≈ 1.319B KRW); collateral benefit = loan × 4.6% − interest paid, a gift when ≥ 10M; tax = progressive gift tax after deductionLeft less 3% filing credit.",
+    ["상속세 및 증여세법 제37조", "시행령 제27조", "시행규칙 제10조(연 2%)·제10조의5(4.6%)", "제43조(중복 시 큰 이익 하나)"],
+    ["If taxable, file gift tax within 3 months after the end of the month free use started", "Living with the owner is excluded: keep resident registration and proof of living together", "Paying market rent by bank transfer removes the gift; the owner then reports rental income"],
+    "parent-house-free-use-gift-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function lowPrice(i) {
+  return { ...welfare(lowPriceSale(i), "diff = market − price; buyer gift when diff ≥ giftLine = min(30% × market, 300M), gift = diff − giftLine; seller recalculated at market value when diff ≥ transferLine = min(5% × market, 300M); noGiftAbove / noRecalcAbove = safe price thresholds.",
+    ["상속세 및 증여세법 제35조①", "시행령 제26조", "소득세법 제101조①", "소득세법 시행령 제167조③", "상속세 및 증여세법 제44조(배우자·직계 양도 증여 추정)"],
+    ["Get an appraisal or collect comparable sales as evidence of market value before signing", "Pay the price by bank transfer; unpaid or returned money can turn the whole price into a gift", "Buyer files gift tax within 3 months, seller files capital gains within 2 months after the end of the month"],
+    "family-low-price-sale-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function commercialRent(i) {
+  return { ...welfare(commercialRentCheck(i), "converted = deposit + rent × 100; covered when ≤ regional limit; maxDeposit = deposit × 1.05; maxRent = rent × 1.05 + (deposit − newDeposit, if lowered) × min(12%, base rate × 4.5) ÷ 12; tooSoon when an increase comes within 12 months; verdict ok | over | tooSoon | notCovered; combinedRate = increase with deposit and rent merged at the conversion rate (reference).",
+    ["상가건물 임대차보호법 제2조·제10조의2·제11조·제12조", "시행령 제2조(환산보증금 기준)", "시행령 제4조(5%)", "시행령 제5조(12%, 기준금리 4.5배)"],
+    ["Reply in writing that you do not agree to the part above the 5% cap", "Request renewal 6 to 1 months before expiry; renewal rights last 10 years from the first contract", "Free mediation: 상가건물임대차분쟁조정위원회 (대한법률구조공단 132)"],
+    "commercial-rent-increase-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -571,6 +596,10 @@ const HANDLERS = {
   "/v1/labor/kr/annual-leave-promotion": leavePromotion,
   "/v1/labor/kr/voluntary-quit-unemployment": voluntaryQuit,
   "/v1/business/kr/subcontract-direct-payment": subcontractDirect,
+  "/v1/tax/kr/family-loan-interest": familyLoan,
+  "/v1/tax/kr/parent-house-free-use": freeUse,
+  "/v1/tax/kr/family-low-price-sale": lowPrice,
+  "/v1/lease/kr/commercial-rent-increase": commercialRent,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,

@@ -51,6 +51,7 @@
 - 2026-11-16 2차 4종(MCP `calculate_kr_ordinary_wage`, `check_kr_fixed_overtime_pay`, `calculate_kr_comprehensive_real_estate_tax`, `calculate_kr_housing_rental_income_tax`)과 3차 `calculate_kr_long_term_care_copay`는 같은 스키마 파일에 있고, 종부세·임대소득은 tools-oiyo `src/lib/kr-home-tax-2026.ts`가 정본이에요.
 - 2026-11-16 4차 `check_kr_dependent_deduction`(`/v1/tax/kr/dependent-deduction`)과 `calculate_kr_stock_major_shareholder_tax`(`/v1/tax/kr/stock-major-shareholder`)는 tools-oiyo `src/lib/kr-household-tax-2026.ts`가 정본(sync 대상, 연말정산은 kr-year-end-2026 그대로 호출). 스키마는 같은 welfare-tools-spec.mjs.
 - 2026-11-16 노동권 묶음 A: `calculate_kr_dismissal_notice_pay`, `calculate_kr_shutdown_allowance`, `calculate_kr_reduced_hours_childcare_pay`, `check_kr_probation_minimum_wage`, `plan_kr_annual_leave_promotion`도 tools-oiyo `src/lib/kr-welfare-2026.ts`가 정본이에요(sync 대상). 육아기 단축 상한(250만·160만)은 2027 시행령 개정 때 tools 쪽부터 고쳐요. 자진퇴사 점검(`check_kr_voluntary_quit_unemployment`)과 하도급 직접 지급(`check_kr_subcontract_direct_payment`)도 같은 파일이 정본이에요.
+- 2026-11-16 B묶음 1차: `check_kr_family_loan_interest`, `check_kr_parent_house_free_use`, `check_kr_family_low_price_sale`, `check_kr_commercial_rent_increase`는 tools-oiyo `src/lib/kr-household-tax-2026.ts`가 정본이에요(sync 대상). 4.6%·2%·기준금리 기본값(3.0%)이 바뀌면 tools 쪽부터 고쳐요.
 - 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/oiyo-business-strategist`(다운로드 tools.oiyo.net/downloads/oiyo-business-strategist-skill.zip).
 
 ## MCP Registry (2026-11-09)

@@ -113,6 +113,10 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `plan_kr_annual_leave_promotion` | Annual leave use promotion (연차 사용촉진) schedule under 근로기준법 제61조. |
 | `check_kr_voluntary_quit_unemployment` | Justified reasons for voluntary resignation (별표 2) and 180 insured days for unemployment benefit. |
 | `check_kr_subcontract_direct_payment` | Subcontract direct payment grounds (하도급법 제14조), payable range and 15.5% late interest. |
+| `check_kr_family_loan_interest` | Family loan gift test: 4.6% statutory interest vs agreed rate, 10M KRW a year threshold, safe rate. |
+| `check_kr_parent_house_free_use` | Rent-free use of a family home: value × 2% × 5-year PV ≥ 100M is a gift; free collateral too. |
+| `check_kr_family_low_price_sale` | Below-market family sale: buyer gift (30%/300M) and seller capital gains at market value (5%/300M). |
+| `check_kr_commercial_rent_increase` | Commercial lease 5% rent increase cap, regional converted-deposit limits, 1-year rule, conversion rate. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
 | `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |
 | `get_kr_professional_scope` | Legal scope and title rules of 세무사·공인회계사·공인노무사·행정사·법무사, with a who-can-do-what matrix. |

@@ -116,3 +116,20 @@ test("자진퇴사 정당 사유와 하도급 직접 지급", async () => {
   assert.equal(d.body.result.direct, 30000000);
   assert.equal(d.body.result.lateInterest, Math.floor((40000000 * 0.155 * 65) / 365));
 });
+
+test("가족 차용·무상 거주·저가 양수도·상가 임대료", async () => {
+  const l = await call("/v1/tax/kr/family-loan-interest", { principal: 300000000, rate: 0 });
+  assert.equal(l.status, 200);
+  assert.equal(l.body.result.gift, 13800000);
+  assert.equal(l.body.result.zeroRateMaxPrincipal, 217391304);
+  assert.equal((await call("/v1/tax/kr/family-loan-interest", { principal: 300000000, rate: 2 })).status, 400);
+  const u = await call("/v1/tax/kr/parent-house-free-use", { propertyValue: 1500000000, coResiding: true });
+  assert.equal(u.body.result.useTaxable, false);
+  const s = await call("/v1/tax/kr/family-low-price-sale", { marketValue: 1100000000, price: 700000000 });
+  assert.equal(s.body.result.gift, 100000000);
+  assert.equal(s.body.result.sellerRecalc, true);
+  const c = await call("/v1/lease/kr/commercial-rent-increase", { region: "seoul", deposit: 100000000, monthlyRent: 5000000, newDeposit: 100000000, newMonthlyRent: 5300000, monthsSinceLast: 24 });
+  assert.equal(c.body.result.verdict, "over");
+  assert.equal(c.body.result.maxRent, 5250000);
+  assert.equal((await call("/v1/lease/kr/commercial-rent-increase", { region: "mars", deposit: 1, monthlyRent: 1, newDeposit: 1, newMonthlyRent: 1, monthsSinceLast: 1 })).status, 400);
+});

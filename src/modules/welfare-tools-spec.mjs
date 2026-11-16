@@ -226,6 +226,40 @@ export const WELFARE_TOOLS = [
       ownerUnpaidToPrime: won("Amount the client still owes the prime for that work"),
       daysSinceDelivery: { type: "integer", minimum: 0, maximum: 3650, description: "Days since delivery or completion was accepted" },
     }, ["cause", "requested", "workValue", "receivedFromPrime", "ownerUnpaidToPrime", "daysSinceDelivery"]),
+  fn("check_kr_family_loan_interest",
+    "Korean gift tax on a low- or zero-interest family loan (상증법 제41조의4): the benefit is interest at the statutory 4.6% (시행규칙 제10조의5) minus interest actually agreed; it is a gift only when the benefit reaches 10M KRW a year (then the whole benefit, recomputed every year). Returns the benefit, gift tax after the remaining 증여재산공제 and 3% filing credit, the largest interest-free principal (about 217.39M), the lowest safe rate for this principal and the lender's 27.5% withholding on interest received. The principal itself must be a real loan with repayment records.",
+    {
+      principal: won("Loan principal"),
+      rate: num("Agreed annual interest rate as a decimal (0.02 = 2%)", 0, 1),
+      deductionLeft: won("Borrower's unused gift deduction over 10 years (adult child 50M, minor 20M, spouse 600M)"),
+    }, ["principal", "rate"]),
+  fn("check_kr_parent_house_free_use",
+    "Korean gift tax on living rent-free in a family member's property (상증법 제37조①): benefit = property value × 2% a year, summed over 5 years discounted at 10% (factor ≈ 3.7908); a gift only when it reaches 100M KRW (property ≈ 1.319B KRW) and not when living together with the owner. Also free use as loan collateral (제37조②): loan × 4.6% − interest paid, a gift from 10M KRW a year. Returns both benefits and gift tax.",
+    {
+      propertyValue: won("Market value of the property (or standard value if none)"),
+      coResiding: bool("The user lives together with the owner in that home"),
+      collateralLoan: won("Loan borrowed using the property as free collateral"),
+      collateralInterest: won("Interest actually paid on that loan per year"),
+      deductionLeft: won("Unused gift deduction over 10 years"),
+    }, ["propertyValue"]),
+  fn("check_kr_family_low_price_sale",
+    "Korean below-market sale between related parties: buyer gift (상증법 제35조①) when market value − price ≥ min(30% of market value, 300M KRW), gift value = the difference minus that threshold; seller capital gains recomputed at market value (소득세법 제101조, 시행령 제167조③) when the difference ≥ min(5%, 300M KRW). Returns both tests, gift tax and the lowest prices that avoid each.",
+    {
+      marketValue: won("Market value (appraisal or comparable sales)"),
+      price: won("Actual price between family members"),
+      deductionLeft: won("Buyer's unused gift deduction over 10 years"),
+    }, ["marketValue", "price"]),
+  fn("check_kr_commercial_rent_increase",
+    "Korean commercial lease rent increase cap (상가건물 임대차보호법): converted deposit = deposit + monthly rent × 100; if within the regional limit (Seoul 900M, other overcrowding zones and Busan 690M, metropolitan cities etc. 540M, elsewhere 370M KRW) increases are capped at 5% of rent or deposit (시행령 제4조) and allowed once a year (제11조②); converting deposit to rent is capped at min(12%, base rate × 4.5) (시행령 제5조). Above the limit, renewal rights (10 years), opposability and key-money protection still apply (제10조의2).",
+    {
+      region: { type: "string", enum: ["seoul", "overcrowded", "metro", "other"], description: "seoul; overcrowded = 과밀억제권역 outside Seoul and Busan; metro = metropolitan cities, Sejong, Paju, Hwaseong, Ansan, Yongin, Gimpo, Gwangju (Gyeonggi); other" },
+      deposit: won("Current deposit"),
+      monthlyRent: won("Current monthly rent"),
+      newDeposit: won("Deposit the landlord asks for"),
+      newMonthlyRent: won("Monthly rent the landlord asks for"),
+      monthsSinceLast: { type: "integer", minimum: 0, maximum: 600, description: "Months since the contract or the last increase" },
+      baseRate: num("Bank of Korea base rate as a decimal (default 0.03)", 0, 0.2),
+    }, ["region", "deposit", "monthlyRent", "newDeposit", "newMonthlyRent", "monthsSinceLast"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -249,4 +283,8 @@ export const WELFARE_ENDPOINTS = {
   plan_kr_annual_leave_promotion: { path: "/v1/labor/kr/annual-leave-promotion", method: "POST" },
   check_kr_voluntary_quit_unemployment: { path: "/v1/labor/kr/voluntary-quit-unemployment", method: "POST" },
   check_kr_subcontract_direct_payment: { path: "/v1/business/kr/subcontract-direct-payment", method: "POST" },
+  check_kr_family_loan_interest: { path: "/v1/tax/kr/family-loan-interest", method: "POST" },
+  check_kr_parent_house_free_use: { path: "/v1/tax/kr/parent-house-free-use", method: "POST" },
+  check_kr_family_low_price_sale: { path: "/v1/tax/kr/family-low-price-sale", method: "POST" },
+  check_kr_commercial_rent_increase: { path: "/v1/lease/kr/commercial-rent-increase", method: "POST" },
 };
