@@ -65,6 +65,9 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kr_long_term_care_copay: `${TOOLS}long-term-care-copay-calculator/`,
   check_kr_dependent_deduction: `${TOOLS}dependent-deduction-checker/`,
   calculate_kr_stock_major_shareholder_tax: `${TOOLS}stock-major-shareholder-tax-calculator/`,
+  get_kr_professional_scope: `${TOOLS}law-guide/`,
+  start_kr_law_intake: `${TOOLS}law-guide/`,
+  search_kr_statutes: `${TOOLS}law-guide/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.

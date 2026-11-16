@@ -20,6 +20,7 @@ import {
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
+import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
 export const BIZ_DISCLAIMER =
@@ -435,6 +436,56 @@ function majorStock(i) {
     "stock-major-shareholder-tax-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
 
+/* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
+const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
+const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
+function lawAnswers(raw = {}) {
+  const entries = Object.entries(raw);
+  const problems = [];
+  if (entries.length > 20) problems.push("answers: at most 20 keys");
+  for (const [k, v] of entries) {
+    if (!/^[A-Za-z][A-Za-z0-9]{0,30}$/.test(k)) problems.push(`answers.${k.slice(0, 32)}: a question key`);
+    else if (!(typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v)) || (typeof v === "string" && v.length <= 40))) problems.push(`answers.${k}: a string (≤40), number or boolean`);
+  }
+  if (problems.length) throw new InputError(problems);
+  return raw;
+}
+function professionalScope(i) {
+  const list = i.domain ? [PROFESSIONS[i.domain]] : Object.values(PROFESSIONS);
+  return {
+    asOf: LAW_GUIDE_AS_OF,
+    professions: list.map((p) => ({ ...p, scopeUrl: statuteUrl(p.scopeCite), exclusive: p.exclusive.map((x) => ({ ...x, url: statuteUrl(x.cite) })), page: `${TOOLS_KO}${LAW_PAGE[p.domain]}/` })),
+    matrix: SCOPE_MATRIX,
+    namingRule: "Do not present yourself as 세무사, 공인회계사, 공인노무사, 행정사 or 법무사 or a similar title, and do not advertise representation work (세무사법 제20조②③, 공인회계사법 제11조, 공인노무사법 제8조③·제27조②, 행정사법 제3조②, 법무사법 제3조②). Call the assistant a legal-information guide (법령 길잡이).",
+    disclaimer: LAW_DISCLAIMER,
+  };
+}
+function lawIntake(i) {
+  const answers = lawAnswers(i.answers);
+  const today = i.today ?? seoulToday();
+  const suggestions = i.topic ? [] : suggestTopics(i.situation ?? "", i.domain, 3);
+  const topicId = i.topic ?? suggestions[0]?.id;
+  if (!topicId) {
+    const pool = TOPICS.filter((t) => !i.domain || t.domain === i.domain).map((t) => ({ id: t.id, domain: t.domain, label: t.label }));
+    return { asOf: LAW_GUIDE_AS_OF, matched: false, ask: "어떤 일이 있었는지 아래 주제 중 가까운 것을 골라 주세요(또는 상황을 한두 문장 더 알려 주세요).", topics: pool, disclaimer: LAW_DISCLAIMER };
+  }
+  const r = intake(topicId, answers, today, i.limit ?? 3);
+  return {
+    asOf: LAW_GUIDE_AS_OF,
+    today,
+    matched: true,
+    ...r,
+    alternatives: suggestions.slice(1),
+    howToUse: r.nextQuestions.length
+      ? "Ask the user these questions (2-3 at a time, with the 'why'), then call again with topic and the collected answers. If a deadline is urgent (≤14 days) tell the user first."
+      : "All questions answered. Answer with: one-line conclusion, deadline table (task, due date, D-day, statute), warnings, calculators, documents, free help, and when a licensed professional is needed.",
+    page: `${TOOLS_KO}${LAW_PAGE[r.topic.domain]}/`,
+  };
+}
+function statutes(i) {
+  return { asOf: LAW_GUIDE_AS_OF, results: findStatutes(i.query, i.domain, i.limit ?? 8).map((s) => ({ ...s, url: statuteUrl(s) })), note: "plain is a plain-Korean summary, not the official text; confirm the article at law.go.kr", disclaimer: LAW_DISCLAIMER };
+}
+
 const HANDLERS = {
   "/v1/biz/decision-tree": decisionTree,
   "/v1/biz/critical-path": criticalPath,
@@ -465,6 +516,9 @@ const HANDLERS = {
   "/v1/benefits/kr/long-term-care-copay": longTermCare,
   "/v1/tax/kr/dependent-deduction": dependents,
   "/v1/tax/kr/stock-major-shareholder": majorStock,
+  "/v1/law/kr/professional-scope": professionalScope,
+  "/v1/law/kr/intake": lawIntake,
+  "/v1/law/kr/statutes": statutes,
 };
 
 export function calculateBiz(path, raw, coerce = false) {

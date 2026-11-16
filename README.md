@@ -106,6 +106,9 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_long_term_care_copay` | Long-term care insurance copay (노인장기요양) by grade, home vs facility, 2026 limits. |
 | `check_kr_dependent_deduction` | Year-end dependent deduction (부양가족) check by age, income and living together, with tax saved per person. |
 | `calculate_kr_stock_major_shareholder_tax` | Listed stock major shareholder test (5B KRW or stake at previous year-end) and capital gains tax 20%/25%/30%. |
+| `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
+| `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |
+| `get_kr_professional_scope` | Legal scope and title rules of 세무사·공인회계사·공인노무사·행정사·법무사, with a who-can-do-what matrix. |
 | `calculate_kr_housing_rental_income_tax` | Housing rental income tax: deemed rent, separate 14% vs comprehensive. |
 | `get_kr_business_tax_calendar` | South Korea business filing calendar (VAT, corporate/income tax, withholding, payment statements) with holiday-shifted due dates, plus must-do / must-not-do checklists by stage or role. |
 
