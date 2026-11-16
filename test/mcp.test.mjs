@@ -61,6 +61,7 @@ const fixtures = {
   calculate_kr_ordinary_wage: { basePay: 2500000, fixedAllowances: 300000, bonusAnnual: 6000000, bonusConditional: true, overtime: 20, night: 0, holiday: 0 },
   check_kr_fixed_overtime_pay: { basePay: 2508000, fixedOtPay: 300000, overtime: 30, night: 0, holiday: 0 },
   calculate_kr_comprehensive_real_estate_tax: { prices: [1500000000], oneHouse: true },
+  calculate_kr_long_term_care_copay: { grade: "3", kind: "home", reduction: "none" },
   calculate_kr_housing_rental_income_tax: { houses: 2, annualRent: 12000000, deposits: 0, registered: false, otherIncome: 40000000 },
 };
 

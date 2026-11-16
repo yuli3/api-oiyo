@@ -441,3 +441,50 @@ export function fixedOvertimeCheck(input              ) {
     minWageGap: Math.max(0, won((MIN_WAGE_2026 - hourly) * hours)),
   };
 }
+
+// ───────────────────────── 노인장기요양 본인부담금 ─────────────────────────
+// 노인장기요양보험법 제40조(재가 15%, 시설 20%, 감경 40%·60%, 기초생활수급자 면제), 시행령 제15조의8,
+// 「2026년 장기요양급여비용 등에 관한 고시」(보건복지부고시 제2025-247호, 2026-01-01 시행):
+// 재가급여 월 한도액, 노인요양시설 1일 수가. 한도를 넘는 재가 이용분과 식사·간식 등 비급여는 전액 본인이 내요.
+
+                                                                 
+export const LTC_2026 = {
+  homeLimit: { "1": 2_512_900, "2": 2_331_200, "3": 1_528_200, "4": 1_409_700, "5": 1_208_900, cognitive: 676_320 }                            ,
+  facilityDaily: { "1": 93_070, "2": 86_340, "3": 81_540, "4": 81_540, "5": 81_540, cognitive: 0 }                            ,
+  homeRate: 0.15,
+  facilityRate: 0.2,
+}         ;
+                                                          
+const LTC_FACTOR                               = { none: 1, "40": 0.6, "60": 0.4, basic: 0 };
+
+                           
+                  
+                            
+                                                        
+                   
+                      
+                
+                           
+                      
+                          
+ 
+
+export function longTermCareCopay(input          ) {
+  const factor = LTC_FACTOR[input.reduction] ?? 1;
+  if (input.kind === "home") {
+    const limit = LTC_2026.homeLimit[input.grade];
+    const use = input.homeUse === undefined ? limit : clamp0(input.homeUse);
+    const covered = Math.min(use, limit);
+    const over = Math.max(0, use - limit);
+    const rate = LTC_2026.homeRate * factor;
+    const copay = won(covered * rate);
+    return { kind: "home"         , limit, use, covered, over, rate, copay, publicShare: covered - copay, extra: 0, total: copay + over, facilityAllowed: true };
+  }
+  const daily = LTC_2026.facilityDaily[input.grade];
+  const days = Math.min(31, Math.max(0, Math.round(input.days ?? 30)));
+  const covered = daily * days;
+  const rate = LTC_2026.facilityRate * factor;
+  const copay = won(covered * rate);
+  const extra = clamp0(input.dailyExtra ?? 15_000) * days;
+  return { kind: "facility"         , limit: covered, use: covered, covered, over: 0, rate, copay, publicShare: covered - copay, extra, total: copay + extra, facilityAllowed: input.grade !== "cognitive" };
+}

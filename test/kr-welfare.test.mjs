@@ -60,3 +60,12 @@ test("종부세·주택임대소득세 (2차)", async () => {
   assert.equal(r.body.result.separateTax, 739200);
   assert.equal((await call("/v1/tax/kr/housing-rental-income-tax", { houses: 3, annualRent: 12000000, deposits: 800000000, registered: false, otherIncome: 10000000 })).body.result.deemed, 9300000);
 });
+
+test("노인장기요양 본인부담 (3차)", async () => {
+  const h = await call("/v1/benefits/kr/long-term-care-copay", { grade: "3", kind: "home", reduction: "none" });
+  assert.equal(h.status, 200);
+  assert.equal(h.body.result.copay, 229230);
+  const f = await call("/v1/benefits/kr/long-term-care-copay", { grade: "1", kind: "facility", reduction: "none", days: 30, dailyExtra: 15000 });
+  assert.equal(f.body.result.total, 558420 + 450000);
+  assert.equal((await call("/v1/benefits/kr/long-term-care-copay", { grade: "6", kind: "home", reduction: "none" })).status, 400);
+});

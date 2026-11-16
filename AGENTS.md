@@ -47,7 +47,7 @@
 - 배열·객체 입력이 있어 `mcp.mjs`의 스키마 변환이 재귀다. 속성 없는 object(의사결정 트리)는 MCP에서 통과시키고 REST 검사(`readTree`, 12단계·200노드 한도)가 막는다.
 - 2026-11-16 운영 문제 8유형(`/v1/biz/campaign-supply` 등 8개, MCP `plan_campaign_supply`…`evaluate_acquisition`)은 tools-oiyo `src/lib/biz-ops.ts`가 정본(sync 대상). 응답에 `note`(영향 부서·사람 승인 지점)와 disclaimer를 붙인다.
 - 2026-11-16 생활 지원금·노동권 6종(`/v1/benefits/kr/*`, `/v1/labor/kr/wage-guarantee` 등, MCP `calculate_kr_work_child_incentive`…`compare_kr_retirement_pension`)은 tools-oiyo `src/lib/kr-welfare-2026.ts`가 정본(sync 대상). 스키마는 `src/modules/welfare-tools-spec.mjs`, 처리는 `biz-strategy.mjs`. 응답에 `basis`(조문)·`apply`(신청 방법)·`page`(웹 도구)가 있어요.
-- 2026-11-16 2차 4종(MCP `calculate_kr_ordinary_wage`, `check_kr_fixed_overtime_pay`, `calculate_kr_comprehensive_real_estate_tax`, `calculate_kr_housing_rental_income_tax`)은 같은 스키마 파일에 있고, 종부세·임대소득은 tools-oiyo `src/lib/kr-home-tax-2026.ts`가 정본이에요.
+- 2026-11-16 2차 4종(MCP `calculate_kr_ordinary_wage`, `check_kr_fixed_overtime_pay`, `calculate_kr_comprehensive_real_estate_tax`, `calculate_kr_housing_rental_income_tax`)과 3차 `calculate_kr_long_term_care_copay`는 같은 스키마 파일에 있고, 종부세·임대소득은 tools-oiyo `src/lib/kr-home-tax-2026.ts`가 정본이에요.
 - 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/oiyo-business-strategist`(다운로드 tools.oiyo.net/downloads/oiyo-business-strategist-skill.zip).
 
 ## MCP Registry (2026-11-09)

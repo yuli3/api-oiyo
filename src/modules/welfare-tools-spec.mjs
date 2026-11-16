@@ -113,6 +113,16 @@ export const WELFARE_TOOLS = [
       actualExpenseRate: num("Actual expense ratio for comprehensive taxation (books)", 0, 1),
       otherTaxBase: won("Tax base of other income (default otherIncome × 0.7)"),
     }, ["houses", "annualRent", "deposits", "registered", "otherIncome"]),
+  fn("calculate_kr_long_term_care_copay",
+    "Korean long-term care insurance copay (노인장기요양 본인부담금) for 2026: home care (재가) monthly limits by grade (1: 2,512,900 … 5: 1,208,900; cognitive 676,320 KRW) at 15%, facility care (시설) daily rates (1: 93,070, 2: 86,340, 3-5: 81,540 KRW) at 20%, 40%/60% reductions, basic livelihood recipients exempt; home use above the limit and facility meals are paid in full.",
+    {
+      grade: { type: "string", enum: ["1", "2", "3", "4", "5", "cognitive"], description: "Long-term care grade" },
+      kind: { type: "string", enum: ["home", "facility"], description: "home = 방문요양·주야간보호, facility = 요양원" },
+      reduction: { type: "string", enum: ["none", "40", "60", "basic"], description: "Copay reduction: 40%, 60%, or basic livelihood recipient (0)" },
+      homeUse: won("Home care used per month at official fees (default: the grade limit)"),
+      days: { type: "integer", minimum: 0, maximum: 31, description: "Facility days per month (default 30)" },
+      dailyExtra: won("Facility non-covered cost per day such as meals (default 15,000)"),
+    }, ["grade", "kind", "reduction"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -126,4 +136,5 @@ export const WELFARE_ENDPOINTS = {
   check_kr_fixed_overtime_pay: { path: "/v1/labor/kr/fixed-overtime-check", method: "POST" },
   calculate_kr_comprehensive_real_estate_tax: { path: "/v1/tax/kr/comprehensive-real-estate-tax", method: "POST" },
   calculate_kr_housing_rental_income_tax: { path: "/v1/tax/kr/housing-rental-income-tax", method: "POST" },
+  calculate_kr_long_term_care_copay: { path: "/v1/benefits/kr/long-term-care-copay", method: "POST" },
 };
