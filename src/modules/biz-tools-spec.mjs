@@ -3,6 +3,8 @@
 // SWOT/BCG/positioning, unit economics and the Korean filing calendar as agent tools. These schemas are
 // the single source for MCP input validation (mcp.mjs), REST validation (biz-strategy.mjs) and OpenAPI.
 
+import { WELFARE_ENDPOINTS, WELFARE_TOOLS } from "./welfare-tools-spec.mjs";
+
 const str = (description, maxLength = 120) => ({ type: "string", maxLength, description });
 const num = (description, minimum, maximum) => ({ type: "number", description, ...(minimum !== undefined && { minimum }), ...(maximum !== undefined && { maximum }) });
 const obj = (properties, required) => ({ type: "object", properties, required });
@@ -249,6 +251,8 @@ export const BIZ_TOOLS = [
       integrationCost: num("One-off pre-tax integration cost", 0),
       years: { type: "integer", minimum: 1, maximum: 20, description: "Years to project, default 7" },
     }, ["price", "targetNetIncome", "acquirerNetIncome", "acquirerShares", "sharePrice", "stockPortion", "debtRate", "taxRate", "synergy", "rampYears", "integrationCost"]),
+  // 2026-11-16: 생활 지원금·노동권 6종(장려금·출산휴가·대지급금·산재·월세 공제·퇴직연금)
+  ...WELFARE_TOOLS,
 ];
 
 export const BIZ_ENDPOINTS = {
@@ -268,4 +272,5 @@ export const BIZ_ENDPOINTS = {
   analyze_market_test: { path: "/v1/biz/market-test", method: "POST" },
   check_sales_rebates: { path: "/v1/biz/sales-rebates", method: "POST" },
   evaluate_acquisition: { path: "/v1/biz/acquisition", method: "POST" },
+  ...WELFARE_ENDPOINTS,
 };

@@ -14,6 +14,10 @@ import {
   INFLUENCER_CHECKS, OPS_AS_OF, PMI_TEMPLATE, acquisitionCheck, campaignSupply, influencerDeal, marketEntry, materialSwitch, orderAllocation,
   proportionTest, qualityRecovery, rebateCheck, sampleSizePerGroup,
 } from "./vendor/tools-tax/biz-ops.mjs";
+import {
+  WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
+  wageGuarantee, workChildCredit,
+} from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
 export const BIZ_DISCLAIMER =
@@ -338,6 +342,55 @@ function acquisition(i) {
   return ops(acquisitionCheck(i), "New shares = price × stock ÷ share price; interest after tax = price × (1 − stock) × rate × (1 − tax); synergy ramps linearly; payback counts target income + after-tax synergy − interest against price + after-tax integration cost.", { pmiTemplate: PMI_TEMPLATE, basis: ["독점규제 및 공정거래에 관한 법률 제11조(기업결합 신고) may apply"] });
 }
 
+// ───── 2026-11-16: 생활 지원금·노동권 6종 ─────
+const WELFARE_DISCLAIMER =
+  "Estimate for planning only. Final amounts are decided by 국세청, 고용센터 and 근로복지공단. Free help: 고용노동부 1350, 대한법률구조공단 132, 근로복지공단 1588-0075, 국세청 126.";
+const TOOLS_KO = "https://tools.oiyo.net/ko/";
+const welfare = (result, method, basis, apply, page) => ({ asOf: WELFARE_AS_OF, result, method, basis, apply, page: `${TOOLS_KO}${page}/`, disclaimer: WELFARE_DISCLAIMER });
+
+function workChild(i) {
+  return welfare(workChildCredit(i), "EITC: phase-in to the household maximum, flat, then linear phase-out to the income cap. CTC per child: 1M KRW to the flat end (21M single earner / 25M dual), then down to 500K just below 70M. Assets ≥ 170M → 50%, ≥ 240M → 0; late filing 95%. A household with children under 18 counts as oneEarner, not single.",
+    ["조세특례제한법 제100조의3·제100조의5(근로장려금)", "제100조의28·제100조의29(자녀장려금)"],
+    ["Regular application May 1-31 (홈택스, 손택스, ARS 1544-9944); wage-only earners may apply half-yearly in March and September", "Late application to November 30 at 95%", "Usually paid late August"],
+    "work-child-incentive-calculator");
+}
+function maternity(i) {
+  const kind = i.kind ?? "single";
+  return welfare({ maternity: maternityLeavePay({ ...i, kind }), spouse: spouseLeavePay(i.monthlyWage, i.priorityFirm) },
+    "Daily = monthly ordinary wage ÷ 30 (minimum wage floor 2,156,880 KRW/month). Insurance pays min(daily, cap ÷ days) for all days at priority-support employers, or only the last 30 (multiple 45, premature 40) days at large employers; the first 60 (75) days are paid leave the employer owes in full.",
+    ["근로기준법 제74조", "남녀고용평등법 제18조·제18조의2", "고용보험법 제75조·제76조", "고용노동부고시 제2026-67호"],
+    ["Employer files the leave confirmation with the job centre", "Apply on 고용24 from 1 month after leave starts (large employers: after 60 days), within 12 months after leave ends", "Needs 180 insured days before leave ends"],
+    "maternity-leave-pay-calculator");
+}
+function guarantee(i) {
+  return welfare(wageGuarantee(i), "Insolvency: per-month (severance per-year) cap by age at retirement × min(unpaid months, 6 — or 3 before 2026-08-20) plus the last 3 years of severance. Simple (retired): wages from the last 3 months up to 7M, severance up to 7M, total 10M. Simple (employed): wages up to 7M.",
+    ["임금채권보장법 제7조·제7조의2", "시행령 제7조", "대지급금 상한액 고시(2026-08-20 개정)"],
+    ["File an unpaid-wage petition with the labour office (1350)", "Simple payment: get the confirmation of unpaid wages, then a court order or judgment; start within 2 years after retirement and apply within 1 year of the final judgment", "Insolvency payment: apply to 근로복지공단 after the court decision or the labour office's recognition", "Free litigation help: 대한법률구조공단 132"],
+    "unpaid-wage-guarantee-calculator");
+}
+function injury(i) {
+  if (i.avgDailyWage === undefined && i.threeMonthWages === undefined) throw new InputError(["give avgDailyWage or threeMonthWages"]);
+  const avg = i.avgDailyWage ?? averageDailyWage(i.threeMonthWages, i.calendarDays ?? 92, i.annualBonus ?? 0);
+  return welfare({ avgDailyWage: Math.round(avg), ...injuryLeavePay({ avgDailyWage: avg, days: i.days }) },
+    "70% of min(average daily wage, 268,299). If that is at or below 80% of the minimum compensation base (66,048), 90% of the average wage capped at 66,048, raised to the minimum wage (82,560) when lower. Treatment of 3 days or less pays nothing (employer owes 60% leave compensation).",
+    ["산업재해보상보험법 제36조·제52조·제54조", "고용노동부고시 제2025-84호"],
+    ["Apply for treatment (요양급여) with 근로복지공단; employer consent is not required", "Claim leave pay monthly with the doctor's note; claims expire after 3 years", "Not modelled: reduction from age 61 after 2 years of treatment, partial leave pay"],
+    "industrial-accident-leave-pay-calculator");
+}
+function rent(i) {
+  return welfare(monthlyRentCredit(i), "credit = min(rent paid, 10M) × 17% (salary ≤ 55M / comprehensive ≤ 45M) or 15% (≤ 80M / 70M), capped by tax before credit; local income tax falls by 10% of the credit.",
+    ["조세특례제한법 제95조의2", "시행령 제95조"],
+    ["Homeless head of household (or member when the head does not claim) on December 31; home ≤ 85㎡ or standard price ≤ 400M KRW; registered at the address", "Submit the lease and transfer records in year-end settlement; otherwise in May filing or a refund claim within 5 years"],
+    "monthly-rent-tax-credit-calculator");
+}
+function pension(i) {
+  const r = dbVsDc(i);
+  return welfare({ ...r, breakEvenReturn: breakEvenReturn(i) }, "DB = monthly wage × (1 + growth)^yearsLeft × (served + left). DC = wage × served moved now, then each year balance × (1 + return) + that year's monthly wage. Nominal, pre-tax; retirement income tax is the same for the same amount.",
+    ["근로자퇴직급여 보장법 제13조·제20조"],
+    ["Check the company pension rules: switching DC back to DB is usually not allowed", "Consider switching before a wage-peak cut", "Guaranteed-only products can make DC worse than DB"],
+    "retirement-pension-db-dc-calculator");
+}
+
 const HANDLERS = {
   "/v1/biz/decision-tree": decisionTree,
   "/v1/biz/critical-path": criticalPath,
@@ -355,6 +408,12 @@ const HANDLERS = {
   "/v1/biz/market-test": marketTest,
   "/v1/biz/sales-rebates": rebates,
   "/v1/biz/acquisition": acquisition,
+  "/v1/benefits/kr/work-child-incentive": workChild,
+  "/v1/benefits/kr/maternity-leave-pay": maternity,
+  "/v1/labor/kr/wage-guarantee": guarantee,
+  "/v1/labor/kr/injury-leave-pay": injury,
+  "/v1/tax/kr/monthly-rent-credit": rent,
+  "/v1/labor/kr/retirement-pension-db-dc": pension,
 };
 
 export function calculateBiz(path, raw, coerce = false) {

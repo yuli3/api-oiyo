@@ -94,6 +94,12 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `analyze_market_test` | Sample size, A/B z-test with p-value, overseas entry payback and go/extend/stop. |
 | `check_sales_rebates` | Sales rebates: tier amounts, related-party groups, overpayment holds, arm's-length range, VAT/corporate tax notes. |
 | `evaluate_acquisition` | Acquisition: EPS accretion/dilution, payback, synergy needed, 100-day integration template. |
+| `calculate_kr_work_child_incentive` | 근로장려금·자녀장려금 for the 2026 application: bands, asset cut, late filing, how to apply. |
+| `calculate_kr_maternity_leave_pay` | Maternity leave (90/120/100 days) and spouse leave (20 days) pay split between employer and employment insurance with 2026 caps. |
+| `calculate_kr_wage_guarantee` | Unpaid-wage guarantee (대지급금): simple retired/employed, insolvency with age caps and the 2026-08-20 six-month expansion. |
+| `calculate_kr_injury_leave_pay` | Industrial accident leave pay: 70%, minimum-wage guarantee, 2026 maximum base, 3-day rule. |
+| `calculate_kr_monthly_rent_credit` | Monthly rent tax credit 17%/15% up to 10M KRW plus local income tax. |
+| `compare_kr_retirement_pension` | Retirement pension DB vs DC with yearly series and break-even return. |
 | `get_kr_business_tax_calendar` | South Korea business filing calendar (VAT, corporate/income tax, withholding, payment statements) with holiday-shifted due dates, plus must-do / must-not-do checklists by stage or role. |
 
 ## Limits and disclaimers
