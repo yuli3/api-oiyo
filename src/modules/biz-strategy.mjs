@@ -16,8 +16,9 @@ import {
 } from "./vendor/tools-tax/biz-ops.mjs";
 import {
   WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
-  wageGuarantee, workChildCredit,
+  wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
+import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
 export const BIZ_DISCLAIMER =
@@ -390,6 +391,30 @@ function pension(i) {
     ["Check the company pension rules: switching DC back to DB is usually not allowed", "Consider switching before a wage-peak cut", "Guaranteed-only products can make DC worse than DB"],
     "retirement-pension-db-dc-calculator");
 }
+function ordinary(i) {
+  return welfare(ordinaryWage(i), "Monthly ordinary wage = base + fixed allowances + annual regular bonus ÷ 12 (before the ruling: bonus left out when conditional). Hourly = monthly ÷ contracted hours. Premiums: overtime ×1.5, night +0.5, holiday ×1.5 (≤ 8 h) / ×2 (> 8 h); under 5 employees hours × 1.0 only.",
+    ["근로기준법 제56조", "시행령 제6조", "대법원 2024. 12. 19. 선고 2020다247190·2023다302838 전원합의체 판결"],
+    ["The ruling applies to wages from 2024-12-19 (earlier periods only in pending cases)", "Pay slips must show how overtime pay is calculated (since 2021)", "Unpaid differences: file a petition at labor.moel.go.kr or call 1350; claims expire after 3 years"],
+    "ordinary-wage-calculator");
+}
+function fixedOt(i) {
+  return welfare(fixedOvertimeCheck(i), "Hourly = pay excluding the fixed allowance ÷ contracted hours; statutory premium for actual hours (overtime ×1.5, night +0.5, holiday ×1.5 / ×2; under 5 employees ×1.0); shortfall = max(0, statutory − fixed) × min(months, 36).",
+    ["근로기준법 제56조·제49조(3년)·제37조(퇴직 후 14일, 지연이자 20%)", "대법원 2008다6052"],
+    ["Keep evidence of hours: entry logs, transit cards, message and e-mail times", "Ask the employer, then file an unpaid-wage petition (labor.moel.go.kr, 1350); no fee", "Where hours are measurable, a lump-sum wage contract can be void"],
+    "fixed-overtime-pay-checker");
+}
+function cre(i) {
+  return { ...welfare(comprehensiveRealEstateTax(i), "base = floor((Σ official prices − deduction) × 60%, 1,000); progressive rates; − property tax × (base × property-tax fair ratio × 0.4%) ÷ standard-rate property tax; × (1 − min(80%, age + holding credit)) for one-house; + 20% rural special tax. Year-on-year 150% cap and exclusions (registered rentals, temporary two houses, inherited houses) not modelled.",
+    ["종합부동산세법 제8조·제9조", "시행령 제2조의4·제4조의3", "농어촌특별세법 제5조"],
+    ["Notice from 국세청 in late November; pay December 1-15 (홈택스)", "Over 2.5M KRW: part may be paid within 6 months", "Joint-owned single house: apply for the one-house election September 16-30"],
+    "comprehensive-real-estate-tax-calculator"), asOf: HOME_TAX_AS_OF };
+}
+function rentalTax(i) {
+  return { ...welfare(rentalIncomeTax(i), "revenue = rent (+ deemed rent for 3+ houses); separate = (revenue × (1 − 60%/50%) − 4M/2M) × 14% when revenue ≤ 20M; comprehensive = basic income tax(other base + revenue × (1 − expense rate)) − basic income tax(other base); both + 10% local income tax.",
+    ["소득세법 제12조·제25조·제64조의2", "시행령 제53조"],
+    ["Business status report by February 10 (홈택스)", "Report in the May comprehensive income tax filing even when choosing separate taxation", "Unregistered rental business: 0.2% penalty of revenue may apply", "2026: two-house owners with a high-price house and deposits over 1.2B may owe deemed rent; confirm with the tax office"],
+    "housing-rental-income-tax-calculator"), asOf: HOME_TAX_AS_OF };
+}
 
 const HANDLERS = {
   "/v1/biz/decision-tree": decisionTree,
@@ -414,6 +439,10 @@ const HANDLERS = {
   "/v1/labor/kr/injury-leave-pay": injury,
   "/v1/tax/kr/monthly-rent-credit": rent,
   "/v1/labor/kr/retirement-pension-db-dc": pension,
+  "/v1/labor/kr/ordinary-wage": ordinary,
+  "/v1/labor/kr/fixed-overtime-check": fixedOt,
+  "/v1/tax/kr/comprehensive-real-estate-tax": cre,
+  "/v1/tax/kr/housing-rental-income-tax": rentalTax,
 };
 
 export function calculateBiz(path, raw, coerce = false) {

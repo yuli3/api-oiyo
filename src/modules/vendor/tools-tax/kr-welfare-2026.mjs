@@ -329,3 +329,115 @@ export function breakEvenReturn(input              ) {
   }
   return (lo + hi) / 2;
 }
+
+// ───────────────────────── 통상임금·가산수당 ─────────────────────────
+// 근로기준법 제56조(연장 50%, 야간 50%, 휴일 8시간 이내 50%·초과 100% 가산), 제11조(5인 미만은 가산 없음),
+// 근로기준법 시행령 제6조(통상임금). 대법원 2024. 12. 19. 선고 2020다247190·2023다302838 전원합의체 판결:
+// 재직 조건·일정 근무일수 조건이 붙은 정기상여금도 통상임금이에요(판결일 이후 임금분부터).
+// 월 소정근로시간은 주 40시간이면 209시간(유급 주휴 포함)이에요.
+
+                            
+                           
+                   
+                                
+                
+                   
+                  
+                                         
+                        
+ 
+
+/** 시간급 통상임금과 근로시간으로 한 달 법정 수당(연장·야간·휴일, 근로시간 대가 100% 포함) */
+export function premiumPay(hourly        , h           , smallFirm = false) {
+  const over8 = Math.min(clamp0(h.holidayOver8 ?? 0), clamp0(h.holiday));
+  const holidayIn8 = clamp0(h.holiday) - over8;
+  if (smallFirm) {
+    // 5인 미만: 가산 없이 일한 시간만큼(야간은 소정근로 안이면 추가 없음)
+    const pay = hourly * (clamp0(h.overtime) + clamp0(h.holiday));
+    return { overtime: won(hourly * clamp0(h.overtime)), night: 0, holiday: won(hourly * clamp0(h.holiday)), total: won(pay) };
+  }
+  const overtime = hourly * 1.5 * clamp0(h.overtime);
+  const night = hourly * 0.5 * clamp0(h.night);
+  const holiday = hourly * (1.5 * holidayIn8 + 2 * over8);
+  return { overtime: won(overtime), night: won(night), holiday: won(holiday), total: won(overtime + night + holiday) };
+}
+
+                                                      
+              
+                  
+                                                
+                          
+                    
+                      
+                                         
+                            
+                               
+                        
+                      
+ 
+
+export function ordinaryWage(input                   ) {
+  const hours = input.monthlyHours && input.monthlyHours > 0 ? input.monthlyHours : 209;
+  const fixed = clamp0(input.basePay) + clamp0(input.fixedAllowances);
+  const bonusMonthly = clamp0(input.bonusAnnual) / 12;
+  const monthly = fixed + bonusMonthly;
+  const monthlyBefore = input.bonusConditional ? fixed : monthly;
+  const hourly = monthly / hours;
+  const hourlyBefore = monthlyBefore / hours;
+  const pay = premiumPay(hourly, input, input.smallFirm);
+  const payBefore = premiumPay(hourlyBefore, input, input.smallFirm);
+  const diffMonthly = pay.total - payBefore.total;
+  return {
+    hours,
+    monthly: won(monthly),
+    hourly: won(hourly),
+    daily: won(hourly * 8),
+    monthlyBefore: won(monthlyBefore),
+    hourlyBefore: won(hourlyBefore),
+    premium: pay,
+    premiumBefore: payBefore,
+    diffMonthly,
+    diffAnnual: diffMonthly * 12,
+    /** 연차수당 1일분(8시간) 차이 */
+    leaveDayDiff: won(hourly * 8) - won(hourlyBefore * 8),
+    ruling: input.bonusConditional && bonusMonthly > 0,
+    belowMinWage: fixed / hours < MIN_WAGE_2026,
+  };
+}
+
+// ───────────────────────── 포괄임금 고정 연장수당 점검 ─────────────────────────
+// 고정으로 받는 연장수당이 실제로 일한 연장·야간·휴일근로의 법정 수당보다 적으면 그 차액은 받을 수 있어요
+// (대법원 2010다5441 등). 임금채권 소멸시효 3년(근로기준법 제49조).
+
+                                                 
+                                           
+                  
+                               
+                     
+                        
+                      
+                                      
+                  
+ 
+
+export function fixedOvertimeCheck(input              ) {
+  const hours = input.monthlyHours && input.monthlyHours > 0 ? input.monthlyHours : 209;
+  const hourly = clamp0(input.basePay) / hours;
+  const legal = premiumPay(hourly, input, input.smallFirm);
+  const fixed = clamp0(input.fixedOtPay);
+  const shortMonthly = Math.max(0, legal.total - fixed);
+  const months = Math.min(36, Math.max(0, Math.floor(input.months ?? 36)));
+  const premiumFactor = input.smallFirm ? 1 : 1.5;
+  return {
+    hourly: won(hourly),
+    legal,
+    fixed,
+    shortMonthly,
+    months,
+    shortTotal: shortMonthly * months,
+    /** 고정 수당이 몇 시간 연장근로 값인지(연장 1.5배 기준) */
+    coveredHours: hourly > 0 ? Math.floor((fixed / (hourly * premiumFactor)) * 10) / 10 : 0,
+    belowMinWage: hourly < MIN_WAGE_2026,
+    minWageGap: Math.max(0, won((MIN_WAGE_2026 - hourly) * hours)),
+  };
+}
