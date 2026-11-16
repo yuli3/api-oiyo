@@ -123,6 +123,44 @@ export const WELFARE_TOOLS = [
       days: { type: "integer", minimum: 0, maximum: 31, description: "Facility days per month (default 30)" },
       dailyExtra: won("Facility non-covered cost per day such as meals (default 15,000)"),
     }, ["grade", "kind", "reduction"]),
+  fn("check_kr_dependent_deduction",
+    "Korean year-end dependent deduction check (부양가족 기본공제) for 2026: for each family member judges age (parents 60+, children 20 or under, siblings ≤20 or 60+, foster children under 18; disabled or basic-livelihood recipients any age), income (wage-only total pay ≤ 5M KRW, otherwise income amount ≤ 1M KRW), living together (siblings, grandchildren, foster children) and double claims; adds 70+ (1M) and disabled (2M) extra deductions and counts child tax credit children (ages 9-20, born 2017 excluded). Compares year-end tax with and without the family using the same settlement formula (other deductions assumed zero, social insurance estimated) and gives the tax each person saves.",
+    {
+      salary: won("Claimant's total pay for the year (non-taxable excluded)"),
+      married: bool("Claimant has a spouse (used for single-parent and woman-head extra deductions)"),
+      selfFemale: bool("Claimant is a woman (woman-head deduction 500,000 KRW when earned income amount ≤ 30M)"),
+      selfDisabled: bool("Claimant is disabled"),
+      selfBirthYear: { type: "integer", minimum: 1900, maximum: 2026, description: "Claimant birth year (70+ extra deduction)" },
+      people: {
+        type: "array", minItems: 0, maxItems: 20, description: "Family members to check",
+        items: {
+          type: "object",
+          properties: {
+            label: { type: "string", description: "Optional name" },
+            relation: { type: "string", enum: ["spouse", "parent", "child", "grandchild", "sibling", "foster"], description: "parent includes grandparents and the spouse's parents; child includes adopted children" },
+            birthYear: { type: "integer", minimum: 1900, maximum: 2026, description: "Birth year" },
+            wage: won("Total pay from employment for the year"),
+            otherIncome: won("Other comprehensive income amount (business, pension, other, capital gains, retirement); separately taxed interest/dividends excluded"),
+            disabled: bool("Disabled (no age limit)"),
+            livingTogether: bool("Registered at the same address (needed for siblings, grandchildren and foster children)"),
+            basicLivelihood: bool("Basic livelihood security recipient (no age limit)"),
+            claimedByOther: bool("Another taxpayer already claims this person"),
+          },
+          required: ["relation", "birthYear"],
+        },
+      },
+    }, ["salary", "people"]),
+  fn("calculate_kr_stock_major_shareholder_tax",
+    "Korean listed stock capital gains tax for major shareholders (상장주식 대주주 양도세) in 2026: major shareholder if, at the end of the previous business year, the holding in one stock was worth 5B KRW or more, or the stake was at least 1% (KOSPI) / 2% (KOSDAQ) / 4% (KONEX); the September 2025 plan to lower the line to 1B KRW was withdrawn. Tax = (gain − 2.5M basic deduction) × 20% up to a 300M tax base and 25% above (30% for non-SME shares held under one year) + 10% local income tax. Non-major individuals selling on the exchange owe none. Securities transaction tax not included.",
+    {
+      market: { type: "string", enum: ["kospi", "kosdaq", "konex"], description: "Listing market" },
+      heldValue: won("Market value of the stock held at the end of the previous business year (largest shareholder: include related parties)"),
+      heldShare: num("Stake on that date (0-1)", 0, 1),
+      gain: won("Capital gain from this year's sales of the stock (sale − cost − fees)"),
+      sme: bool("Small and medium enterprise shares"),
+      overOneYear: bool("Held for one year or more"),
+      deductionUsed: bool("The 2.5M KRW basic deduction was already used on other share sales this year"),
+    }, ["market", "heldValue", "gain"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -137,4 +175,6 @@ export const WELFARE_ENDPOINTS = {
   calculate_kr_comprehensive_real_estate_tax: { path: "/v1/tax/kr/comprehensive-real-estate-tax", method: "POST" },
   calculate_kr_housing_rental_income_tax: { path: "/v1/tax/kr/housing-rental-income-tax", method: "POST" },
   calculate_kr_long_term_care_copay: { path: "/v1/benefits/kr/long-term-care-copay", method: "POST" },
+  check_kr_dependent_deduction: { path: "/v1/tax/kr/dependent-deduction", method: "POST" },
+  calculate_kr_stock_major_shareholder_tax: { path: "/v1/tax/kr/stock-major-shareholder", method: "POST" },
 };
