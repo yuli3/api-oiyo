@@ -20,7 +20,7 @@ import {
   dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
-import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
+import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare, officetelHouseCount, ticketPresaleTax, inheritedValuation, filingDeadlines } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
@@ -542,6 +542,34 @@ function overseasEtf(i) {
     "overseas-stock-vs-etf-tax-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
 
+const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s ?? "") && !Number.isNaN(Date.parse(s));
+function officetel(i) {
+  if (!isDate(i.acquired)) throw new InputError(["acquired: a date YYYY-MM-DD"]);
+  return { ...welfare(officetelHouseCount(i), "acquisitionCount = acquired ≥ 2020-08-12 and property tax as housing and not smallNew; heavyCount (capital-gains surcharge, 종부세) = residential use and not smallNew; exemptCount = residential use; smallNew = first sale of a 2024-01-10~2027-12-31 new build, ≤ 60㎡, ≤ 600M metro / 300M elsewhere; officetelTax = price × 4.6%; nextExtra = next-home acquisition tax with − without the officetel in the count.",
+    ["지방세법 제13조의2·제13조의3", "지방세법 시행령 제28조의4", "소득세법 제88조 7호", "종합부동산세법 제8조", "주택공급에 관한 규칙 제2조"],
+    ["Check the property tax bill: officetels taxed as 건축물 (business) are outside the acquisition-tax count", "A tenant's resident registration usually makes the officetel residential for capital gains and 종부세", "Officetels never affect housing-subscription homelessness"],
+    "officetel-house-count-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function ticketPresale(i) {
+  return { ...welfare(ticketPresaleTax(i), "ticket: exempt if original, oneHouseExempt and salePrice ≤ 1.2B (above: taxable share (sale − 1.2B) ÷ sale); long-term deduction only for original members on preApprovalGain by yearsToApproval (table 1, table 2 if exempt and lived 2+ years); rate 70% (< 1 year), 60% (< 2 years), else 6-45%. presale: 70% (< 1 year) else 60%, no deduction. base = taxable − longTerm − 2.5M; +10% local tax.",
+    ["소득세법 제89조①4호", "소득세법 제95조②", "소득세법 제103조", "소득세법 제104조①", "소득세법 시행령 제166조"],
+    ["File the preliminary return within 2 months from the end of the month of sale", "Member rights and pre-sale rights acquired from 2021 count as houses when selling another home", "Settlement money, regulated-area surcharges and the replacement-house exemption are not covered"],
+    "redevelopment-ticket-vs-presale-tax-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function inheritedHouse(i) {
+  return { ...welfare(inheritedValuation(i), "For value v in {official, appraisal}: inheritance base = v + otherEstate − (500M lump sum + spouse deduction) − (appraisal fee up to 5M for the appraisal case); inheritance = 10-50% − 3% filing credit; transfer = capital gains tax on salePrice − v (heir owns another house, no surcharge, long-term deduction from inheritance date, no short-term rate); total = inheritance + transfer + fee.",
+    ["상속세 및 증여세법 제60조·제61조", "상속세 및 증여세법 시행령 제20조의3·제49조", "소득세법 시행령 제163조⑨"],
+    ["Appraisals count only within 6 months before or after death (one appraiser if the standard price is 1B or less, otherwise two)", "Similar apartment sales within the valuation window override the official price", "Decide before the inheritance tax deadline (6 months from the end of the month of death)"],
+    "inherited-house-appraisal-vs-official-price-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function filingDeadline(i) {
+  if (!isDate(i.date)) throw new InputError(["date: a date YYYY-MM-DD"]);
+  return { ...welfare(filingDeadlines(i), "filingDue = last day of (month of date + 6) for inheritance (+9 abroad) or + 3 for gift; credit = tax × 3%; if lateDays > 0: noFiling = tax × 20% × (1 − relief) with relief 50% (≤ 30 days), 30% (≤ 90), 20% (≤ 180); latePayment = tax × 0.022% × lateDays; pay = tax + penalties (no credit).",
+    ["상속세 및 증여세법 제4조④·제67조·제68조·제69조", "지방세법 제20조①", "소득세법 제74조", "국세기본법 제47조의2·제47조의4·제48조②", "민법 제1019조", "가족관계의 등록 등에 관한 법률 제84조"],
+    ["File on Hometax or at the tax office; tax above 10M can be paid in instalments, above 20M by annual instalments with collateral", "Real estate also needs a separate acquisition tax return at the city or district office", "If late, file as soon as possible to get the late-filing relief"],
+    "inheritance-gift-filing-deadline-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -638,6 +666,10 @@ const HANDLERS = {
   "/v1/tax/kr/vat-type-compare": vatType,
   "/v1/tax/kr/business-car-expense": businessCar,
   "/v1/tax/kr/overseas-stock-vs-etf": overseasEtf,
+  "/v1/tax/kr/officetel-house-count": officetel,
+  "/v1/tax/kr/ticket-vs-presale": ticketPresale,
+  "/v1/tax/kr/inherited-house-valuation": inheritedHouse,
+  "/v1/tax/kr/inheritance-gift-filing-deadline": filingDeadline,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,

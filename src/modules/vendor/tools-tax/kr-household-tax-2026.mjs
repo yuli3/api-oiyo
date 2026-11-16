@@ -2,8 +2,9 @@
 // 집안 세금 판단 2종 (2026-11-16, Gemini 공익 도구 인수 4차): 부양가족 기본공제 판정과 상장주식 대주주 양도소득세.
 // 연말정산 공식은 kr-year-end-2026.ts의 settleYearEnd를 그대로 불러 "넣을 때와 뺄 때"를 비교해요.
 // 화면 components/tools/welfare/, Claude 스킬·MCP는 이 파일을 복사해 써요(drift 테스트).
-import { basicIncomeTax, earnedIncomeDeduction, filingCredit, inheritanceGiftProgressiveTax, RATES, pensionBaseLimits } from "./kr-payroll-2026.mjs";
+import { basicIncomeTax, earnedIncomeDeduction, filingCredit, inheritanceGiftProgressiveTax, INHERITANCE_GIFT_2026, spouseInheritanceDeduction, RATES, pensionBaseLimits } from "./kr-payroll-2026.mjs";
 import { ADDITIONAL, CHILD_CREDIT, YOUTH_SME, settleYearEnd } from "./kr-year-end-2026.mjs";
+import { BASIC_DEDUCTION, HIGH_PRICE_LINE, acquisitionTax, capitalGainsTax, longTermRateGeneral, longTermRateOneHouse,                 } from "./kr-real-estate-tax.mjs";
 
 export const HOUSEHOLD_TAX_AS_OF = "2026-11-16";
 const clamp0 = (n                    ) => (typeof n === "number" && Number.isFinite(n) && n > 0 ? n : 0);
@@ -796,4 +797,248 @@ export function overseasCompare(input                      ) {
     /** 직접 투자와 ETF 세금이 같아지는 이익(종합과세 전) */
     breakEven: Math.ceil((O.deduction * O.directRate) / (O.directRate - O.etfRate)),
   };
+}
+
+// ───────────────────────── 오피스텔 주택 수 (Gemini 이전 B 4차) ─────────────────────────
+// 취득세: 지방세법 제13조의3·시행령 제28조의4. 2020-08-12 이후 취득하고 재산세를 주택으로 내는 오피스텔은 다음 집 취득세 중과의
+// 주택 수에 들어가요. 오피스텔 자체 취득세는 주택이 아니라 4%(+농특세 0.2%, 지방교육세 0.4%) = 4.6%예요.
+// 양도세·종부세: 공부상 용도가 아니라 실제 주거로 쓰는지로 봐요(소득세법 제88조 7호).
+// 소형 신축 특례(2024-01-10 대책, 시행령 개정): 전용 60㎡ 이하, 취득가 수도권 6억·지방 3억 이하, 2024-01-10~2027-12-31
+// 준공된 신축을 분양으로 처음 산 경우 취득세·양도세 중과·종부세 주택 수에서 빼요(1세대1주택 비과세 판단에는 들어가요).
+// 청약: 오피스텔은 주택공급에 관한 규칙상 주택이 아니라 무주택 판단에 들어가지 않아요.
+
+export const OFFICETEL = {
+  acquisitionRate: 0.046,
+  taxCountFrom: "2020-08-12",
+  smallNewFrom: "2024-01-10",
+  smallNewTo: "2027-12-31",
+  smallArea: 60,
+  smallCapMetro: 600_000_000,
+  smallCapOther: 300_000_000,
+}         ;
+
+                                 
+                
+                       
+                   
+                                      
+                          
+                                                    
+                               
+                 
+                 
+                                                         
+                        
+                            
+                      
+                            
+                         
+                          
+ 
+
+export function officetelHouseCount(input                ) {
+  const O = OFFICETEL;
+  const price = clamp0(input.price);
+  const others = Math.max(0, Math.floor(clamp0(input.otherHouses)));
+  const acquired = /^\d{4}-\d{2}-\d{2}$/.test(input.acquired) ? input.acquired : "2026-01-01";
+  const taxAsHouse = input.propertyTaxAsHouse ?? input.residentialUse;
+  const smallNew =
+    input.firstSaleNew && clamp0(input.areaM2) <= O.smallArea && price <= (input.metro ? O.smallCapMetro : O.smallCapOther) &&
+    acquired >= O.smallNewFrom && acquired <= O.smallNewTo;
+  const acquisitionCount = acquired >= O.taxCountFrom && taxAsHouse && !smallNew;
+  const heavyCount = input.residentialUse && !smallNew;
+  const exemptCount = input.residentialUse;
+  const officetelTax = Math.floor((price * O.acquisitionRate) / 10) * 10;
+  const next = clamp0(input.nextHomePrice);
+  const nextTax = (houses        ) =>
+    acquisitionTax({ price: next, houses: Math.min(4, Math.max(1, houses))              , regulated: !!input.nextRegulated, temporaryTwo: false, over85: false });
+  const withCount = nextTax(others + 1 + (acquisitionCount ? 1 : 0));
+  const withoutCount = nextTax(others + 1);
+  return {
+    officetelTax,
+    smallNew,
+    /** 다음 집 취득세 중과 판단 주택 수에 들어가요 */
+    acquisitionCount,
+    /** 양도세 중과·종부세 주택 수에 들어가요 */
+    heavyCount,
+    /** 1세대1주택 비과세 판단에 들어가요 */
+    exemptCount,
+    /** 청약 무주택 판단(오피스텔은 항상 주택 아님) */
+    subscriptionCount: false,
+    nextHouses: Math.min(4, others + 1 + (acquisitionCount ? 1 : 0)),
+    nextTax: withCount.total,
+    nextTaxWithout: withoutCount.total,
+    nextExtra: Math.max(0, withCount.total - withoutCount.total),
+    nextRate: withCount.rate,
+  };
+}
+
+// ───────────────────────── 재건축·재개발 입주권 vs 분양권 양도세 ─────────────────────────
+// 소득세법 제104조①: 주택·조합원입주권은 1년 미만 70%, 2년 미만 60%, 2년 이상 기본세율. 분양권은 1년 미만 70%, 그 뒤 60%(2021-06-01 이후).
+// 제95조②·시행령 제166조: 원조합원 입주권은 기존 집 취득일~관리처분계획인가일 차익에만 장기보유특별공제, 승계조합원·분양권은 없음.
+// 제89조①4호: 관리처분계획인가일에 기존 집이 1세대1주택 비과세 요건(2년 보유 등)을 채웠고 다른 집이 없으면 입주권도 비과세(12억 초과분 과세).
+// 기본공제 250만 원(제103조), 지방소득세 10%.
+
+                                     
+                             
+                                
+               
+                                                     
+                    
+                                     
+                     
+                                            
+                           
+                                  
+                           
+                              
+                           
+                     
+                     
+ 
+
+function rightTax(kind                      , i                    ) {
+  const gain = clamp0(i.gain);
+  const hold = clamp0(i.holdYears);
+  const original = kind === "ticket" && !!i.original;
+  const exempt = kind === "ticket" && original && !!i.oneHouseExempt;
+  const sale = clamp0(i.salePrice);
+  if (exempt && sale <= HIGH_PRICE_LINE) return { exempt: true, taxable: 0, longTerm: 0, base: 0, rateLabel: "비과세", tax: 0, local: 0, total: 0 };
+  const taxable = exempt && sale > 0 ? Math.floor((gain * (sale - HIGH_PRICE_LINE)) / sale) : gain;
+  const pre = original ? Math.min(taxable, Math.floor(clamp0(i.preApprovalGain) * (gain > 0 ? taxable / gain : 0))) : 0;
+  const years = clamp0(i.yearsToApproval);
+  const ltRate = !original ? 0 : exempt && Math.floor(clamp0(i.liveYears)) >= 2 ? longTermRateOneHouse(years, clamp0(i.liveYears)) : longTermRateGeneral(years);
+  const longTerm = Math.floor(pre * ltRate);
+  const base = Math.max(0, taxable - longTerm - BASIC_DEDUCTION);
+  const shortRate = kind === "presale" ? (hold < 1 ? 0.7 : 0.6) : hold < 1 ? 0.7 : hold < 2 ? 0.6 : 0;
+  const raw = shortRate ? base * shortRate : basicIncomeTax(base);
+  const tax = Math.floor(raw / 10) * 10;
+  const local = Math.floor(tax * 0.1 / 10) * 10;
+  return { exempt: false, taxable, longTerm, base, rateLabel: shortRate ? `${shortRate * 100}%` : "기본세율 6~45%", tax, local, total: tax + local };
+}
+
+export function ticketPresaleTax(input                    ) {
+  const ticket = rightTax("ticket", input);
+  const presale = rightTax("presale", input);
+  const chosen = input.kind === "ticket" ? ticket : presale;
+  return { ...chosen, ticket: ticket.total, presale: presale.total, gap: presale.total - ticket.total };
+}
+
+// ───────────────────────── 상속주택 감정평가 vs 공시가격 ─────────────────────────
+// 상증법 제60조(시가 원칙, 평가기간 상속개시일 전후 6개월 안 매매·감정·수용가), 제61조(시가가 없으면 기준시가·공시가격),
+// 시행령 제49조(감정가는 2곳 평균, 기준시가 10억 이하면 1곳), 제20조의3(감정평가수수료 500만 원까지 공제).
+// 상속받은 집을 팔 때 취득가액은 상속 때 신고한 평가액이에요(소득세법 시행령 제163조⑨). 그래서 공시가로 낮게 신고하면
+// 상속세는 줄지만 나중 양도세가 늘어요. 상속세가 0인 구간(일괄 5억·배우자 5억 공제 안)이면 감정평가가 거의 늘 유리해요.
+// 양도세는 다른 집이 있어 비과세가 안 되고 조정지역 중과도 없는 경우로 봐요. 상속받은 자산의 단기세율 보유기간은 피상속인 취득일부터라
+// 단기세율은 쓰지 않고, 장기보유특별공제는 상속개시일부터 센 연수로 계산해요.
+
+export const INHERITED_VALUATION = { feeCap: 5_000_000 }         ;
+
+                                          
+                   
+                   
+              
+                    
+                                  
+                      
+                  
+                                        
+                        
+                
+                    
+                      
+                     
+                
+                        
+ 
+
+export function inheritedValuation(input                         ) {
+  const other = clamp0(input.otherEstate);
+  const fee = clamp0(input.appraisalFee ?? 2_000_000);
+  const deductions = INHERITANCE_GIFT_2026.inheritanceLumpSum + (input.spouse ? spouseInheritanceDeduction(clamp0(input.spouseAmount)) : 0);
+  const sale = clamp0(input.salePrice);
+  const years = clamp0(input.yearsAfter);
+  const scenario = (value        , feeDeduction        , cost        ) => {
+    const base = Math.max(0, value + other - deductions - feeDeduction);
+    const raw = inheritanceGiftProgressiveTax(base);
+    const inheritance = raw - filingCredit(raw);
+    const gains = capitalGainsTax({ kind: "house", sale, purchase: value, expenses: 0, holdYears: Math.max(2, years), liveYears: 0, houses: 2, exemptEligible: false, regulated: false });
+    return { value, base, inheritance, transfer: gains.total, fee: cost, total: inheritance + gains.total + cost };
+  };
+  const official = scenario(clamp0(input.official), 0, 0);
+  const appraisal = scenario(clamp0(input.appraisal), Math.min(fee, INHERITED_VALUATION.feeCap), fee);
+  return { deductions, official, appraisal, better: appraisal.total < official.total ? ("appraisal"         ) : ("official"         ), saving: Math.abs(official.total - appraisal.total) };
+}
+
+// ───────────────────────── 상속·증여 신고기한 ─────────────────────────
+// 상증법 제67조(상속세: 상속개시일이 속한 달의 말일부터 6개월, 피상속인·상속인 전원 국외 주소면 9개월), 제68조(증여세: 증여일이 속한 달의
+// 말일부터 3개월), 제69조(기한 안 신고 3% 공제), 제4조④(금전 외 증여재산을 신고기한 안에 돌려주면 처음부터 증여 아님, 그 뒤 3개월 안이면
+// 돌려준 것만 비과세). 지방세법 제20조①(상속 취득세 6개월·국외 9개월, 증여 취득세 3개월). 소득세법 제74조(피상속인 종합소득세 6개월).
+// 민법 제1019조(상속포기·한정승인: 상속을 안 날부터 3개월), 가족관계의 등록 등에 관한 법률 제84조·제85조(사망신고 1개월).
+// 국세기본법 제47조의2(무신고 가산세 20%), 제48조②2호(기한 뒤 1개월 안 신고 50%, 3개월 30%, 6개월 20% 감면), 제47조의4(납부지연 하루 0.022%).
+
+export const FILING_PENALTY = { noFiling: 0.2, daily: 0.00022, credit: 0.03 }         ;
+
+const monthEndPlus = (iso        , months        ) => {
+  const [y, m] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m + months, 0)).toISOString().slice(0, 10);
+};
+const addMonths = (iso        , months        ) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m - 1 + months + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m - 1 + months, Math.min(d, last))).toISOString().slice(0, 10);
+};
+
+                                      
+                               
+                                     
+               
+                                 
+                   
+                
+               
+                              
+                    
+ 
+
+                             
+             
+                
+              
+               
+ 
+
+export function filingDeadlines(input                     ) {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(input.date) ? input.date : "2026-01-01";
+  const steps               = [];
+  let filingDue        ;
+  if (input.kind === "inheritance") {
+    const m = input.abroad ? 9 : 6;
+    filingDue = monthEndPlus(date, m);
+    steps.push(
+      { id: "death", label: "사망신고(사망을 안 날부터 1개월)", due: addMonths(date, 1), cite: "가족관계등록법 제84조" },
+      { id: "renounce", label: "상속포기·한정승인(상속을 안 날부터 3개월)", due: addMonths(date, 3), cite: "민법 제1019조" },
+      { id: "income", label: "돌아가신 분 종합소득세 신고", due: monthEndPlus(date, 6), cite: "소득세법 제74조" },
+      { id: "acq", label: "상속 부동산 취득세 신고·납부", due: monthEndPlus(date, m), cite: "지방세법 제20조①" },
+      { id: "file", label: "상속세 신고·납부(3% 공제)", due: filingDue, cite: "상증법 제67조·제69조" },
+    );
+  } else {
+    filingDue = monthEndPlus(date, 3);
+    steps.push(
+      { id: "acq", label: "증여 부동산 취득세 신고·납부", due: monthEndPlus(date, 3), cite: "지방세법 제20조①" },
+      { id: "file", label: "증여세 신고·납부(3% 공제), 이 안에 돌려주면 증여 아님", due: filingDue, cite: "상증법 제68조·제4조④" },
+      { id: "return", label: "돌려주면 돌려준 몫만 비과세(금전 제외)", due: monthEndPlus(filingDue, 3), cite: "상증법 제4조④" },
+    );
+  }
+  steps.sort((a, b) => a.due.localeCompare(b.due));
+  const tax = clamp0(input.tax);
+  const late = Math.max(0, Math.floor(clamp0(input.lateDays)));
+  const P = FILING_PENALTY;
+  const credit = Math.floor(tax * P.credit);
+  const relief = late === 0 ? 1 : late <= 30 ? 0.5 : late <= 90 ? 0.3 : late <= 180 ? 0.2 : 0;
+  const noFiling = late === 0 ? 0 : Math.floor(tax * P.noFiling * (1 - relief));
+  const latePayment = Math.floor(tax * P.daily * late);
+  const onTime = tax - credit;
+  const pay = late === 0 ? onTime : tax + noFiling + latePayment;
+  return { steps, filingDue, credit, relief: late === 0 ? 0 : relief, noFiling, latePayment, onTime, pay, extra: pay - onTime };
 }
