@@ -116,6 +116,7 @@ https://api.oiyo.net
 - POST /v1/benefits/kr/long-term-care-copay: long-term care insurance copay by grade, home vs facility, reductions
 - POST /v1/law/kr/intake, /v1/law/kr/statutes, /v1/law/kr/professional-scope: clarify-first legal-information guide for Korean tax, accounting, labor, administrative and court/registry problems (next questions, deadlines with D-day, statute citations with law.go.kr links, free help, licensed-profession scope); not representation or advice
 - POST /v1/tax/kr/dependent-deduction, /v1/tax/kr/stock-major-shareholder: year-end dependent deduction check (age, income, living together) with tax saved per person; listed stock major shareholder test (5B KRW or 1/2/4% stake at previous year-end) and capital gains tax
+- POST /v1/labor/kr/dismissal-notice-pay, /v1/labor/kr/shutdown-allowance, /v1/benefits/kr/reduced-hours-childcare-pay, /v1/labor/kr/probation-minimum-wage, /v1/labor/kr/annual-leave-promotion: dismissal notice pay (30 days of ordinary wage), shutdown allowance (70% of average wage), 2026 reduced-hours childcare benefit (caps 2.5M/1.6M), probation minimum wage (90% rule) and the 제61조 leave promotion schedule
 - Business routes validate against the published tool schema, refuse unknown inputs (400 invalid_input with problems[]) and return the method and a disclaimer.
 - Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 

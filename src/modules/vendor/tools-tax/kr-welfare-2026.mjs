@@ -488,3 +488,228 @@ export function longTermCareCopay(input          ) {
   const extra = clamp0(input.dailyExtra ?? 15_000) * days;
   return { kind: "facility"         , limit: covered, use: covered, covered, over: 0, rate, copay, publicShare: covered - copay, extra, total: copay + extra, facilityAllowed: input.grade !== "cognitive" };
 }
+
+// ───────────────────────── 노동권 묶음 A (2026-11-16, Gemini 이전) ─────────────────────────
+// 상시 4명 이하 사업장에 적용되는 조항은 근로기준법 시행령 별표 1: 제26조(해고예고)는 적용,
+// 제27조(서면통지)·제46조(휴업수당)·제60조·제61조(연차·사용촉진)는 적용하지 않아요.
+
+/** 주 소정근로시간 → 월 소정근로시간(유급 주휴 포함, 주 40시간 = 209시간) */
+export function monthlyPaidHours(weeklyHours        ) {
+  const w = Math.min(40, clamp0(weeklyHours));
+  const weeklyPaid = w + (w >= 15 ? w / 5 : 0);
+  return Math.round((weeklyPaid * 365) / 7 / 12);
+}
+
+// ── 해고예고수당 ──
+// 근로기준법 제26조: 30일 전에 예고하지 않으면 30일분 이상의 통상임금. 예외: 계속 근로 3개월 미만,
+// 천재·사변 등으로 사업을 계속할 수 없는 경우, 고의로 막대한 손해를 끼친 경우(시행규칙 별표). 예고가 30일보다
+// 짧으면 고용노동부는 30일분 전액을 줘야 한다고 봐요(일할 계산 아님). 해고예고수당은 해고가 정당한지와 별개예요.
+                                                                 
+                                       
+                               
+                              
+                 
+                      
+                               
+                     
+                   
+                       
+                             
+                                    
+                    
+ 
+
+export function dismissalNoticePay(input                      ) {
+  const hours = monthlyPaidHours(input.weeklyHours || 40);
+  const hourly = hours > 0 ? clamp0(input.monthlyOrdinaryWage) / hours : 0;
+  const dailyHours = Math.min(8, clamp0(input.weeklyHours || 40) / 5);
+  const daily = hourly * dailyHours;
+  const full = won(daily * 30);
+  const notice = Math.max(0, Math.floor(clamp0(input.noticeDays)));
+  let reason                                                                    ;
+  if (notice >= 30) reason = "enoughNotice";
+  else if (clamp0(input.tenureMonths) < 3) reason = "shortTenure";
+  else if (input.exception !== "none") reason = input.exception;
+  else reason = "due";
+  return {
+    hourly: won(hourly),
+    daily: won(daily),
+    full,
+    amount: reason === "due" ? full : 0,
+    reason,
+    missingDays: Math.max(0, 30 - notice),
+    writtenNoticeRequired: input.fivePlus,
+    remedyWindowMonths: input.fivePlus ? 3 : 0,
+  };
+}
+
+// ── 휴업수당 ──
+// 근로기준법 제46조: 회사 사정(귀책사유)으로 쉬면 평균임금의 70% 이상. 70%가 통상임금보다 많으면 통상임금을 줄 수 있어요.
+// 부득이한 사유로 노동위원회 승인을 받으면 기준보다 적게 줄 수 있어요(제46조②). 쉬는 동안 일부 일하고 받은 임금이 있으면
+// 평균임금에서 그 임금을 뺀 금액의 70%(통상임금으로 줄 때는 통상임금에서 뺀 금액, 시행령 제26조).
+                                   
+                                 
+                          
+                               
+                       
+               
+                              
+                            
+                       
+                            
+                             
+                        
+                             
+                    
+ 
+
+export function shutdownAllowance(input                  ) {
+  const avgDaily = averageDailyWage(clamp0(input.threeMonthWages), input.calendarDays > 0 ? input.calendarDays : 92);
+  const days = Math.max(0, Math.round(clamp0(input.shutdownDays)));
+  const ordinaryDaily = (clamp0(input.monthlyOrdinaryWage) * 12) / 365;
+  const paid = clamp0(input.paidDuringShutdown);
+  const avgTotal = avgDaily * days;
+  const ordinaryTotal = ordinaryDaily * days;
+  const seventy = Math.max(0, (avgTotal - paid) * 0.7);
+  const ordinaryAlt = Math.max(0, ordinaryTotal - paid);
+  const useOrdinary = avgTotal * 0.7 > ordinaryTotal;
+  const minimum = won(useOrdinary ? ordinaryAlt : seventy);
+  return {
+    avgDaily: won(avgDaily),
+    ordinaryDaily: won(ordinaryDaily),
+    days,
+    seventy: won(seventy),
+    ordinaryAlt: won(ordinaryAlt),
+    useOrdinary,
+    /** 법이 정한 최소 휴업수당(승인 감액·5명 미만이면 0) */
+    minimum: input.fivePlus && !input.approvedReduction ? minimum : 0,
+    statutory: minimum,
+    applies: input.fivePlus,
+    lostVsNormal: won(Math.max(0, avgTotal - paid - (input.fivePlus && !input.approvedReduction ? minimum : 0))),
+  };
+}
+
+// ── 육아기 근로시간 단축 급여 ──
+// 고용보험법 제73조의2, 시행령 제104조의2(2025-12 개정, 2026 상한 250만·160만 원), 남녀고용평등법 제19조의2
+// (만 12세 이하·초6 이하 자녀, 단축 후 주 15~35시간, 1년 + 쓰지 않은 육아휴직의 2배, 1개월 단위로 나눠 쓰기).
+// 매주 처음 10시간 단축분: 통상임금 100%(기준액 상한 250만·하한 50만) × 10 ÷ 단축 전 시간.
+// 나머지 단축분: 통상임금 80%(상한 160만·하한 50만) × (단축 전 − 단축 후 − 10) ÷ 단축 전 시간.
+export const REDUCED_HOURS_2026 = { firstHours: 10, capFirst: 2_500_000, capRest: 1_600_000, floor: 500_000, restRate: 0.8, minAfter: 15, maxAfter: 35 }         ;
+                                    
+                              
+                      
+                     
+ 
+
+export function reducedHoursPay(input                   ) {
+  const R = REDUCED_HOURS_2026;
+  const before = Math.max(1, Math.min(40, clamp0(input.beforeHours) || 40));
+  const after = Math.max(0, Math.min(before, clamp0(input.afterHours)));
+  const cut = before - after;
+  const firstCut = Math.min(R.firstHours, cut);
+  const restCut = Math.max(0, cut - R.firstHours);
+  const wage = clamp0(input.monthlyOrdinaryWage);
+  const baseFirst = Math.min(R.capFirst, Math.max(R.floor, wage));
+  const baseRest = Math.min(R.capRest, Math.max(R.floor, wage * R.restRate));
+  const first = won((baseFirst * firstCut) / before);
+  const rest = won((baseRest * restCut) / before);
+  const benefit = first + rest;
+  const companyPay = won((wage * after) / before);
+  return {
+    before,
+    after,
+    cut,
+    firstCut,
+    restCut,
+    first,
+    rest,
+    benefit,
+    companyPay,
+    total: companyPay + benefit,
+    loss: Math.max(0, wage - companyPay - benefit),
+    valid: after >= R.minAfter && after <= R.maxAfter && cut > 0,
+    cappedFirst: wage > R.capFirst,
+    cappedRest: wage * R.restRate > R.capRest,
+  };
+}
+
+// ── 수습 최저임금 ──
+// 최저임금법 제5조②, 시행령 제3조: 1년 이상 근로계약(기간을 정하지 않은 계약 포함)으로 수습 중이면
+// 수습 시작 뒤 3개월까지 최저임금의 90%를 줄 수 있어요. 단순노무직종(고용노동부 고시)은 감액할 수 없어요.
+                                 
+                     
+                                     
+                         
+                               
+                              
+                       
+                             
+                        
+ 
+
+export function probationMinWage(input                ) {
+  const longContract = input.contractMonths === 0 || clamp0(input.contractMonths) >= 12;
+  const inWindow = clamp0(input.monthsIntoProbation) < 3;
+  const reducible = longContract && inWindow && !input.simpleLabor;
+  const minimum = reducible ? Math.round(MIN_WAGE_2026 * 0.9) : MIN_WAGE_2026;
+  const hours = input.monthlyHours && input.monthlyHours > 0 ? input.monthlyHours : 209;
+  const shortHourly = Math.max(0, minimum - clamp0(input.hourlyWage));
+  return {
+    minimum,
+    reducible,
+    why: !longContract ? "shortContract"          : input.simpleLabor ? "simpleLabor"          : !inWindow ? "afterThreeMonths"          : "reduced"         ,
+    ok: shortHourly === 0,
+    shortHourly,
+    shortMonthly: won(shortHourly * hours),
+    monthlyMinimum: won(minimum * hours),
+  };
+}
+
+// ── 연차 사용촉진 날짜 ──
+// 근로기준법 제61조①(1년 이상 근무자의 연차): 사용기간이 끝나기 6개월 전을 기준으로 10일 안에 남은 일수를 알리고
+// 서면으로 촉구 → 근로자가 10일 안에 사용 시기를 안 정하면 끝나기 2개월 전까지 회사가 시기를 정해 서면 통보.
+// 제61조②(1년 미만 근로자의 월 단위 연차): 최초 1년이 끝나기 3개월 전 기준 10일 안 촉구(촉구 뒤 생긴 휴가는
+// 1개월 전 기준 5일 안), 회사 지정 통보는 1개월 전까지(촉구 뒤 생긴 휴가는 10일 전까지).
+// 이 절차를 지키면 남은 연차의 수당을 주지 않아도 돼요(제61조 본문).
+                                                        
+                                
+             
+                
+                
+              
+                            
+ 
+
+const isoAdd = (iso        , { months = 0, days = 0 }                                    ) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  const base = new Date(Date.UTC(y, m - 1 + months, 1));
+  const last = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0)).getUTCDate();
+  base.setUTCDate(Math.min(d, last) + days);
+  return base.toISOString().slice(0, 10);
+};
+
+/** periodEnd: 연차를 쓸 수 있는 마지막 날(예: 회계연도 12-31, 입사 1년 되는 날의 전날) */
+export function leavePromotionSchedule(kind                    , periodEnd        )                  {
+  const endEx = isoAdd(periodEnd, { days: 1 }); // 기간이 끝나는 순간(다음 날 0시)
+  if (kind === "annual") {
+    const first = isoAdd(endEx, { months: -6 });
+    const firstDue = isoAdd(first, { days: 9 });
+    return [
+      { id: "notify", label: "회사: 남은 연차 일수 알리고 쓸 날 정하라고 서면 촉구", from: first, due: firstDue, who: "company" },
+      { id: "reply", label: "근로자: 촉구 받은 날부터 10일 안에 쓸 날 정해 통보", due: isoAdd(firstDue, { days: 10 }), who: "worker" },
+      { id: "assign", label: "회사: 근로자가 안 정한 날을 정해 서면 통보", due: isoAdd(endEx, { months: -2, days: -1 }), who: "company" },
+      { id: "end", label: "연차 사용기간 끝", due: periodEnd, who: "worker" },
+    ];
+  }
+  const first = isoAdd(endEx, { months: -3 });
+  const firstDue = isoAdd(first, { days: 9 });
+  const late = isoAdd(endEx, { months: -1 });
+  return [
+    { id: "notify", label: "회사: 남은 연차 알리고 서면 촉구(3개월 전 기준 10일 안)", from: first, due: firstDue, who: "company" },
+    { id: "reply", label: "근로자: 10일 안에 쓸 날 정해 통보", due: isoAdd(firstDue, { days: 10 }), who: "worker" },
+    { id: "notifyLate", label: "회사: 촉구 뒤 생긴 연차 서면 촉구(1개월 전 기준 5일 안)", from: late, due: isoAdd(late, { days: 4 }), who: "company" },
+    { id: "assign", label: "회사: 안 정한 날 지정 서면 통보(1개월 전까지)", due: isoAdd(endEx, { months: -1, days: -1 }), who: "company" },
+    { id: "assignLate", label: "회사: 촉구 뒤 생긴 연차 지정 통보(10일 전까지)", due: isoAdd(endEx, { days: -11 }), who: "company" },
+    { id: "end", label: "최초 1년 연차 사용기간 끝", due: periodEnd, who: "worker"          },
+  ].sort((a, b) => a.due.localeCompare(b.due))                   ;
+}

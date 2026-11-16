@@ -106,6 +106,11 @@ With developer mode enabled: Settings → Apps & Connectors → **Create** → M
 | `calculate_kr_long_term_care_copay` | Long-term care insurance copay (노인장기요양) by grade, home vs facility, 2026 limits. |
 | `check_kr_dependent_deduction` | Year-end dependent deduction (부양가족) check by age, income and living together, with tax saved per person. |
 | `calculate_kr_stock_major_shareholder_tax` | Listed stock major shareholder test (5B KRW or stake at previous year-end) and capital gains tax 20%/25%/30%. |
+| `calculate_kr_dismissal_notice_pay` | Dismissal notice pay (해고예고수당): 30 days of ordinary wage without 30 days' notice, with the 제26조 exceptions. |
+| `calculate_kr_shutdown_allowance` | Shutdown allowance (휴업수당): 70% of average wage, ordinary-wage alternative, partial-work deduction, 5+ employees. |
+| `calculate_kr_reduced_hours_childcare_pay` | Reduced hours for childcare benefit 2026: first 10 h at 100% (cap 2.5M), rest 80% (cap 1.6M). |
+| `check_kr_probation_minimum_wage` | Probation minimum wage: 90% (9,288 KRW) only for 1-year+ contracts, first 3 months, non-manual jobs. |
+| `plan_kr_annual_leave_promotion` | Annual leave use promotion (연차 사용촉진) schedule under 근로기준법 제61조. |
 | `start_kr_law_intake` | Clarify-first intake for Korean tax/accounting/labor/administrative/court problems: next questions, deadlines (D-day), statutes, free help, when to see a licensed professional. |
 | `search_kr_statutes` | Search ~80 everyday Korean statute articles with plain-Korean summaries and law.go.kr links. |
 | `get_kr_professional_scope` | Legal scope and title rules of 세무사·공인회계사·공인노무사·행정사·법무사, with a who-can-do-what matrix. |

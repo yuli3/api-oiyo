@@ -17,6 +17,7 @@ import {
 import {
   WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
   wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck, longTermCareCopay,
+  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
@@ -436,6 +437,40 @@ function majorStock(i) {
     "stock-major-shareholder-tax-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
 
+/* 노동권 묶음 A (2026-11-16) */
+function dismissalNotice(i) {
+  return welfare(dismissalNoticePay({ weeklyHours: 40, exception: "none", fivePlus: true, ...i }), "hourly = monthly ordinary wage ÷ monthly paid hours ((weekly + weekly/5) × 365/7/12, 40 h = 209); daily = hourly × min(8, weekly/5); amount = daily × 30 unless notice ≥ 30 days, service < 3 months or a 제26조 exception.",
+    ["근로기준법 제26조·제27조·제28조·제49조", "시행령 별표 1", "시행규칙 별표(해고예고 예외)"],
+    ["Ask the employer, then file an unpaid-wage petition at labor.moel.go.kr (1350); claims expire after 3 years", "Notice pay does not make the dismissal lawful; with 5+ employees file an unfair-dismissal remedy at the regional Labor Relations Commission within 3 months", "Free legal aid: 132"],
+    "dismissal-notice-pay-calculator");
+}
+function shutdown(i) {
+  return welfare(shutdownAllowance({ calendarDays: 92, paidDuringShutdown: 0, approvedReduction: false, fivePlus: true, ...i }), "avgDaily = 3-month wages ÷ calendar days; 70% option = (avgDaily × days − paid) × 0.7; ordinary option = ordinary daily (monthly × 12 ÷ 365) × days − paid, allowed only when 70% of average wage exceeds the ordinary wage; minimum = 0 with commission approval or under 5 employees.",
+    ["근로기준법 제2조·제46조·제49조", "시행령 제26조·별표 1"],
+    ["Paid on the regular payday; unpaid allowance is unpaid wages (labor.moel.go.kr, 1350)", "Employers can apply for employment retention support (고용유지지원금) at work24.go.kr", "Handling of weekly paid holidays during a shutdown can differ; confirm with 1350"],
+    "shutdown-allowance-calculator");
+}
+function reducedHours(i) {
+  return welfare(reducedHoursPay({ beforeHours: 40, ...i }), "first = clamp(wage, 0.5M, 2.5M) × min(10, cut) ÷ before; rest = clamp(wage × 0.8, 0.5M, 1.6M) × max(0, cut − 10) ÷ before; employer pay = wage × after ÷ before; valid only for 15-35 hours after.",
+    ["고용보험법 제73조의2", "시행령 제104조의2(2026 상한 250만·160만 원)", "남녀고용평등법 제19조의2~제19조의4"],
+    ["Child aged 12 or under (grade 6 or lower); 180+ insured days", "Ask the employer 30 days before; 1 year plus twice the unused parental leave (up to 3 years), in units of 1 month or more", "Apply at work24.go.kr from 1 month after the start, within 12 months after the end"],
+    "reduced-hours-childcare-pay-calculator");
+}
+function probation(i) {
+  return welfare(probationMinWage(i), "minimum = 10,320 × 0.9 = 9,288 KRW when contract ≥ 12 months or open-ended AND fewer than 3 months into probation AND not a simple manual job; otherwise 10,320. Shortfall = max(0, minimum − hourly) × monthly hours.",
+    ["최저임금법 제5조②·제28조", "시행령 제3조", "고용노동부고시(단순노무업무)", "2026 최저임금 10,320원"],
+    ["Ask the employer for the difference, then file a petition at labor.moel.go.kr (1350); claims expire after 3 years", "After 3 months of service, dismissal still needs 30 days' notice or notice pay (근로기준법 제26조)"],
+    "probation-minimum-wage-checker");
+}
+function leavePromotion(i) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(i.periodEnd ?? "") || Number.isNaN(Date.parse(i.periodEnd))) throw new InputError(["periodEnd: a date YYYY-MM-DD"]);
+  const steps = leavePromotionSchedule(i.kind, i.periodEnd);
+  return welfare({ kind: i.kind, periodEnd: i.periodEnd, steps }, "Dates follow the wording of 제61조: the period ends at the end of periodEnd; 'N months before' counts back from the next day; 'within 10 days' includes the first day; 'by N months before' is the day before that point.",
+    ["근로기준법 제60조·제61조", "시행령 별표 1"],
+    ["Prompts and designations must be written and individual (e-mail or e-approval counts; group notices may not)", "If the worker comes to work on a designated day, the employer must clearly refuse the work, or leave pay is still owed", "If any step is missing, unused leave can be claimed as pay within 3 years"],
+    "annual-leave-promotion-planner");
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -516,6 +551,11 @@ const HANDLERS = {
   "/v1/benefits/kr/long-term-care-copay": longTermCare,
   "/v1/tax/kr/dependent-deduction": dependents,
   "/v1/tax/kr/stock-major-shareholder": majorStock,
+  "/v1/labor/kr/dismissal-notice-pay": dismissalNotice,
+  "/v1/labor/kr/shutdown-allowance": shutdown,
+  "/v1/benefits/kr/reduced-hours-childcare-pay": reducedHours,
+  "/v1/labor/kr/probation-minimum-wage": probation,
+  "/v1/labor/kr/annual-leave-promotion": leavePromotion,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,

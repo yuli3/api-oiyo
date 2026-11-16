@@ -89,3 +89,19 @@ test("부양가족 공제 판정과 대주주 양도세 (4차)", async () => {
   assert.equal(n.body.result.isMajor, false);
   assert.equal(n.body.result.total, 0);
 });
+
+test("노동권 묶음 A: 해고예고·휴업·육아기 단축·수습·연차 촉진", async () => {
+  const d = await call("/v1/labor/kr/dismissal-notice-pay", { monthlyOrdinaryWage: 2090000, noticeDays: 10, tenureMonths: 12 });
+  assert.equal(d.status, 200);
+  assert.equal(d.body.result.amount, 2400000);
+  const s = await call("/v1/labor/kr/shutdown-allowance", { threeMonthWages: 9200000, monthlyOrdinaryWage: 3650000, shutdownDays: 10 });
+  assert.equal(s.body.result.minimum, 700000);
+  const r = await call("/v1/benefits/kr/reduced-hours-childcare-pay", { monthlyOrdinaryWage: 3000000, afterHours: 20 });
+  assert.equal(r.body.result.benefit, 1025000);
+  const p = await call("/v1/labor/kr/probation-minimum-wage", { hourlyWage: 9300, contractMonths: 6, monthsIntoProbation: 1, simpleLabor: false });
+  assert.equal(p.body.result.minimum, 10320);
+  const l = await call("/v1/labor/kr/annual-leave-promotion", { kind: "annual", periodEnd: "2026-12-31" });
+  assert.equal(l.status, 200);
+  assert.deepEqual(l.body.result.steps.map((x) => x.due), ["2026-07-10", "2026-07-20", "2026-10-31", "2026-12-31"]);
+  assert.equal((await call("/v1/labor/kr/annual-leave-promotion", { kind: "annual", periodEnd: "2026-13-45" })).status, 400);
+});
