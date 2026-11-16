@@ -17,7 +17,7 @@ import {
 import {
   WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
   wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck, longTermCareCopay,
-  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck,
+  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck, youthRentSupport, housingLoanBest,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare, officetelHouseCount, ticketPresaleTax, inheritedValuation, filingDeadlines } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
@@ -570,6 +570,19 @@ function filingDeadline(i) {
     "inheritance-gift-filing-deadline-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
 
+function youthRent(i) {
+  return welfare(youthRentSupport(i), "youthLine = 2026 median income (youth household size) × 60%; parentLine = median (parents' household size) × 100%, skipped from age 30 or when exempt; rent ≤ 600k, or rent + deposit × 2.5% ÷ 12 ≤ 700k; deposit ≤ 50M; monthly = min(200k, rent) − housing benefit; total = monthly × 24.",
+    ["국토교통부 청년월세 지원 (2026 계속사업)", "2026년 기준 중위소득 (보건복지부 고시)"],
+    ["Apply on Bokjiro or at the local community center during the announced intake (2026: 30 Mar to 29 May)", "Bring the lease, rent transfer records and family relation certificate", "Local rent programs (Seoul, Incheon, etc.) cannot be received at the same time"],
+    "youth-monthly-rent-support-checker");
+}
+function policyLoans(i) {
+  return welfare(housingLoanBest(i), "Each product checks its 2026 income, net-asset (buy 511M, jeonse 345M), price or deposit and area (85㎡) limits; maxLoan = min(product cap, price × LTV 70% (80% first-time outside the capital region) or deposit × 70%/80%, or rent × 24 up to 600k). Rates are the published ranges; banks set the final rate and limit (LTV, DTI 60%, credit).",
+    ["주택도시기금 기금e든든 상품 안내 2026", "2025-06-27 가계부채 관리 방안 (기금 한도 축소)"],
+    ["Check eligibility and apply online at nhuf.molit.go.kr, then the trustee bank reviews", "Jeonse loans: apply before the balance date; purchase loans: within 3 months of registration", "An electronic real estate contract lowers the 버팀목 rate by 0.1%p"],
+    "policy-housing-loan-eligibility-checker");
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -670,6 +683,8 @@ const HANDLERS = {
   "/v1/tax/kr/ticket-vs-presale": ticketPresale,
   "/v1/tax/kr/inherited-house-valuation": inheritedHouse,
   "/v1/tax/kr/inheritance-gift-filing-deadline": filingDeadline,
+  "/v1/benefits/kr/youth-rent-support": youthRent,
+  "/v1/benefits/kr/policy-housing-loans": policyLoans,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,

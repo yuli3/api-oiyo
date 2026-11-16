@@ -84,6 +84,8 @@ const fixtures = {
   compare_kr_ticket_vs_presale_tax: { kind: "presale", gain: 100000000, holdYears: 1.5 },
   compare_kr_inherited_house_valuation: { official: 600000000, appraisal: 900000000, otherEstate: 200000000, spouse: false, salePrice: 1000000000, yearsAfter: 1 },
   plan_kr_inheritance_gift_filing_deadline: { kind: "gift", date: "2026-11-16", tax: 10000000 },
+  check_kr_youth_rent_support: { age: 27, livesApart: true, ownsHome: false, youthIncome: 1400000, youthAssets: 30000000, parentIncome: 5000000, parentAssets: 300000000, deposit: 10000000, rent: 550000 },
+  find_kr_policy_housing_loans: { purpose: "jeonse", age: 28, income: 40000000, netAssets: 50000000, newlywed: false, children: 0, newbornWithin2y: false, firstTimeBuyer: true, metro: true, amount: 200000000 },
   get_kr_professional_scope: { domain: "labor" },
   start_kr_law_intake: { situation: "회사에서 문자로 해고 통보를 받았어요", answers: { size: "5plus", dismissDate: "2026-10-30" }, today: "2026-11-16" },
   search_kr_statutes: { query: "경정청구" },

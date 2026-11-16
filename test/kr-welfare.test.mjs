@@ -172,3 +172,12 @@ test("오피스텔·입주권 vs 분양권·상속주택 평가·신고기한", 
   assert.equal(f.body.result.filingDue, "2026-09-30");
   assert.equal(f.body.result.extra, 13440000);
 });
+
+test("청년월세·정책 주거대출", async () => {
+  const y = await call("/v1/benefits/kr/youth-rent-support", { age: 27, livesApart: true, ownsHome: false, youthIncome: 1400000, youthAssets: 30000000, parentIncome: 5000000, parentHousehold: 3, parentAssets: 300000000, deposit: 10000000, rent: 550000 });
+  assert.equal(y.status, 200);
+  assert.equal(y.body.result.total, 4800000);
+  const l = await call("/v1/benefits/kr/policy-housing-loans", { purpose: "jeonse", age: 28, income: 40000000, netAssets: 50000000, newlywed: false, children: 0, newbornWithin2y: false, firstTimeBuyer: true, metro: true, amount: 200000000, areaM2: 40 });
+  assert.equal(l.body.result.best, "youthBeotimmok");
+  assert.equal((await call("/v1/benefits/kr/policy-housing-loans", { purpose: "rent" })).status, 400);
+});
