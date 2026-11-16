@@ -2,7 +2,7 @@
 // 집안 세금 판단 2종 (2026-11-16, Gemini 공익 도구 인수 4차): 부양가족 기본공제 판정과 상장주식 대주주 양도소득세.
 // 연말정산 공식은 kr-year-end-2026.ts의 settleYearEnd를 그대로 불러 "넣을 때와 뺄 때"를 비교해요.
 // 화면 components/tools/welfare/, Claude 스킬·MCP는 이 파일을 복사해 써요(drift 테스트).
-import { earnedIncomeDeduction, RATES, pensionBaseLimits } from "./kr-payroll-2026.mjs";
+import { earnedIncomeDeduction, filingCredit, inheritanceGiftProgressiveTax, RATES, pensionBaseLimits } from "./kr-payroll-2026.mjs";
 import { ADDITIONAL, CHILD_CREDIT, settleYearEnd } from "./kr-year-end-2026.mjs";
 
 export const HOUSEHOLD_TAX_AS_OF = "2026-11-16";
@@ -274,5 +274,242 @@ export function majorShareholderTax(input                       ) {
     ifMajor,
     /** 연말 보유가 50억 미만이 되려면 줄여야 하는 금액(시가 기준, 지분율 요건은 별도) */
     cutToAvoid: Math.max(0, value - M.valueLine + 1),
+  };
+}
+
+// ───────────────────────── 가족 사이 돈·집 거래 (Gemini 이전 B, 2026-11-16) ─────────────────────────
+// 상속세 및 증여세법 제41조의4(금전 무상·저리 대출: 적정이자율 연 4.6%[시행규칙 제10조의5]로 계산한 이자와
+// 실제 이자의 차이가 연 1천만 원 이상이면 그 차이를 증여, 기간이 없으면 1년, 1년 넘으면 해마다 새로 계산),
+// 제37조①(부동산 무상사용: 부동산가액 × 연 2%[시행규칙 제10조②]를 5년치 연 10%로 할인해 합친 금액이
+// 1억 원 이상이면 증여, 소유자와 함께 사는 주택은 제외), 제37조②(부동산 무상 담보: 차입금 × 4.6% − 낸 이자가
+// 1천만 원 이상이면 증여), 제35조①(특수관계인 저가 양수: 시가 − 대가가 min(시가 30%, 3억) 이상이면 그 차액에서
+// 기준금액을 뺀 만큼 증여), 소득세법 제101조①·시행령 제167조③(부당행위계산: 시가 − 거래가가 3억 이상이거나
+// 시가 5% 이상이면 양도가액을 시가로 봐요). 증여세는 제53조 공제(성년 자녀 10년 5천만 원)와 신고세액공제 3%를 반영해요.
+
+export const FAMILY_2026 = {
+  fairRate: 0.046,
+  loanThreshold: 10_000_000,
+  useRate: 0.02,
+  useYears: 5,
+  discount: 0.1,
+  useThreshold: 100_000_000,
+  collateralThreshold: 10_000_000,
+  lowPriceRate: 0.3,
+  lowPriceCap: 300_000_000,
+  transferRate: 0.05,
+  transferCap: 300_000_000,
+  /** 비영업대금 이익 원천징수 25% + 지방소득세 2.5% */
+  lenderWithholding: 0.275,
+  childDeduction: 50_000_000,
+}         ;
+
+/** 5년, 연 10% 할인 연금현가계수(상증법 시행령 제27조③) ≈ 3.7908 */
+export const FREE_USE_FACTOR = Array.from({ length: FAMILY_2026.useYears }, (_, n) => 1 / (1 + FAMILY_2026.discount) ** (n + 1)).reduce((a, b) => a + b, 0);
+
+/** 증여재산공제 남은 금액을 빼고 누진세율·신고세액공제 3%를 적용한 증여세 */
+export function simpleGiftTax(gift        , deductionLeft         = FAMILY_2026.childDeduction) {
+  const base = Math.max(0, clamp0(gift) - clamp0(deductionLeft));
+  const raw = inheritanceGiftProgressiveTax(base);
+  return Math.max(0, raw - filingCredit(raw));
+}
+
+                                  
+                 
+                    
+                               
+               
+                                                             
+                         
+ 
+
+export function familyLoanGift(input                 ) {
+  const F = FAMILY_2026;
+  const principal = clamp0(input.principal);
+  const rate = Math.min(F.fairRate, clamp0(input.rate));
+  const fairInterest = Math.floor(principal * F.fairRate);
+  const actualInterest = Math.floor(principal * clamp0(input.rate));
+  const benefit = Math.max(0, fairInterest - actualInterest);
+  const taxable = benefit >= F.loanThreshold;
+  const gift = taxable ? benefit : 0;
+  const giftTax = simpleGiftTax(gift, input.deductionLeft ?? F.childDeduction);
+  // 이자가 0%여도 증여가 아닌 최대 원금(이익 1천만 원 미만)
+  const zeroRateMaxPrincipal = Math.ceil(F.loanThreshold / F.fairRate) - 1;
+  // 이 원금에서 증여가 되지 않는 가장 낮은 이자율(이 이율보다 조금이라도 높으면 안전)
+  const safeRate = principal > 0 ? Math.max(0, F.fairRate - F.loanThreshold / principal) : 0;
+  return {
+    principal,
+    fairInterest,
+    actualInterest,
+    benefit,
+    taxable,
+    gift,
+    giftTax,
+    /** 빌려준 사람이 받은 이자에 대해 내는 원천세(27.5%) */
+    lenderTax: Math.floor(actualInterest * F.lenderWithholding),
+    zeroRateMaxPrincipal,
+    safeRate,
+    capped: rate >= F.fairRate,
+  };
+}
+
+                               
+                                
+                        
+                                              
+                       
+                                    
+                          
+                         
+                              
+                         
+ 
+
+export function freeUseGift(input              ) {
+  const F = FAMILY_2026;
+  const value = clamp0(input.propertyValue);
+  const annual = Math.floor(value * F.useRate);
+  const fiveYear = Math.floor(value * F.useRate * FREE_USE_FACTOR);
+  const useTaxable = !input.coResiding && fiveYear >= F.useThreshold;
+  const useGift = useTaxable ? fiveYear : 0;
+  const loan = clamp0(input.collateralLoan);
+  const collateralBenefit = Math.max(0, Math.floor(loan * F.fairRate) - clamp0(input.collateralInterest));
+  const collateralTaxable = collateralBenefit >= F.collateralThreshold;
+  const collateralGift = collateralTaxable ? collateralBenefit : 0;
+  // 제43조: 같은 거래에 여러 규정이 걸리면 이익이 가장 큰 하나만 적용해요. 무상사용과 담보는 서로 다른 이익이라 각각 봐요.
+  const left = input.deductionLeft ?? F.childDeduction;
+  const useTax = simpleGiftTax(useGift, left);
+  const collateralTax = simpleGiftTax(collateralGift, Math.max(0, left - useGift));
+  return {
+    value,
+    annual,
+    fiveYear,
+    factor: FREE_USE_FACTOR,
+    useTaxable,
+    useGift,
+    useTax,
+    collateralBenefit,
+    collateralTaxable,
+    collateralGift,
+    collateralTax,
+    total: useTax + collateralTax,
+    /** 무상사용 이익이 1억 원이 되는 집값(이보다 싸면 무상사용 증여 없음) */
+    valueLine: Math.ceil(F.useThreshold / (F.useRate * FREE_USE_FACTOR)),
+  };
+}
+
+                                    
+                         
+                      
+                       
+                
+                         
+ 
+
+export function lowPriceSale(input                   ) {
+  const F = FAMILY_2026;
+  const mv = clamp0(input.marketValue);
+  const price = clamp0(input.price);
+  const diff = Math.max(0, mv - price);
+  const giftLine = Math.min(Math.floor(mv * F.lowPriceRate), F.lowPriceCap);
+  const giftTaxable = mv > 0 && diff > 0 && diff >= giftLine;
+  const gift = giftTaxable ? diff - giftLine : 0;
+  const giftTax = simpleGiftTax(gift, input.deductionLeft ?? F.childDeduction);
+  const transferLine = Math.min(Math.floor(mv * F.transferRate), F.transferCap);
+  const sellerRecalc = mv > 0 && diff > 0 && diff >= transferLine;
+  return {
+    marketValue: mv,
+    price,
+    diff,
+    giftLine,
+    giftTaxable,
+    gift,
+    giftTax,
+    transferLine,
+    sellerRecalc,
+    /** 판 사람 양도세를 다시 계산할 때 양도가액(시가) */
+    sellerPrice: sellerRecalc ? mv : price,
+    /** 이 값보다 비싸게 사면 사는 사람 증여세가 없어요 */
+    noGiftAbove: mv - giftLine,
+    /** 이 값보다 비싸게 팔면 파는 사람 양도세를 시가로 다시 계산하지 않아요 */
+    noRecalcAbove: mv - transferLine,
+  };
+}
+
+// ───────────────────────── 상가 임대료 인상 5% 상한 ─────────────────────────
+// 상가건물 임대차보호법 제2조·시행령 제2조(환산보증금 = 보증금 + 월세 × 100, 서울 9억·과밀억제권역과 부산 6억9천만·
+// 광역시 등 5억4천만·그 밖 3억7천만 원 이하만 증액 상한 적용), 제11조·시행령 제4조(증액은 청구 당시 차임·보증금의 5% 이하,
+// 증액 뒤 1년 안에는 다시 못 올림), 제12조·시행령 제5조(보증금을 월세로 바꿀 때 연 12%와 기준금리 × 4.5 중 낮은 비율),
+// 제10조의2(기준을 넘어도 계약갱신요구권 10년·대항력·권리금 보호는 적용, 5% 상한은 미적용).
+
+export const COMMERCIAL_LEASE = {
+  multiplier: 100,
+  limit: { seoul: 900_000_000, overcrowded: 690_000_000, metro: 540_000_000, other: 370_000_000 },
+  increaseCap: 0.05,
+  minMonths: 12,
+  conversionCap: 0.12,
+  baseRateMultiple: 4.5,
+  /** 2026-10 금통위 동결 기준금리(사용자가 바꿀 수 있어요) */
+  baseRate: 0.03,
+}         ;
+                                                              
+export const LEASE_REGION_LABEL                              = {
+  seoul: "서울",
+  overcrowded: "과밀억제권역(서울 밖)·부산",
+  metro: "광역시·세종·파주·화성·안산·용인·김포·광주(경기)",
+  other: "그 밖의 지역",
+};
+
+                                      
+                      
+                  
+                      
+                     
+                         
+                                   
+                          
+                       
+                    
+ 
+
+export function commercialRentCheck(input                     ) {
+  const C = COMMERCIAL_LEASE;
+  const deposit = clamp0(input.deposit);
+  const rent = clamp0(input.monthlyRent);
+  const newDeposit = clamp0(input.newDeposit);
+  const newRent = clamp0(input.newMonthlyRent);
+  const converted = deposit + rent * C.multiplier;
+  const limit = C.limit[input.region];
+  const covered = converted <= limit;
+  const conversionRate = Math.min(C.conversionCap, clamp0(input.baseRate ?? C.baseRate) * C.baseRateMultiple);
+  const maxDeposit = Math.floor(deposit * (1 + C.increaseCap));
+  // 보증금을 줄이고 월세로 돌린 몫은 증액이 아니라 전환이라, 그만큼(전환율 상한) 월세 상한에 더해요.
+  const convertedRent = Math.floor((Math.max(0, deposit - newDeposit) * conversionRate) / 12);
+  const maxRent = Math.floor(rent * (1 + C.increaseCap)) + convertedRent;
+  const depositOk = newDeposit <= maxDeposit;
+  const rentOk = newRent <= maxRent;
+  const tooSoon = clamp0(input.monthsSinceLast) < C.minMonths;
+  const increased = newDeposit > deposit || newRent > rent;
+  // 전환율로 보증금과 월세를 하나로 합쳐 본 실질 인상률(참고용)
+  const asDeposit = (d        , r        ) => d + (conversionRate > 0 ? (r * 12) / conversionRate : 0);
+  const before = asDeposit(deposit, rent);
+  const combinedRate = before > 0 ? asDeposit(newDeposit, newRent) / before - 1 : 0;
+  const verdict                                           = !covered ? "notCovered" : increased && tooSoon ? "tooSoon" : depositOk && rentOk ? "ok" : "over";
+  return {
+    converted,
+    limit,
+    covered,
+    conversionRate,
+    maxDeposit,
+    maxRent,
+    convertedRent,
+    depositOk,
+    rentOk,
+    tooSoon,
+    increased,
+    combinedRate,
+    verdict,
+    /** 상한을 넘는 월세(달마다) */
+    rentExcess: Math.max(0, newRent - maxRent),
+    depositExcess: Math.max(0, newDeposit - maxDeposit),
   };
 }
