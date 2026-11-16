@@ -19,6 +19,7 @@ import {
   wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck, longTermCareCopay,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
+import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 
 export const BIZ_DISCLAIMER =
@@ -421,6 +422,18 @@ function longTermCare(i) {
     ["Apply for long-term care recognition at 국민건강보험공단 (1577-1000): 65+, or under 65 with a geriatric disease", "Assessment visit and doctor's note; a grade is issued in about 30 days", "Grades 3-5 need committee approval for facility care; the cognitive grade cannot use facilities"],
     "long-term-care-copay-calculator");
 }
+function dependents(i) {
+  return { ...welfare(dependentsTax(i), "Each person: age rule by relation (disabled or basic-livelihood: any age), income test (wage only: total pay ≤ 5M; otherwise wage − earned income deduction + other income amount ≤ 1M), living together for siblings/grandchildren/foster children, no double claims. Tax with and without = year-end settlement (basic deductions 1.5M each, 70+ 1M, disabled 2M, single parent 1M / woman head 0.5M, child tax credit, estimated social insurance, no other deductions) incl. local income tax; perPerson = tax saved when that person is added last.",
+    ["소득세법 제50조·제51조·제53조·제59조의2", "소득세법 시행령 제106조"],
+    ["Claim in the January-February year-end settlement; ask family members for consent to share 홈택스 data", "Working couples: one person per dependant, usually the higher-rate earner", "Missed a dependant: file a correction claim (경정청구) within 5 years"],
+    "dependent-deduction-checker"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
+function majorStock(i) {
+  return { ...welfare(majorShareholderTax(i), "Major if value at previous year-end ≥ 5B KRW or stake ≥ 1% / 2% / 4% (KOSPI / KOSDAQ / KONEX). Base = gain − 2.5M basic deduction; tax = base × 20% up to 300M + 25% above (non-SME under 1 year: 30% flat); + 10% local income tax. ifMajor = the tax if the seller were major; cutToAvoid = value to sell before year-end to fall under 5B (stake rule separate).",
+    ["소득세법 제94조①3호·제103조·제104조①11호", "소득세법 시행령 제157조"],
+    ["Preliminary return within 2 months after the end of the half-year of the sale (Jan-Jun sales: end of August; Jul-Dec: end of February)", "Final return in May of the next year", "Largest shareholders include related parties (spouse, lineal relatives) when testing the 5B line"],
+    "stock-major-shareholder-tax-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
+}
 
 const HANDLERS = {
   "/v1/biz/decision-tree": decisionTree,
@@ -450,6 +463,8 @@ const HANDLERS = {
   "/v1/tax/kr/comprehensive-real-estate-tax": cre,
   "/v1/tax/kr/housing-rental-income-tax": rentalTax,
   "/v1/benefits/kr/long-term-care-copay": longTermCare,
+  "/v1/tax/kr/dependent-deduction": dependents,
+  "/v1/tax/kr/stock-major-shareholder": majorStock,
 };
 
 export function calculateBiz(path, raw, coerce = false) {

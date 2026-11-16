@@ -63,6 +63,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kr_comprehensive_real_estate_tax: `${TOOLS}comprehensive-real-estate-tax-calculator/`,
   calculate_kr_housing_rental_income_tax: `${TOOLS}housing-rental-income-tax-calculator/`,
   calculate_kr_long_term_care_copay: `${TOOLS}long-term-care-copay-calculator/`,
+  check_kr_dependent_deduction: `${TOOLS}dependent-deduction-checker/`,
+  calculate_kr_stock_major_shareholder_tax: `${TOOLS}stock-major-shareholder-tax-calculator/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.

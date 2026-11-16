@@ -69,3 +69,23 @@ test("노인장기요양 본인부담 (3차)", async () => {
   assert.equal(f.body.result.total, 558420 + 450000);
   assert.equal((await call("/v1/benefits/kr/long-term-care-copay", { grade: "6", kind: "home", reduction: "none" })).status, 400);
 });
+
+test("부양가족 공제 판정과 대주주 양도세 (4차)", async () => {
+  const d = await call("/v1/tax/kr/dependent-deduction", { salary: 50000000, married: true, people: [
+    { relation: "spouse", birthYear: 1990, wage: 5000000 },
+    { relation: "child", birthYear: 2015 },
+    { relation: "parent", birthYear: 1967 },
+    { relation: "sibling", birthYear: 2010, livingTogether: false },
+  ] });
+  assert.equal(d.status, 200);
+  assert.deepEqual(d.body.result.verdicts.map((v) => v.status), ["ok", "ok", "age", "living"]);
+  assert.equal(d.body.result.creditChildren, 1);
+  assert.ok(d.body.result.saving > 0);
+  assert.equal((await call("/v1/tax/kr/dependent-deduction", { salary: 50000000, people: [{ relation: "uncle", birthYear: 1950 }] })).status, 400);
+  const m = await call("/v1/tax/kr/stock-major-shareholder", { market: "kospi", heldValue: 6000000000, gain: 500000000, overOneYear: true });
+  assert.equal(m.status, 200);
+  assert.equal(m.body.result.total, 120312500);
+  const n = await call("/v1/tax/kr/stock-major-shareholder", { market: "kosdaq", heldValue: 1000000000, heldShare: 0.01, gain: 100000000 });
+  assert.equal(n.body.result.isMajor, false);
+  assert.equal(n.body.result.total, 0);
+});

@@ -62,6 +62,8 @@ const fixtures = {
   check_kr_fixed_overtime_pay: { basePay: 2508000, fixedOtPay: 300000, overtime: 30, night: 0, holiday: 0 },
   calculate_kr_comprehensive_real_estate_tax: { prices: [1500000000], oneHouse: true },
   calculate_kr_long_term_care_copay: { grade: "3", kind: "home", reduction: "none" },
+  check_kr_dependent_deduction: { salary: 50000000, married: true, people: [{ relation: "spouse", birthYear: 1990 }, { relation: "parent", birthYear: 1950 }] },
+  calculate_kr_stock_major_shareholder_tax: { market: "kospi", heldValue: 6000000000, gain: 500000000, overOneYear: true },
   calculate_kr_housing_rental_income_tax: { houses: 2, annualRent: 12000000, deposits: 0, registered: false, otherIncome: 40000000 },
 };
 
