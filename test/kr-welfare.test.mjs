@@ -38,3 +38,25 @@ test("산재·월세·퇴직연금", async () => {
   assert.equal(p.body.result.better, "dc");
   assert.ok(p.body.result.breakEvenReturn > 0.02 && p.body.result.breakEvenReturn < 0.06);
 });
+
+test("통상임금·포괄임금 점검 (2차)", async () => {
+  const o = await call("/v1/labor/kr/ordinary-wage", { basePay: 2500000, fixedAllowances: 300000, bonusAnnual: 6000000, bonusConditional: true, overtime: 20, night: 0, holiday: 0 });
+  assert.equal(o.status, 200);
+  assert.equal(o.body.result.hourly, 15789);
+  assert.equal(o.body.result.hourlyBefore, 13397);
+  assert.ok(o.body.page.includes("ordinary-wage"));
+  const f = await call("/v1/labor/kr/fixed-overtime-check", { basePay: 2508000, fixedOtPay: 300000, overtime: 30, night: 8, holiday: 8 });
+  assert.equal(f.body.result.shortMonthly, 432000);
+  assert.equal(f.body.result.shortTotal, 432000 * 36);
+});
+
+test("종부세·주택임대소득세 (2차)", async () => {
+  const c = await call("/v1/tax/kr/comprehensive-real-estate-tax", { prices: [1500000000], oneHouse: true });
+  assert.equal(c.status, 200);
+  assert.equal(c.body.result.totalTax, 691200);
+  assert.equal((await call("/v1/tax/kr/comprehensive-real-estate-tax", { prices: [1e9, 1e9, 1e9], oneHouse: false })).body.result.rawTax, 10800000);
+  assert.equal((await call("/v1/tax/kr/comprehensive-real-estate-tax", { prices: [], oneHouse: true })).status, 400);
+  const r = await call("/v1/tax/kr/housing-rental-income-tax", { houses: 2, annualRent: 12000000, deposits: 0, registered: true, otherIncome: 50000000 });
+  assert.equal(r.body.result.separateTax, 739200);
+  assert.equal((await call("/v1/tax/kr/housing-rental-income-tax", { houses: 3, annualRent: 12000000, deposits: 800000000, registered: false, otherIncome: 10000000 })).body.result.deemed, 9300000);
+});

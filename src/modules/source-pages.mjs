@@ -58,6 +58,10 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kr_injury_leave_pay: `${TOOLS}industrial-accident-leave-pay-calculator/`,
   calculate_kr_monthly_rent_credit: `${TOOLS}monthly-rent-tax-credit-calculator/`,
   compare_kr_retirement_pension: `${TOOLS}retirement-pension-db-dc-calculator/`,
+  calculate_kr_ordinary_wage: `${TOOLS}ordinary-wage-calculator/`,
+  check_kr_fixed_overtime_pay: `${TOOLS}fixed-overtime-pay-checker/`,
+  calculate_kr_comprehensive_real_estate_tax: `${TOOLS}comprehensive-real-estate-tax-calculator/`,
+  calculate_kr_housing_rental_income_tax: `${TOOLS}housing-rental-income-tax-calculator/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.

@@ -58,6 +58,10 @@ const fixtures = {
   calculate_kr_injury_leave_pay: { avgDailyWage: 150000, days: 30 },
   calculate_kr_monthly_rent_credit: { income: 50000000, incomeType: "wage", monthlyRent: 600000, months: 12 },
   compare_kr_retirement_pension: { monthlyWage: 4000000, yearsServed: 5, yearsLeft: 20, wageGrowth: 0.03, dcReturn: 0.04 },
+  calculate_kr_ordinary_wage: { basePay: 2500000, fixedAllowances: 300000, bonusAnnual: 6000000, bonusConditional: true, overtime: 20, night: 0, holiday: 0 },
+  check_kr_fixed_overtime_pay: { basePay: 2508000, fixedOtPay: 300000, overtime: 30, night: 0, holiday: 0 },
+  calculate_kr_comprehensive_real_estate_tax: { prices: [1500000000], oneHouse: true },
+  calculate_kr_housing_rental_income_tax: { houses: 2, annualRent: 12000000, deposits: 0, registered: false, otherIncome: 40000000 },
 };
 
 function rpcRequest(method, params = {}, headers = {}) {
