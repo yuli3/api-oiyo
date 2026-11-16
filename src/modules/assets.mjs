@@ -111,6 +111,7 @@ https://api.oiyo.net
 - POST /v1/biz/priorities: RICE ranking or weighted decision matrix with weight flips
 - GET /v1/tax/kr/business-calendar?year=...&entity=corp|indiv&vat=general|simple|exempt&employer=...: Korean business filing calendar with holiday-shifted due dates and must-do checklist
 - POST /v1/biz/campaign-supply, /influencer-deal, /quality-recovery, /alternative-materials, /big-order, /market-test, /sales-rebates, /acquisition: operating problems (campaign stockout, creator deal ROAS and withholding, recall scope and stock allocation, material switch, big order vs commitments, A/B and market entry, rebate and related-party check, acquisition EPS and payback)
+- POST /v1/benefits/kr/work-child-incentive, /v1/benefits/kr/maternity-leave-pay, /v1/labor/kr/wage-guarantee, /v1/labor/kr/injury-leave-pay, /v1/tax/kr/monthly-rent-credit, /v1/labor/kr/retirement-pension-db-dc: Korean benefits and labor rights (EITC/CTC, maternity and spouse leave pay, unpaid-wage guarantee, industrial accident leave pay, monthly rent credit, DB vs DC pension) with where and when to apply
 - Business routes validate against the published tool schema, refuse unknown inputs (400 invalid_input with problems[]) and return the method and a disclaimer.
 - Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 

@@ -52,6 +52,12 @@ const fixtures = {
   analyze_market_test: { baseline: 0.05, lift: 0.2, convA: 100, nA: 2000, convB: 140, nB: 2000 },
   check_sales_rebates: { tiers: [{ from: 0, rate: 0.01 }, { from: 100000000, rate: 0.03 }], partners: [{ name: "D1", sales: 60000000, group: "G", related: true, paid: 1800000 }, { name: "E", sales: 80000000, paid: 800000 }], aggregateGroups: false, armsLengthCheck: true },
   evaluate_acquisition: { price: 10000, targetNetIncome: 1000, acquirerNetIncome: 5000, acquirerShares: 1000, sharePrice: 50, stockPortion: 1, debtRate: 0.05, taxRate: 0.2, synergy: 0, rampYears: 1, integrationCost: 0, years: 12 },
+  calculate_kr_work_child_incentive: { household: "oneEarner", income: 20000000, assets: 100000000, children: 1 },
+  calculate_kr_maternity_leave_pay: { monthlyWage: 3000000, priorityFirm: true, kind: "single" },
+  calculate_kr_wage_guarantee: { kind: "simpleRetired", age: 40, monthlyWage: 3000000, unpaidMonths: 3, unpaidSeverance: 9000000, serviceYears: 3 },
+  calculate_kr_injury_leave_pay: { avgDailyWage: 150000, days: 30 },
+  calculate_kr_monthly_rent_credit: { income: 50000000, incomeType: "wage", monthlyRent: 600000, months: 12 },
+  compare_kr_retirement_pension: { monthlyWage: 4000000, yearsServed: 5, yearsLeft: 20, wageGrowth: 0.03, dcReturn: 0.04 },
 };
 
 function rpcRequest(method, params = {}, headers = {}) {
