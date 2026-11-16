@@ -123,6 +123,7 @@ https://api.oiyo.net
 - POST /v1/tax/kr/business-car-expense, /v1/tax/kr/overseas-stock-vs-etf: business car expense limits (15M without logbook, 8M depreciation carry-over) and tax on overseas stocks held directly vs domestically listed overseas ETFs vs ISA
 - POST /v1/tax/kr/officetel-house-count, /v1/tax/kr/ticket-vs-presale, /v1/tax/kr/inherited-house-valuation, /v1/tax/kr/inheritance-gift-filing-deadline: officetel house-count by tax (acquisition, surcharge/종부세, exemption, subscription, small new-build rule), redevelopment member right vs pre-sale right capital gains tax, inherited house official price vs appraisal (inheritance + later capital gains), and inheritance/gift filing deadlines with penalties
 - POST /v1/benefits/kr/youth-rent-support, /v1/benefits/kr/policy-housing-loans: youth monthly rent support (200k × 24 months) eligibility, and Housing and Urban Fund loans (디딤돌, 신생아 특례, 청년 주택드림, 버팀목, 청년전용 버팀목, 월세대출) eligibility with max loan and rate range
+- POST /v1/benefits/kr/special-supply: housing subscription special supply eligibility (newlywed, newborn, first-time, multi-child, elderly parent) with priority / general / lottery tier by urban worker income share
 - Business routes validate against the published tool schema, refuse unknown inputs (400 invalid_input with problems[]) and return the method and a disclaimer.
 - Personal tax routes refuse unknown inputs and unsupported tax years (400 invalid_input with problems[]) and return basis, notCovered and a not-tax-advice disclaimer.
 

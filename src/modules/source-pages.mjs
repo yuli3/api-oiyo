@@ -87,6 +87,7 @@ export const SOURCE_PAGES = Object.freeze({
   plan_kr_inheritance_gift_filing_deadline: `${TOOLS}inheritance-gift-filing-deadline-calculator/`,
   check_kr_youth_rent_support: `${TOOLS}youth-monthly-rent-support-checker/`,
   find_kr_policy_housing_loans: `${TOOLS}policy-housing-loan-eligibility-checker/`,
+  check_kr_special_supply: `${TOOLS}special-supply-eligibility-checker/`,
   get_kr_professional_scope: `${TOOLS}law-guide/`,
   start_kr_law_intake: `${TOOLS}law-guide/`,
   search_kr_statutes: `${TOOLS}law-guide/`,

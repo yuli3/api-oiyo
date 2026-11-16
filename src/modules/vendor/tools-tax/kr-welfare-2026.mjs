@@ -973,3 +973,84 @@ export function housingLoanBest(i                  ) {
   const best = eligible.reduce                   ((a, b) => (!a || b.maxLoan > a.maxLoan || (b.maxLoan === a.maxLoan && b.rate[0] < a.rate[0]) ? b : a), null);
   return { options, eligibleCount: eligible.length, best: best?.id ?? null, bestLoan: best?.maxLoan ?? 0 };
 }
+
+// ───────────────────────── 청약 특별공급 자격 (Gemini 이전 C 2차) ─────────────────────────
+// 주택공급에 관한 규칙 제40~47조의3(다자녀·노부모·신혼부부·생애최초·신생아). 소득은 전년도 도시근로자 가구원수별 월평균소득
+// (LH 공고 기준 3인 이하 7,533,763원) 대비 비율. 민영: 신혼·신생아 우선 100%(맞벌이 120%), 일반 140%(160%), 넘으면 부동산 3억 3,100만 원
+// 이하일 때 추첨; 생애최초 우선 130%, 일반 160%, 넘으면 부동산 3.31억 추첨; 다자녀·노부모 소득 기준 없음.
+// 공공(국민주택 일반형, LH 기준): 신혼·생애최초 우선 100%(120%), 일반 130%(140%), 추첨 130%(200%); 신생아 100%(120%)·140%(150%)·
+// 140%(200%); 다자녀·노부모 120%(130%), 추첨 120%(200%). 공공 자산: 부동산 2억 1,550만 원, 자동차 4,542만 원(2026 적용).
+// 실제 기준은 입주자모집공고문이 우선이에요.
+
+export const URBAN_WORKER_INCOME = [7_533_763, 7_533_763, 7_533_763, 8_802_202, 9_326_985, 9_906_263, 10_485_541, 11_064_819]         ;
+export const SPECIAL_SUPPLY = { privateRealEstate: 331_000_000, publicRealEstate: 215_500_000, publicCar: 45_420_000 }         ;
+
+                                                                                             
+export const SUPPLY_LABEL                             = { newlywed: "신혼부부", newborn: "신생아", firstTime: "생애최초", multiChild: "다자녀", elderParent: "노부모 부양" };
+
+                                     
+                               
+                        
+                      
+                        
+                      
+                         
+                     
+                   
+               
+                  
+                            
+                      
+                           
+                        
+                           
+                       
+                        
+                        
+                     
+                     
+                                           
+                         
+ 
+
+                                                                                                                                                   
+export const TIER_LABEL = { priority: "우선공급", general: "일반공급", lottery: "추첨", none: "불가" }         ;
+
+export function specialSupplyCheck(i                    ) {
+  const size = Math.min(8, Math.max(1, Math.floor(i.householdSize || 1)));
+  const base = URBAN_WORKER_INCOME[size - 1];
+  const income = clamp0(i.monthlyIncome);
+  const ratio = base > 0 ? income / base : 0;
+  const pub = i.sector === "public";
+  const S = SPECIAL_SUPPLY;
+  const assetsOk = pub ? clamp0(i.realEstate) <= S.publicRealEstate && clamp0(i.car ?? 0) <= S.publicCar : clamp0(i.realEstate) <= S.privateRealEstate;
+  const tiers = (p        , g        , l               )                                                  => {
+    if (ratio <= p) return { tier: "priority", line: Math.floor(base * p) };
+    if (ratio <= g) return { tier: "general", line: Math.floor(base * g) };
+    if (l === null ? assetsOk : ratio <= l && assetsOk) return { tier: "lottery", line: l === null ? undefined : Math.floor(base * l) };
+    return { tier: "none" };
+  };
+  const d = i.dualIncome;
+  const out                 = [];
+  const push = (type            , ok         , why        , t                                                 ) =>
+    out.push({ type, label: SUPPLY_LABEL[type], ...(ok ? t : { tier: "none"          }), reason: !ok ? why : t.tier === "none" ? (assetsOk ? "소득 기준 초과" : "소득 초과 + 자산 기준 초과") : t.line ? `${TIER_LABEL[t.tier]}: 월 ${t.line.toLocaleString("ko-KR")}원 이하` : t.tier === "lottery" ? `추첨: 부동산 ${pub ? "2억 1,550만" : "3억 3,100만"} 원 이하` : "소득 기준 없음" });
+  const married = i.marriedYears !== undefined && i.marriedYears >= 0;
+  const home = i.noHome ? "" : "무주택이 아님";
+  // 신혼부부
+  push("newlywed", i.noHome && married && (i.marriedYears ?? 99) <= 7, home || "혼인 7년 이내 아님", pub ? tiers(d ? 1.2 : 1, d ? 1.4 : 1.3, d ? 2 : 1.3) : tiers(d ? 1.2 : 1, d ? 1.6 : 1.4, null));
+  // 신생아
+  push("newborn", i.noHome && i.childUnder2, home || "2세 미만 자녀 없음", pub ? tiers(d ? 1.2 : 1, d ? 1.5 : 1.4, d ? 2 : 1.4) : tiers(d ? 1.2 : 1, d ? 1.6 : 1.4, null));
+  // 생애최초
+  const ftOk = i.noHome && i.neverOwned && i.taxPaid5y && (married || clamp0(i.minorChildren) > 0 || !pub);
+  push("firstTime", ftOk, !i.neverOwned ? "주택 소유 이력 있음" : !i.taxPaid5y ? "소득세 5년 납부 아님" : home || "혼인·자녀 요건(공공) 없음", pub ? tiers(d ? 1.2 : 1, d ? 1.4 : 1.3, d ? 2 : 1.3) : tiers(1.3, 1.6, null));
+  // 다자녀
+  const mcOk = i.noHome && clamp0(i.minorChildren) >= 2;
+  push("multiChild", mcOk, home || "미성년 자녀 2명 미만", pub ? tiers(d ? 1.3 : 1.2, d ? 1.3 : 1.2, d ? 2 : 1.2) : { tier: "priority" });
+  // 노부모
+  const epOk = i.noHome && i.elderParent3y;
+  push("elderParent", epOk, home || "65세 이상 부모 3년 부양 세대주 아님", pub ? tiers(d ? 1.3 : 1.2, d ? 1.3 : 1.2, d ? 2 : 1.2) : { tier: "priority" });
+  const rank = { priority: 3, general: 2, lottery: 1, none: 0 }         ;
+  const eligible = out.filter((o) => o.tier !== "none");
+  const best = eligible.reduce                     ((a, b) => (!a || rank[b.tier] > rank[a.tier] ? b : a), null);
+  return { base, ratio, assetsOk, results: out, eligibleCount: eligible.length, best: best?.type ?? null, bestTier: best?.tier ?? "none", score: best ? rank[best.tier] : 0 };
+}

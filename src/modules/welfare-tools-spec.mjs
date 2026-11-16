@@ -389,6 +389,23 @@ export const WELFARE_TOOLS = [
       dreamAccount: bool("Youth housing dream account 1 year and 10M, and won a sale"),
       singleHousehold: bool("Single-person household head"),
     }, ["purpose", "age", "income", "netAssets", "newlywed", "children", "newbornWithin2y", "firstTimeBuyer", "metro", "amount"]),
+  fn("check_kr_special_supply",
+    "Korean housing subscription special supply (특별공급) eligibility by type (주택공급에 관한 규칙 제40~47조의3): newlywed (married ≤ 7 years), newborn (child under 2), first-time buyer (never owned, 5 years of income tax; public also needs marriage or a child), multi-child (2+ minors), elderly-parent support (65+ parent for 3+ years, household head). Income is a share of the prior-year urban worker monthly income by household size (LH table, 3 or fewer people 7,533,763 KRW). Private: newlywed/newborn 100% (dual 120%) priority, 140% (160%) general, above that lottery if real estate ≤ 331M; first-time 130% / 160% / lottery; multi-child and elderly parent no income test. Public (general type): newlywed/first-time 100% (120%) / 130% (140%) / lottery 130% (200%); newborn 100% (120%) / 140% (150%) / 140% (200%); multi-child and elderly parent 120% (130%) / lottery 120% (200%); real estate ≤ 215.5M and car ≤ 45.42M. Returns each type's tier (priority, general, lottery, none) with reason, the income ratio and the best tier. The announcement prevails.",
+    {
+      sector: { type: "string", enum: ["private", "public"], description: "private (민영) or public (공공분양 일반형)" },
+      householdSize: num("Household members", 1, 8),
+      monthlyIncome: won("Household average monthly income"),
+      dualIncome: bool("Both spouses earn"),
+      realEstate: won("Household real estate value"),
+      car: won("Car value (public)"),
+      noHome: bool("No household member owns a home"),
+      neverOwned: bool("No household member has ever owned a home"),
+      marriedYears: num("Years since marriage registration (omit if unmarried)", 0, 100),
+      childUnder2: bool("Child under 2 (incl. pregnancy or adoption)"),
+      minorChildren: num("Minor children incl. pregnancy", 0, 20),
+      taxPaid5y: bool("Paid income tax for 5+ years"),
+      elderParent3y: bool("Household head supporting a 65+ parent for 3+ years"),
+    }, ["sector", "householdSize", "monthlyIncome", "dualIncome", "realEstate", "noHome", "neverOwned", "childUnder2", "minorChildren", "taxPaid5y", "elderParent3y"]),
 ];
 
 export const WELFARE_ENDPOINTS = {
@@ -427,4 +444,5 @@ export const WELFARE_ENDPOINTS = {
   plan_kr_inheritance_gift_filing_deadline: { path: "/v1/tax/kr/inheritance-gift-filing-deadline", method: "POST" },
   check_kr_youth_rent_support: { path: "/v1/benefits/kr/youth-rent-support", method: "POST" },
   find_kr_policy_housing_loans: { path: "/v1/benefits/kr/policy-housing-loans", method: "POST" },
+  check_kr_special_supply: { path: "/v1/benefits/kr/special-supply", method: "POST" },
 };
