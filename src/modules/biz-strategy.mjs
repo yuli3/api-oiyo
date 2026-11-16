@@ -17,7 +17,7 @@ import {
 import {
   WELFARE_AS_OF, averageDailyWage, breakEvenReturn, dbVsDc, injuryLeavePay, maternityLeavePay, monthlyRentCredit, spouseLeavePay,
   wageGuarantee, workChildCredit, ordinaryWage, fixedOvertimeCheck, longTermCareCopay,
-  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule,
+  dismissalNoticePay, shutdownAllowance, reducedHoursPay, probationMinWage, leavePromotionSchedule, voluntaryQuitCheck, directPaymentCheck,
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
@@ -471,6 +471,19 @@ function leavePromotion(i) {
     "annual-leave-promotion-planner");
 }
 
+function voluntaryQuit(i) {
+  return welfare(voluntaryQuitCheck(i), "Each chosen reason is matched to 별표 2; item 1 needs months ≥ 2, commuting ≥ 3 h round trip, family care ≥ 30 days + refused leave, health and pregnancy/childcare need refused leave. likely = a reason holds and insured days ≥ 180; check = something is missing; unlikely = no reason chosen.",
+    ["고용보험법 제40조·제58조·제87조", "시행규칙 제101조②·별표 2(개정 2024. 7. 1.)"],
+    ["Register as a job seeker and apply for eligibility at work24.go.kr with the evidence listed per reason", "Even if the separation code says personal reasons, the employment center can recognise a justified reason", "Benefits can only be paid within 12 months after leaving; an appeal (심사청구) is possible within 90 days"],
+    "voluntary-quit-unemployment-checker");
+}
+function subcontractDirect(i) {
+  return welfare(directPaymentCheck(i), "outstanding = work value − received from prime; eligible = ground holds (requests for items 1, 3, 4; 2+ missed installments for item 3) and no prime stop request; direct = min(outstanding, client's unpaid amount to prime); late interest = outstanding × 15.5% × days past 60 ÷ 365 (owed by the prime).",
+    ["하도급거래 공정화에 관한 법률 제13조①③⑧·제14조", "공정거래위원회 지연이율 고시(연 15.5%)", "건설산업기본법 제35조"],
+    ["Send the client a certified-mail request for direct payment with the contract, acceptance records and invoices", "Claim the rest and late interest from the prime; KFTC complaint or free subcontract mediation (한국공정거래조정원)", "Construction work: also check 건설산업기본법 제35조 and public-works payment systems"],
+    "subcontract-direct-payment-checker");
+}
+
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
 const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
@@ -556,6 +569,8 @@ const HANDLERS = {
   "/v1/benefits/kr/reduced-hours-childcare-pay": reducedHours,
   "/v1/labor/kr/probation-minimum-wage": probation,
   "/v1/labor/kr/annual-leave-promotion": leavePromotion,
+  "/v1/labor/kr/voluntary-quit-unemployment": voluntaryQuit,
+  "/v1/business/kr/subcontract-direct-payment": subcontractDirect,
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,

@@ -70,6 +70,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kr_reduced_hours_childcare_pay: `${TOOLS}reduced-hours-childcare-pay-calculator/`,
   check_kr_probation_minimum_wage: `${TOOLS}probation-minimum-wage-checker/`,
   plan_kr_annual_leave_promotion: `${TOOLS}annual-leave-promotion-planner/`,
+  check_kr_voluntary_quit_unemployment: `${TOOLS}voluntary-quit-unemployment-checker/`,
+  check_kr_subcontract_direct_payment: `${TOOLS}subcontract-direct-payment-checker/`,
   get_kr_professional_scope: `${TOOLS}law-guide/`,
   start_kr_law_intake: `${TOOLS}law-guide/`,
   search_kr_statutes: `${TOOLS}law-guide/`,

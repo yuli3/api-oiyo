@@ -713,3 +713,120 @@ export function leavePromotionSchedule(kind                    , periodEnd      
     { id: "end", label: "최초 1년 연차 사용기간 끝", due: periodEnd, who: "worker"          },
   ].sort((a, b) => a.due.localeCompare(b.due))                   ;
 }
+
+// ── 자진퇴사 실업급여 정당 사유 ──
+// 고용보험법 제40조(이직 전 18개월 중 피보험 단위기간 180일 이상)·제58조, 시행규칙 제101조②·별표 2(개정 2024. 7. 1.).
+// 별표 2 제1호(가~마)는 "이직일 전 1년 이내에 2개월 이상" 생긴 경우만 인정해요. 최종 판단은 고용센터가 해요.
+                          
+                                                                                                
+                                                                                                           
+                                                                                                                    
+                             
+                   
+               
+                
+                    
+                                                         
+                   
+ 
+export const QUIT_REASONS               = [
+  { id: "conditionsWorse", item: "1가", label: "근로조건이 채용 때 약속보다 낮아졌어요", needs: "months", evidence: "근로계약서·채용공고와 실제 급여명세서" },
+  { id: "unpaidWages", item: "1나", label: "임금이 밀렸어요(체불)", needs: "months", evidence: "급여명세서·통장 입금 내역, 노동청 체불 확인서" },
+  { id: "belowMinWage", item: "1다", label: "소정근로 임금이 최저임금보다 적었어요", needs: "months", evidence: "급여명세서와 근로시간 기록" },
+  { id: "overtimeViolation", item: "1라", label: "연장근로 한도(주 12시간)를 넘겨 일했어요", needs: "months", evidence: "출퇴근 기록·교통카드·메신저 시간" },
+  { id: "shutdownUnder70", item: "1마", label: "휴업으로 평균임금 70% 미만을 받았어요", needs: "months", evidence: "휴업 공지와 그 기간 급여명세서" },
+  { id: "discrimination", item: "2", label: "종교·성별·장애·노조활동 등으로 차별받았어요", evidence: "차별 사실을 보여 주는 문서·진술" },
+  { id: "sexualHarassment", item: "3", label: "성희롱·성폭력 등 성적 괴롭힘을 당했어요", evidence: "신고 기록·메시지·진술서" },
+  { id: "workplaceHarassment", item: "3의2", label: "직장 내 괴롭힘을 당했어요(근로기준법 제76조의2)", evidence: "회사 신고·조사 결과, 노동청 진정 기록, 진단서" },
+  { id: "closureExpected", item: "4", label: "회사 도산·폐업이 확실하거나 대량 감원이 예정됐어요", evidence: "폐업 공지·감원 계획 문서" },
+  { id: "recommendedResign", item: "5", label: "경영 악화·조직 축소 등으로 퇴직을 권고받거나 희망퇴직했어요", evidence: "권고사직 문서·희망퇴직 공고, 이직확인서 사유 코드" },
+  { id: "commute", item: "6", label: "사업장 이전·전근·이사로 통근이 어려워졌어요", needs: "commute", evidence: "이전 공지·발령문, 주민등록 이전, 교통 경로 자료" },
+  { id: "familyCare", item: "7", label: "부모·동거 친족을 30일 이상 간호해야 했어요", needs: "care", evidence: "가족 진단서, 휴가·휴직을 거절한 기록" },
+  { id: "safetyHazard", item: "8", label: "중대재해 사업장이 시정명령을 이행하지 않았어요", evidence: "시정명령·재해 기록" },
+  { id: "health", item: "9", label: "체력 부족·질병·부상으로 일을 계속하기 어려웠어요", needs: "leaveRefused", evidence: "의사 소견서, 업무 전환·휴직을 거절한 사업주 의견" },
+  { id: "pregnancyChildcare", item: "10", label: "임신·출산·자녀 육아·병역으로 일을 계속하기 어려웠어요", needs: "leaveRefused", evidence: "휴가·휴직 신청과 거절 기록" },
+  { id: "illegalBusiness", item: "11", label: "법이 바뀌어 회사 사업이 위법해졌어요", evidence: "관련 법령·회사 공지" },
+  { id: "contractEnd", item: "12", label: "정년이나 계약기간이 끝났어요", evidence: "근로계약서(계약기간)·정년 규정" },
+];
+                                     
+                          
+                                    
+                  
+                                       
+                        
+                    
+                    
+                                  
+                         
+                                        
+                      
+ 
+
+export function voluntaryQuitCheck(input                    ) {
+  const chosen = QUIT_REASONS.filter((r) => input.reasons.includes(r.id));
+  const results = chosen.map((r) => {
+    let ok = true;
+    let why = "";
+    if (r.needs === "months") {
+      ok = clamp0(input.months ?? 0) >= 2;
+      why = ok ? "이직 전 1년 안에 2개월 이상이라 인정 요건을 채워요." : "이직 전 1년 안에 2개월 이상 있어야 해요.";
+    } else if (r.needs === "commute") {
+      ok = clamp0(input.commuteHours ?? 0) >= 3;
+      why = ok ? "통상의 교통수단으로 왕복 3시간 이상이에요." : "통근이 왕복 3시간 이상이어야 해요.";
+    } else if (r.needs === "care") {
+      ok = clamp0(input.careDays ?? 0) >= 30 && !!input.leaveRefused;
+      why = ok ? "30일 이상 간호가 필요했고 회사가 휴가·휴직을 허용하지 않았어요." : "30일 이상 간호가 필요하고, 회사가 휴가·휴직을 허용하지 않았어야 해요.";
+    } else if (r.needs === "leaveRefused") {
+      ok = !!input.leaveRefused;
+      why = ok ? "회사가 휴가·휴직(업무 전환)을 허용하지 않았어요." : "회사가 휴가·휴직(업무 전환)을 허용하지 않았다는 점이 필요해요.";
+    }
+    return { id: r.id, item: r.item, label: r.label, ok, why, evidence: r.evidence };
+  });
+  const reasonOk = results.some((r) => r.ok);
+  const insuredOk = clamp0(input.insuredDays) >= 180;
+  return {
+    results,
+    reasonOk,
+    insuredOk,
+    verdict: reasonOk && insuredOk ? ("likely"         ) : reasonOk || results.length > 0 ? ("check"         ) : ("unlikely"         ),
+  };
+}
+
+// ── 하도급대금 직접 지급·지연이자 ──
+// 하도급법 제13조①(목적물 수령일부터 60일 안 지급)·③(발주자에게 받은 날부터 15일 안)·⑧(60일 넘으면 지연이자,
+// 공정거래위원회 고시 연 15.5%), 제14조(직접 지급 사유 4가지, ③ 원사업자 중지 요청, ④ 이미 지급한 금액 공제).
+// 건설공사는 건설산업기본법 제35조의 직접 지급도 함께 봐요.
+export const SUBCONTRACT_LATE_RATE = 0.155;
+                                                                                               
+                                 
+                        
+                            
+                             
+                                            
+                     
+                                                         
+                            
+                      
+                    
+                        
+                            
+                                         
+                             
+                          
+                            
+ 
+
+export function directPaymentCheck(input                ) {
+  const outstanding = Math.max(0, clamp0(input.workValue) - clamp0(input.receivedFromPrime));
+  const causeOk =
+    input.cause === "agreement" ||
+    (input.cause === "insolvency" && input.requested) ||
+    (input.cause === "noGuarantee" && input.requested) ||
+    (input.cause === "twoMissed" && input.requested && clamp0(input.missedInstallments) >= 2);
+  const blocked = input.primeStopRequest;
+  const eligible = causeOk && !blocked;
+  const direct = eligible ? won(Math.min(outstanding, clamp0(input.ownerUnpaidToPrime))) : 0;
+  const lateDays = Math.max(0, Math.floor(clamp0(input.daysSinceDelivery)) - 60);
+  const lateInterest = won((outstanding * SUBCONTRACT_LATE_RATE * lateDays) / 365);
+  return { outstanding, causeOk, blocked, eligible, direct, remainder: outstanding - direct, lateDays, lateInterest };
+}
