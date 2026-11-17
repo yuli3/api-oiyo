@@ -12,9 +12,9 @@
 import { krTaxDeadline } from "./kr-business-day.mjs";
 import { isCivilHoliday } from "./kr-legal-2026.mjs";
 
-export const LAW_GUIDE_AS_OF = "2026-11-16";
+export const LAW_GUIDE_AS_OF = "2026-11-17";
 
-                                                                          
+                                                                                        
 
                        
               
@@ -171,6 +171,32 @@ export const PROFESSIONS                               = {
       { name: "마을변호사", how: "주소지 읍·면·동", what: "법률 취약지역 무료 상담" },
     ],
   },
+  insurance: {
+    domain: "insurance",
+    name: "보험 법령 길잡이",
+    licensed: "보험계리사·손해사정사·보험설계사",
+    act: "보험업법",
+    scopeCite: { law: "보험업법", article: "제83조" },
+    scope: [
+      "보험 모집(계약 체결의 중개·대리): 등록한 보험설계사·보험대리점·보험중개사와 보험회사 임직원만 할 수 있어요(제83조·제84조).",
+      "보험계리: 기초서류(보험료·책임준비금 산출 방법) 작성과 검증, 선임계리사의 책임준비금 적정성 확인(제181조·제184조).",
+      "손해사정: 손해 발생 사실 확인, 약관·법규 적용의 적정성 판단, 손해액·보험금 사정, 그 서류 작성·제출 대행과 보험회사에 대한 의견 진술(제185조·제188조).",
+    ],
+    exclusive: [
+      { text: "등록하지 않은 사람은 보험 모집을 할 수 없어요.", cite: { law: "보험업법", article: "제83조 제1항" } },
+      { text: "보험계리사·손해사정사가 아니면 그 명칭이나 비슷한 명칭을 쓸 수 없어요.", cite: { law: "보험업법", article: "제187조의2" } },
+      { text: "손해사정사도 피해자를 대리해 합의·소송을 하는 법률사무는 할 수 없어요. 그건 변호사 업무예요.", cite: { law: "변호사법", article: "제109조" } },
+    ],
+    guideDoes: ["청약철회·위법계약해지·약관 미설명 취소·보험금 청구 시효를 날짜로 계산해요.", "모집 종사자가 특별이익 한도, 승환계약 간주 기간, 설명·적합성 의무를 계약 전에 점검하게 해요.", "금융감독원 분쟁조정에 가져갈 사실과 서류를 정리해요."],
+    guideDoesNot: ["보험을 모집·권유하거나 특정 상품·회사를 추천하지 않아요.", "손해액·보험금을 사정하지 않아요.", "보험회사와 합의·분쟁을 대리하지 않아요."],
+    handOffWhen: ["보험금 거절·삭감 금액이 크고 의학적 다툼이 있을 때(손해사정사·변호사)", "소송이나 형사 고소를 생각할 때(변호사)", "상품 기초서류·책임준비금 검증이 필요할 때(보험계리사)"],
+    freeHelp: [
+      { name: "금융감독원 금융민원센터", how: "☎ 1332 · fcsc.kr", what: "보험 민원·분쟁조정 신청(무료)" },
+      { name: "내보험 찾아줌", how: "생명보험협회·손해보험협회", what: "잊고 있던 보험금·숨은 보험 조회" },
+      { name: "한국소비자원", how: "☎ 1372", what: "소비자 상담·피해구제" },
+      { name: "대한법률구조공단", how: "☎ 132", what: "저소득층 보험금 소송 무료 법률구조" },
+    ],
+  },
 };
 
 /* ---------- 조문 색인 ---------- */
@@ -274,6 +300,24 @@ export const STATUTES            = [
   s("com-183", "court", "상법", "제183조·제317조", "변경등기", "회사 등기사항(임원·본점·상호·목적 등)이 바뀌면 본점 소재지에서 2주 안에 변경등기해요.", ["변경등기", "임원 변경", "본점 이전", "2주"]),
   s("com-635", "court", "상법", "제635조", "과태료", "등기를 게을리하면 500만 원 이하 과태료가 나와요.", ["등기 해태", "과태료"]),
   s("lla-109", "court", "변호사법", "제109조", "비변호사의 법률사무 취급 금지", "변호사가 아닌 사람이 대가를 받고 소송·법률상담·법률 문서 작성 등을 하면 7년 이하 징역 등으로 처벌돼요.", ["변호사법", "법률상담", "무자격"]),
+  // 보험
+  s("ins-83", "insurance", "보험업법", "제83조·제84조", "모집할 수 있는 자·보험설계사 등록", "보험 모집은 등록한 보험설계사·보험대리점·보험중개사와 보험회사 임직원만 할 수 있어요. 설계사는 소속 회사 등이 금융위원회에 등록해요.", ["모집", "설계사 등록", "무등록", "보험설계사"]),
+  s("ins-97", "insurance", "보험업법", "제97조", "모집 금지행위·승환계약", "기존 계약을 부당하게 깨고 새로 가입시키면 안 돼요. 소멸 전후 1개월 안 새 계약은 승환으로 보고(본인 의사 자필 증명 제외), 6개월 안이면 보험기간·예정이율 등 중요 사항을 비교해 알리지 않은 경우 승환으로 봐요. 대필 서명·명의 도용·청약철회 방해도 금지예요.", ["승환", "갈아타기", "기존 보험 해지", "대필", "자필서명"]),
+  s("ins-97-4", "insurance", "보험업법", "제97조 제4항", "승환계약의 부활·취소", "부당한 승환으로 기존 계약이 없어졌다면 소멸한 날부터 6개월 안에 기존 계약 부활을 청구하고 새 계약을 취소할 수 있어요.", ["부활", "승환 취소", "6개월"]),
+  s("ins-98", "insurance", "보험업법", "제98조, 시행령 제46조", "특별이익 제공 금지", "계약을 조건으로 금품, 기초서류에 없는 보험료 할인·수수료 지급, 보험료 대납 등을 주면 안 돼요. 금품은 최초 1년 보험료의 10%와 20만 원 중 적은 금액까지만 허용돼요(2023년 7월 개정).", ["특별이익", "사은품", "리베이트", "보험료 대납", "20만원"]),
+  s("ins-181", "insurance", "보험업법", "제181조·제184조", "보험계리·선임계리사", "보험회사는 보험계리사를 고용하거나 보험계리업자에게 맡겨 보험료·책임준비금 계산 같은 계리 업무를 해요. 선임계리사는 기초서류와 책임준비금이 적정한지 검증·확인해요.", ["보험계리", "선임계리사", "책임준비금", "기초서류", "예정이율"]),
+  s("ins-185", "insurance", "보험업법", "제185조", "손해사정", "보험회사는 손해사정사를 고용하거나 손해사정업자에게 손해사정을 맡겨야 해요. 계약자 쪽이 손해사정사를 따로 선임할 수도 있어요.", ["손해사정", "독립손해사정", "손해사정사 선임"]),
+  s("ins-188", "insurance", "보험업법", "제188조·제189조", "손해사정사의 업무와 의무", "손해 발생 사실 확인, 약관·법규 적용 판단, 손해액·보험금 사정, 그 서류 작성·제출 대행, 보험회사에 의견 진술을 해요. 사정서를 교부하고, 보험금을 부당하게 깎거나 부풀리면 안 돼요.", ["손해사정사 업무", "손해사정서", "보험금 삭감"]),
+  s("ins-187-2", "insurance", "보험업법", "제187조의2", "유사명칭 사용 금지", "보험계리사·손해사정사가 아니면 그 명칭이나 비슷한 명칭을 쓸 수 없어요.", ["유사명칭", "명칭", "보조인"]),
+  s("fcp-17", "insurance", "금융소비자 보호에 관한 법률", "제17조·제18조", "적합성·적정성 원칙", "판매 전에 재산·소득·목적을 파악하고, 맞지 않는 상품은 권하면 안 돼요.", ["적합성", "적정성", "고객 파악"]),
+  s("fcp-19", "insurance", "금융소비자 보호에 관한 법률", "제19조·제44조", "설명의무와 손해배상", "중요한 사항을 이해할 수 있게 설명하고 설명서를 줘야 해요. 설명의무 위반으로 손해가 나면 판매자가 고의·과실이 없음을 증명해야 해요.", ["설명의무", "설명서", "불완전판매", "손해배상"]),
+  s("fcp-21", "insurance", "금융소비자 보호에 관한 법률", "제21조", "부당권유 금지", "불확실한 것을 확실하다고 말하거나, 사실과 다르게 알리거나, 다른 상품과 근거 없이 비교하면 안 돼요.", ["부당권유", "과장", "허위"]),
+  s("fcp-46", "insurance", "금융소비자 보호에 관한 법률", "제46조", "청약의 철회", "보장성 보험은 보험증권을 받은 날부터 15일과 청약한 날부터 30일 중 먼저 오는 날까지 철회할 수 있어요. 서면 등을 보낸 때 효력이 생기고, 3영업일 안에 낸 돈을 돌려받고 위약금이 없어요.", ["청약철회", "15일", "30일", "취소", "단순 변심"]),
+  s("fcp-47", "insurance", "금융소비자 보호에 관한 법률", "제47조, 시행령 제38조", "위법계약의 해지", "설명의무·적합성·부당권유 위반으로 가입했다면 위반을 안 날부터 1년 안(계약일부터 5년 안)에 해지를 요구할 수 있어요. 10일 안에 답해야 하고, 해지 비용을 받을 수 없어요.", ["위법계약해지", "불완전판매", "해지 요구", "5년"]),
+  s("com-638-3", "insurance", "상법", "제638조의3", "약관의 교부·설명 의무", "보험회사가 약관을 주지 않거나 중요한 내용을 설명하지 않았으면 계약이 성립한 날부터 3개월 안에 취소할 수 있어요.", ["약관", "설명 못 들음", "3개월", "취소"]),
+  s("com-651", "insurance", "상법", "제651조", "고지의무 위반으로 인한 해지", "가입할 때 중요한 사실을 알리지 않았으면 보험회사는 안 날부터 1개월 안, 계약일부터 3년 안에만 해지할 수 있어요.", ["고지의무", "알릴 의무", "병력", "해지 통보"]),
+  s("com-658", "insurance", "상법", "제658조", "보험금의 지급", "약정 기간이 없으면 보험회사는 사고 통지를 받고 지체 없이 지급일을 정하고, 그날부터 10일 안에 보험금을 줘야 해요.", ["보험금 지급", "지연", "10일"]),
+  s("com-662", "insurance", "상법", "제662조", "소멸시효", "보험금 청구권과 보험료·적립금 반환청구권은 3년, 보험회사의 보험료 청구권은 2년이 지나면 소멸해요.", ["시효", "3년", "보험금 청구", "늦게 청구"]),
 ];
 
 export function statuteUrl(st                                  )         {
@@ -964,9 +1008,175 @@ export const TOPICS          = [
     handOff: () => "의사록·등기신청서 작성은 법무사 업무예요. 인터넷등기소 셀프 등기도 가능해요.",
     documents: ["주주총회·이사회 의사록", "취임승낙서", "인감·신분증 사본", "정관"],
   },
+  /* ===== 보험 ===== */
+  {
+    id: "ins-undo",
+    domain: "insurance",
+    label: "가입한 보험을 되돌리고 싶어요",
+    plain: "단순 변심은 청약철회(증권 받고 15일·청약 30일 중 먼저), 설명을 못 들었으면 약관 취소(3개월)나 위법계약해지(안 날부터 1년), 기존 보험을 깨고 갈아탔다면 부활 청구(6개월)예요.",
+    questions: [
+      { key: "why", ask: "왜 되돌리고 싶나요?", why: "이유마다 쓸 수 있는 제도와 기한이 달라요.", kind: "choice", required: true, options: [{ value: "mind", label: "마음이 바뀌었다(단순 변심)" }, { value: "explain", label: "중요한 내용을 설명받지 못했다" }, { value: "twist", label: "기존 보험을 깨고 새로 가입하게 했다" }, { value: "forged", label: "내가 서명하지 않았다(대필·명의)" }] },
+      { key: "applyDate", ask: "청약한(가입 신청한) 날은 언제인가요?", why: "청약철회는 청약일부터 30일을 넘길 수 없어요.", kind: "date", required: true },
+      { key: "policyDate", ask: "보험증권을 받은 날은 언제인가요?", why: "청약철회는 증권 받은 날부터 15일이 먼저 끝나는 경우가 많아요.", kind: "date", askIf: (a) => a.why === "mind" || a.why === undefined },
+      { key: "knewDate", ask: "설명이 잘못됐다는 걸 안 날은 언제인가요?", why: "위법계약해지는 안 날부터 1년 안에 요구해야 해요.", kind: "date", askIf: (a) => a.why === "explain" || a.why === "forged" },
+      { key: "oldEndDate", ask: "기존 보험이 해지(소멸)된 날은 언제인가요?", why: "부당한 승환이면 소멸일부터 6개월 안에 부활을 청구할 수 있어요.", kind: "date", askIf: (a) => a.why === "twist" },
+      { key: "compared", ask: "갈아탈 때 보험기간·예정이율·보장 차이를 비교해 설명받았나요?", why: "6개월 안 갈아타기에서 비교 안내가 없었으면 부당 승환으로 봐요.", kind: "yesno", askIf: (a) => a.why === "twist" },
+      { key: "exam", ask: "가입할 때 건강진단을 받았나요?", why: "진단 계약 등 일부 계약은 청약철회가 제한될 수 있어요.", kind: "yesno", askIf: (a) => a.why === "mind" || a.why === undefined },
+    ],
+    statutes: ["fcp-46", "com-638-3", "fcp-47", "fcp-19", "ins-97", "ins-97-4"],
+    deadlines: [
+      { id: "withdraw-15", label: "청약철회(증권 받은 날부터 15일)", from: "policyDate", days: 15, cite: "금융소비자보호법 제46조 제1항 제1호", when: (a) => a.why === "mind" || a.why === undefined, note: "청약일부터 30일과 비교해 먼저 오는 날이 마감이에요." },
+      { id: "withdraw-30", label: "청약철회(청약한 날부터 30일)", from: "applyDate", days: 30, cite: "금융소비자보호법 제46조 제1항 제1호", when: (a) => a.why === "mind" || a.why === undefined },
+      { id: "terms-3m", label: "약관 미교부·미설명 취소", from: "applyDate", months: 3, cite: "상법 제638조의3 제2항", when: (a) => a.why === "explain", note: "기산일은 계약이 성립한 날이에요. 청약일보다 늦으면 그만큼 늦춰 보세요." },
+      { id: "illegal-1y", label: "위법계약해지 요구(안 날부터 1년)", from: "knewDate", years: 1, cite: "금융소비자보호법 제47조, 시행령 제38조", when: (a) => a.why === "explain" || a.why === "forged", note: "계약일부터 5년을 넘을 수 없어요." },
+      { id: "illegal-5y", label: "위법계약해지 요구(계약일부터 5년 상한)", from: "applyDate", years: 5, cite: "금융소비자보호법 시행령 제38조", when: (a) => a.why === "explain" || a.why === "forged" },
+      { id: "revive-6m", label: "기존 계약 부활 청구·새 계약 취소", from: "oldEndDate", months: 6, cite: "보험업법 제97조 제4항", when: (a) => a.why === "twist" },
+    ],
+    tools: [
+      { label: "보험료 계산 원리", href: "/ko/insurance-premium-basics/" },
+      { label: "보험료 추정 계산기", href: "/ko/insurance-premium-calculator/" },
+    ],
+    flags: (a) => {
+      const f         = [];
+      const ap = String(a.applyDate ?? "");
+      const pd = String(a.policyDate ?? "");
+      if ((a.why === "mind" || a.why === undefined) && ap && pd) {
+        const w = withdrawDeadline(ap, pd);
+        if (w) f.push({ tone: "info", text: `청약철회 마감은 ${w.due}이에요(${w.by === "policy" ? "증권 받은 날부터 15일" : "청약한 날부터 30일"}이 먼저 와요). 서면·전자우편·문자 등으로 철회 의사를 보낸 날 효력이 생기고, 3영업일 안에 낸 돈을 돌려받아요.`, cite: "금융소비자보호법 제46조" });
+      }
+      if (yes(a.exam)) f.push({ tone: "warn", text: "건강진단을 받은 계약 등 일부 보장성 보험은 청약철회 대상에서 빠질 수 있어요. 약관의 청약철회 조항을 확인하세요.", cite: "금융소비자보호법 시행령 제37조" });
+      if (a.why === "twist" && (a.compared === "no" || a.compared === false)) f.push({ tone: "warn", text: "기존 보험이 없어진 지 6개월 안에 새로 가입했고 비교 안내를 받지 못했다면 부당 승환으로 봐요. 보험회사에 기존 계약 부활과 새 계약 취소를 청구하세요.", cite: "보험업법 제97조 제3항·제4항" });
+      if (a.why === "forged") f.push({ tone: "warn", text: "본인 서명이 아닌 계약은 모집 금지행위예요. 보험회사 민원과 금융감독원(1332)에 함께 알리세요.", cite: "보험업법 제97조 제1항 제7호" });
+      if (a.why === "explain") f.push({ tone: "good", text: "설명의무 위반으로 손해가 났다면 판매자가 잘못이 없음을 증명해야 해요. 설명서를 받았는지, 녹취가 있는지 확인하세요.", cite: "금융소비자보호법 제44조" });
+      return f;
+    },
+    handOff: (a) => (a.why === "forged" ? "명의 도용·대필은 형사 문제가 될 수 있어요. 큰 금액이면 변호사와 상의하세요." : null),
+    documents: ["보험증권", "청약서 사본(자필서명 부분)", "상품설명서·약관", "설계사와 주고받은 문자·녹취", "기존 계약 해지 확인서(갈아탄 경우)"],
+  },
+  {
+    id: "ins-claim",
+    domain: "insurance",
+    label: "보험금을 청구하거나 거절·삭감·해지 통보를 받았어요",
+    plain: "보험금 청구권은 사고일부터 3년이면 소멸해요. 고지의무 위반 해지는 계약일부터 3년이 지나면 못 해요. 거절·삭감은 손해사정서를 받아 금융감독원 분쟁조정(1332)으로 다퉈요.",
+    questions: [
+      { key: "status", ask: "지금 어떤 상황인가요?", why: "청구 전인지, 거절·해지 통보를 받았는지에 따라 할 일이 달라요.", kind: "choice", required: true, options: [{ value: "before", label: "아직 청구하지 않았다" }, { value: "denied", label: "지급을 거절당했다" }, { value: "cut", label: "일부만 받았다(삭감)" }, { value: "rescind", label: "알릴 의무 위반이라며 해지 통보를 받았다" }, { value: "late", label: "청구했는데 안 준다" }] },
+      { key: "accidentDate", ask: "사고(진단·입원·수술)가 난 날은 언제인가요?", why: "보험금 청구 시효 3년이 이날부터예요.", kind: "date", required: true },
+      { key: "contractDate", ask: "보험에 가입한 날은 언제인가요?", why: "계약일부터 3년이 지나면 알릴 의무 위반을 이유로 해지할 수 없어요.", kind: "date", askIf: (a) => a.status === "rescind" },
+      { key: "noticeDate", ask: "거절·해지 통보를 받은 날은 언제인가요?", why: "분쟁조정을 미루지 않도록 기록해 둬요.", kind: "date", askIf: (a) => a.status === "denied" || a.status === "cut" || a.status === "rescind" },
+      { key: "report", ask: "손해사정서(산정 근거)를 받았나요?", why: "삭감 이유와 근거 약관이 적혀 있어 다툼의 출발점이에요.", kind: "yesno", askIf: (a) => a.status === "denied" || a.status === "cut" },
+      { key: "amount", ask: "다투는 보험금은 대략 얼마인가요?", why: "금액이 크면 손해사정사를 따로 선임하거나 변호사 상담을 고려해요.", kind: "number", unit: "won" },
+    ],
+    statutes: ["com-662", "com-658", "com-651", "ins-185", "ins-188"],
+    deadlines: [{ id: "claim-3y", label: "보험금 청구 시효", from: "accidentDate", years: 3, cite: "상법 제662조" }],
+    tools: [{ label: "실손보험 세대 판별기", href: "/ko/silson-insurance-generation-calculator/" }],
+    flags: (a) => {
+      const f         = [];
+      if (a.status === "rescind" && typeof a.contractDate === "string" && typeof a.noticeDate === "string") {
+        const limit = dueDate({ years: 3 }, a.contractDate);
+        if (limit && a.noticeDate > limit.nominal) f.push({ tone: "good", text: `계약일부터 3년(${limit.nominal})이 지난 뒤의 해지 통보예요. 알릴 의무 위반만으로는 해지할 수 없는 기간이에요. 보험회사에 근거를 서면으로 요구하세요.`, cite: "상법 제651조" });
+        else f.push({ tone: "info", text: "보험회사는 위반 사실을 안 날부터 1개월 안에만 해지할 수 있어요. 언제 알았다고 하는지 물어보세요. 알린 사실과 사고가 관계없으면 보험금은 받을 수 있어요.", cite: "상법 제651조·제655조" });
+      }
+      if (a.status === "denied" || a.status === "cut") {
+        f.push({ tone: "info", text: "보험회사 손해사정에 동의하지 않으면 손해사정사를 따로 선임할 수 있어요. 금융감독원 분쟁조정(1332)은 무료예요.", cite: "보험업법 제185조" });
+        if (a.report === "no" || a.report === false) f.push({ tone: "warn", text: "손해사정서를 달라고 하세요. 사정 근거를 알아야 다툴 수 있어요.", cite: "보험업법 제189조" });
+      }
+      if (a.status === "late") f.push({ tone: "warn", text: "약정 기간이 없으면 지급일을 정한 뒤 10일 안에 줘야 해요. 늦어지면 지연이자를 함께 청구하세요.", cite: "상법 제658조" });
+      if (a.status === "before") f.push({ tone: "info", text: "진단서·영수증을 모아 청구하세요. 보험사고 통지는 지체 없이 해야 해요.", cite: "상법 제657조" });
+      return f;
+    },
+    handOff: (a) => (num(a.amount) >= 10_000_000 ? "다투는 금액이 크면 손해사정사(산정)나 변호사(소송)의 검토를 받는 게 좋아요. 합의·소송 대리는 변호사만 할 수 있어요." : null),
+    documents: ["보험증권·약관", "진단서·입퇴원 확인서·영수증", "거절·삭감·해지 통보서", "손해사정서", "가입 때 작성한 청약서(알릴 의무 답변)"],
+  },
+  {
+    id: "ins-sales-check",
+    domain: "insurance",
+    label: "모집 전에 준수사항을 점검해요(설계사·대리점)",
+    plain: "사은품은 최초 1년 보험료의 10%와 20만 원 중 적은 금액까지, 기존 계약 소멸 전후 1개월 안 갈아타기는 승환으로 봐요. 설명서 교부와 적합성 확인 기록을 남기세요.",
+    questions: [
+      { key: "premium", ask: "최초 1년 동안 낼 보험료는 얼마인가요?", why: "사은품(금품) 한도가 이 금액의 10%와 20만 원 중 적은 금액이에요.", kind: "number", unit: "won", required: true },
+      { key: "gift", ask: "주려는 사은품·금품은 얼마어치인가요?", why: "한도를 넘으면 특별이익 제공이에요.", kind: "number", unit: "won", required: true },
+      { key: "replace", ask: "고객이 기존 보험을 해지하고 새로 가입하나요?", why: "승환계약 간주 기간(1개월·6개월)을 확인해야 해요.", kind: "yesno", required: true },
+      { key: "oldEndDate", ask: "기존 계약이 소멸(했거나 할) 날은 언제인가요?", why: "새 청약일과의 간격으로 승환 여부를 판단해요.", kind: "date", askIf: (a) => yes(a.replace) },
+      { key: "newApplyDate", ask: "새 계약 청약일은 언제인가요?", why: "소멸일과 1개월·6개월 안인지 계산해요.", kind: "date", askIf: (a) => yes(a.replace) },
+      { key: "compared", ask: "보험기간·예정이율·보장 차이를 비교해 알렸나요?", why: "6개월 안 갈아타기는 비교 안내가 없으면 승환으로 봐요.", kind: "yesno", askIf: (a) => yes(a.replace) },
+      { key: "suitability", ask: "고객의 재산·소득·가입 목적을 확인하고 기록했나요?", why: "적합성 원칙 위반이면 위법계약해지 대상이 돼요.", kind: "yesno" },
+      { key: "explained", ask: "설명서를 주고 중요 사항을 설명했나요?", why: "설명의무 위반은 판매자가 무과실을 증명해야 해요.", kind: "yesno" },
+    ],
+    statutes: ["ins-98", "ins-97", "ins-83", "fcp-17", "fcp-19", "fcp-21", "fcp-47"],
+    deadlines: [],
+    tools: [{ label: "보험 사은품 한도·승환 점검기", href: "/ko/insurance-sales-compliance-checker/" }],
+    flags: (a) => {
+      const f         = [];
+      const premium = num(a.premium);
+      const gift = num(a.gift);
+      if (Number.isFinite(premium)) {
+        const limit = giftLimit(premium);
+        if (Number.isFinite(gift)) f.push(gift > limit ? { tone: "warn", text: `사은품 ${gift.toLocaleString("ko-KR")}원이 한도 ${limit.toLocaleString("ko-KR")}원을 넘어요. 특별이익 제공이라 주는 사람과 요구해 받은 사람 모두 처벌될 수 있어요.`, cite: "보험업법 제98조·제202조" } : { tone: "good", text: `사은품 한도는 ${limit.toLocaleString("ko-KR")}원이에요. ${gift.toLocaleString("ko-KR")}원은 한도 안이에요.`, cite: "보험업법 시행령 제46조" });
+      }
+      if (yes(a.replace) && typeof a.oldEndDate === "string" && typeof a.newApplyDate === "string") {
+        const t = twistingTest(a.oldEndDate, a.newApplyDate, a.compared === "yes" || a.compared === true);
+        if (t) f.push({ tone: t.level === "deemed" ? "warn" : t.level === "check" ? "warn" : "good", text: t.text, cite: "보험업법 제97조 제3항" });
+      }
+      if (a.suitability === "no" || a.suitability === false) f.push({ tone: "warn", text: "적합성 확인 없이 권유하면 안 돼요. 고객 정보 확인서를 받고 기록을 남기세요.", cite: "금융소비자보호법 제17조" });
+      if (a.explained === "no" || a.explained === false) f.push({ tone: "warn", text: "설명서 교부와 중요 사항 설명이 빠지면 고객이 위법계약해지(안 날부터 1년)를 요구할 수 있고, 손해배상에서 판매자가 무과실을 증명해야 해요.", cite: "금융소비자보호법 제19조·제44조·제47조" });
+      return f;
+    },
+    handOff: () => "개별 사안의 위법 여부는 소속 보험회사 준법감시 부서나 변호사에게 확인하세요.",
+    documents: ["상품설명서·약관", "적합성 확인서", "기존·신규 계약 비교 안내 자료", "사은품 내역·영수증"],
+  },
+  {
+    id: "ins-pro-scope",
+    domain: "insurance",
+    label: "계리·손해사정 업무 범위를 확인해요(종사자)",
+    plain: "보험계리는 기초서류·책임준비금 검증, 손해사정은 손해액·보험금 사정과 서류 제출 대행·의견 진술까지예요. 피해자를 대리한 합의·소송은 변호사 업무예요.",
+    questions: [
+      { key: "role", ask: "어떤 일을 하나요?", why: "자격별 법정 업무와 금지 행위가 달라요.", kind: "choice", required: true, options: [{ value: "actuary", label: "보험계리(보험료·책임준비금)" }, { value: "adjuster", label: "손해사정" }, { value: "assistant", label: "자격 없는 보조 인력" }] },
+      { key: "task", ask: "하려는 일은 무엇인가요?", why: "법정 업무 안인지 밖인지 나눠요.", kind: "choice", required: true, options: [{ value: "calc", label: "보험료·책임준비금 계산·검증" }, { value: "assess", label: "손해액·보험금 산정과 사정서 작성" }, { value: "submit", label: "보험회사에 서류 제출·의견 진술" }, { value: "settle", label: "피해자 대신 합의·소송" }, { value: "title", label: "명함·광고에 직함 표시" }] },
+    ],
+    statutes: ["ins-181", "ins-185", "ins-188", "ins-187-2", "lla-109"],
+    deadlines: [],
+    tools: [{ label: "보험료 계산 원리", href: "/ko/insurance-premium-basics/" }],
+    flags: (a) => {
+      const f         = [];
+      if (a.task === "settle") f.push({ tone: "warn", text: "손해사정사라도 피해자를 대리해 보험회사와 합의하거나 소송하면 변호사법 위반이 될 수 있어요. 법정 업무는 사정서 작성·제출 대행·의견 진술까지예요.", cite: "보험업법 제188조, 변호사법 제109조" });
+      if (a.role === "assistant" && (a.task === "assess" || a.task === "title")) f.push({ tone: "warn", text: "자격이 없으면 '손해사정'이 들어간 직함을 쓰거나 독자적으로 사정 업무를 하면 안 돼요.", cite: "보험업법 제187조의2" });
+      if (a.role === "actuary" && a.task === "calc") f.push({ tone: "good", text: "기초서류·책임준비금 계산과 검증은 보험계리의 법정 업무예요. 선임계리사는 그 적정성을 검증·확인할 책임을 져요.", cite: "보험업법 제181조·제184조" });
+      if (a.role === "adjuster" && (a.task === "assess" || a.task === "submit")) f.push({ tone: "good", text: "손해사정사의 법정 업무 안이에요. 사정서를 교부하고, 보험금을 부당하게 깎거나 부풀리지 마세요.", cite: "보험업법 제188조·제189조" });
+      return f;
+    },
+    handOff: (a) => (a.task === "settle" ? "합의·소송 대리는 변호사에게 맡기세요." : null),
+    documents: ["자격증·등록증", "위탁 계약서(손해사정·계리 용역)", "사정서·검증 보고서 양식"],
+  },
 ];
 
 /* ---------- 판정 도우미 ---------- */
+
+/** 보험 사은품(특별이익) 한도: 최초 1년 보험료의 10%와 20만 원 중 적은 금액(보험업법 시행령 제46조, 2023-07 개정) */
+export function giftLimit(firstYearPremium        )         {
+  if (!(firstYearPremium > 0)) return 0;
+  return Math.min(Math.floor(firstYearPremium * 0.1), 200_000);
+}
+
+/** 청약철회 마감: 증권 받은 날부터 15일과 청약한 날부터 30일 중 먼저 오는 날(금융소비자보호법 제46조) */
+export function withdrawDeadline(applyDate        , policyDate        )                                                 {
+  const p = dueDate({ days: 15 }, policyDate);
+  const a = dueDate({ days: 30 }, applyDate);
+  if (!p || !a) return null;
+  return p.due <= a.due ? { due: p.due, by: "policy" } : { due: a.due, by: "apply" };
+}
+
+/** 승환계약 간주(보험업법 제97조 제3항): 소멸·청약 간격이 1개월 안이면 간주, 6개월 안이면 비교 안내 없을 때 간주 */
+export function twistingTest(oldEnd        , newApply        , compared         )                                                                                {
+  const gap = Math.abs(daysBetween(oldEnd, newApply));
+  if (!Number.isFinite(gap)) return null;
+  const [first, second] = oldEnd <= newApply ? [oldEnd, newApply] : [newApply, oldEnd];
+  const m1 = dueDate({ months: 1 }, first);
+  const m6 = dueDate({ months: 6 }, first);
+  if (!m1 || !m6) return null;
+  if (second <= m1.nominal) return { level: "deemed", gapDays: gap, text: `간격 ${gap}일로 1개월 안이에요. 고객이 손해 가능성을 알고 자필로 확인하는 등 본인 의사가 명백히 증명되지 않으면 부당 승환으로 봐요.` };
+  if (second <= m6.nominal) return compared ? { level: "check", gapDays: gap, text: `간격 ${gap}일로 6개월 안이에요. 보험기간·예정이율·보장 등 중요 사항 비교 안내 자료를 반드시 남기세요.` } : { level: "deemed", gapDays: gap, text: `간격 ${gap}일로 6개월 안인데 비교 안내가 없었어요. 부당 승환으로 봐요.` };
+  return { level: "clear", gapDays: gap, text: `간격 ${gap}일로 6개월이 지나 승환 간주 기간 밖이에요. 그래도 기존 계약을 부당하게 깨게 하면 안 돼요.` };
+}
 
 /** 기한 후 몇 개월이 지났는지(소수). 날짜가 없으면 NaN */
 export function monthsSince(from        , today        )         {
@@ -1186,6 +1396,10 @@ export const SCOPE_MATRIX                                                       
   { task: "행정심판 청구 대리", who: { admin: "partial", lawyer: "yes" }, cite: "행정심판법 제18조(대리인 범위), 행정사법 제2조" },
   { task: "법원·검찰 제출 서류 작성, 등기 신청 대리", who: { court: "yes", lawyer: "yes" }, cite: "법무사법 제2조·제3조" },
   { task: "소송 대리(법정 변론)", who: { lawyer: "yes" }, cite: "변호사법 제3조·제109조" },
+  { task: "보험 모집(계약 체결의 중개·대리)", who: { insurance: "yes" }, cite: "보험업법 제83조·제84조(등록한 설계사·대리점·중개사)" },
+  { task: "손해액·보험금 사정, 사정서 제출 대행", who: { insurance: "yes" }, cite: "보험업법 제185조·제188조(손해사정사)" },
+  { task: "보험료·책임준비금 산출 검증", who: { insurance: "yes" }, cite: "보험업법 제181조·제184조(보험계리사)" },
+  { task: "보험사고 피해자 대리 합의·소송", who: { lawyer: "yes" }, cite: "변호사법 제109조" },
 ];
 
 export function domainTopics(domain          )          {
