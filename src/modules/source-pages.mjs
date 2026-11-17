@@ -91,6 +91,14 @@ export const SOURCE_PAGES = Object.freeze({
   get_kr_professional_scope: `${TOOLS}law-guide/`,
   start_kr_law_intake: `${TOOLS}law-guide/`,
   search_kr_statutes: `${TOOLS}law-guide/`,
+  calculate_kr_fine_reduction: `${TOOLS}fine-reduction-calculator/`,
+  calculate_kr_import_duty: `${TOOLS}import-duty-fta-calculator/`,
+  simulate_ifrs17_csm: `${TOOLS}ifrs17-csm-simulator/`,
+  calculate_kics_ratio: `${TOOLS}kics-solvency-ratio-calculator/`,
+  calculate_insurance_claim_payout: `${TOOLS}disability-fault-claim-calculator/`,
+  analyze_journal_entries: `${TOOLS}journal-entry-analytics/`,
+  get_kr_practice_guide: `${TOOLS}eportal-practice-guide/`,
+  check_insurance_explanation_record: `${TOOLS}insurance-explanation-record/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.
