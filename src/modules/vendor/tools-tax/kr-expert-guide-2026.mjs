@@ -11,10 +11,12 @@
 // 이 파일은 api-oiyo(MCP)와 Claude 스킬(oiyo-kr-law-guide)이 그대로 가져다 쓴다(scripts/sync-tools-tax.mjs, build-law-guide-skill.mjs).
 import { krTaxDeadline } from "./kr-business-day.mjs";
 import { isCivilHoliday } from "./kr-legal-2026.mjs";
+import { PACKS } from "./kr-law-packs-2026.mjs";
 
 export const LAW_GUIDE_AS_OF = "2026-11-17";
 
-                                                                                        
+/** 앞의 6개는 이 파일, 뒤의 분야는 kr-law-packs-2026.ts의 팩이에요. 새 분야는 팩 하나를 더하면 돼요. */
+                                                                                                                                    
 
                        
               
@@ -41,7 +43,7 @@ export const LAW_GUIDE_AS_OF = "2026-11-17";
                                                           
  
 
-export const PROFESSIONS                               = {
+const CORE_PROFESSIONS                                                                                = {
   tax: {
     domain: "tax",
     name: "세금 법령 길잡이",
@@ -199,6 +201,22 @@ export const PROFESSIONS                               = {
   },
 };
 
+/** 화면 칩·표 머리글용 짧은 이름(분야, 자격). 새 분야를 넣으면 타입 검사가 여기 빈칸을 알려 줘요. */
+export const DOMAIN_LABEL                                                  = {
+  tax: { area: "세금", pro: "세무사" },
+  accounting: { area: "회계·장부", pro: "회계사" },
+  labor: { area: "노동", pro: "노무사" },
+  admin: { area: "행정", pro: "행정사" },
+  court: { area: "등기·법원", pro: "법무사" },
+  insurance: { area: "보험", pro: "보험 자격" },
+  customs: { area: "관세·통관", pro: "관세사" },
+  ip: { area: "특허·상표", pro: "변리사" },
+  appraisal: { area: "감정평가·보상", pro: "감정평가사" },
+  realty: { area: "부동산 중개", pro: "중개사" },
+};
+
+export const PROFESSIONS = { ...CORE_PROFESSIONS, ...Object.fromEntries(PACKS.map((p) => [p.profession.domain, p.profession])) }                                ;
+
 /* ---------- 조문 색인 ---------- */
 
                           
@@ -214,7 +232,7 @@ export const PROFESSIONS                               = {
 
 const s = (id        , domain          , law        , article        , title        , plain        , keywords          )          => ({ id, domain, law, article, title, plain, keywords });
 
-export const STATUTES            = [
+const CORE_STATUTES            = [
   // 세금
   s("nts-45-2", "tax", "국세기본법", "제45조의2", "경정 등의 청구", "세금을 더 냈으면 법정신고기한이 지난 날부터 5년 안에 돌려 달라고(경정청구) 할 수 있어요. 판결 등 후발적 사유는 안 날부터 3개월이에요.", ["환급", "경정청구", "더 냈", "공제 누락"]),
   s("nts-45", "tax", "국세기본법", "제45조", "수정신고", "덜 신고했으면 세무서가 고치기 전까지 수정신고할 수 있어요. 빨리 할수록 과소신고가산세가 많이 줄어요(제48조).", ["수정신고", "덜 냈", "누락"]),
@@ -319,6 +337,8 @@ export const STATUTES            = [
   s("com-658", "insurance", "상법", "제658조", "보험금의 지급", "약정 기간이 없으면 보험회사는 사고 통지를 받고 지체 없이 지급일을 정하고, 그날부터 10일 안에 보험금을 줘야 해요.", ["보험금 지급", "지연", "10일"]),
   s("com-662", "insurance", "상법", "제662조", "소멸시효", "보험금 청구권과 보험료·적립금 반환청구권은 3년, 보험회사의 보험료 청구권은 2년이 지나면 소멸해요.", ["시효", "3년", "보험금 청구", "늦게 청구"]),
 ];
+
+export const STATUTES            = [...CORE_STATUTES, ...PACKS.flatMap((p) => p.statutes)];
 
 export function statuteUrl(st                                  )         {
   const law = st.law.replace(/\s*\(.*$/, "").replace(/ 시행령$/, "시행령").replace(/ /g, "");
@@ -431,7 +451,7 @@ const SIZE_Q           = {
   required: true,
 };
 
-export const TOPICS          = [
+const CORE_TOPICS          = [
   /* ===== 세금 ===== */
   {
     id: "tax-dispute",
@@ -1149,6 +1169,8 @@ export const TOPICS          = [
   },
 ];
 
+export const TOPICS          = [...CORE_TOPICS, ...PACKS.flatMap((p) => p.topics)];
+
 /* ---------- 판정 도우미 ---------- */
 
 /** 보험 사은품(특별이익) 한도: 최초 1년 보험료의 10%와 20만 원 중 적은 금액(보험업법 시행령 제46조, 2023-07 개정) */
@@ -1400,6 +1422,7 @@ export const SCOPE_MATRIX                                                       
   { task: "손해액·보험금 사정, 사정서 제출 대행", who: { insurance: "yes" }, cite: "보험업법 제185조·제188조(손해사정사)" },
   { task: "보험료·책임준비금 산출 검증", who: { insurance: "yes" }, cite: "보험업법 제181조·제184조(보험계리사)" },
   { task: "보험사고 피해자 대리 합의·소송", who: { lawyer: "yes" }, cite: "변호사법 제109조" },
+  ...PACKS.flatMap((p) => p.scope),
 ];
 
 export function domainTopics(domain          )          {

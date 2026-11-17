@@ -591,7 +591,7 @@ function specialSupply(i) {
 }
 
 /* 법령 길잡이 (2026-11-16): legal information, deadlines and clarifying questions — not representation. */
-const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide", insurance: "insurance-law-guide" };
+const LAW_PAGE = { tax: "tax-law-guide", accounting: "accounting-law-guide", labor: "labor-law-guide", admin: "administrative-law-guide", court: "registry-court-law-guide", insurance: "insurance-law-guide", customs: "customs-law-guide", ip: "ip-law-guide", appraisal: "appraisal-law-guide", realty: "realty-brokerage-law-guide" };
 const seoulToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10);
 function lawAnswers(raw = {}) {
   const entries = Object.entries(raw);
