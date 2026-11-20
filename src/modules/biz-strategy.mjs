@@ -21,6 +21,7 @@ import {
 } from "./vendor/tools-tax/kr-welfare-2026.mjs";
 import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./vendor/tools-tax/kr-home-tax-2026.mjs";
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare, officetelHouseCount, ticketPresaleTax, inheritedValuation, filingDeadlines } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
+import { AFTER_DEATH_AS_OF, afterDeathTimeline } from "./vendor/tools-tax/after-death-timeline-2026.mjs";
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 import { makePracticeHandlers } from "./practice.mjs";
@@ -570,6 +571,15 @@ function filingDeadline(i) {
     ["File on Hometax or at the tax office; tax above 10M can be paid in instalments, above 20M by annual instalments with collateral", "Real estate also needs a separate acquisition tax return at the city or district office", "If late, file as soon as possible to get the late-filing relief"],
     "inheritance-gift-filing-deadline-calculator"), asOf: HOUSEHOLD_TAX_AS_OF };
 }
+function afterDeath(i) {
+  if (!isDate(i.deathDate)) throw new InputError(["deathDate: a date YYYY-MM-DD"]);
+  if (i.knownDate && !isDate(i.knownDate)) throw new InputError(["knownDate: a date YYYY-MM-DD"]);
+  if (i.today && !isDate(i.today)) throw new InputError(["today: a date YYYY-MM-DD"]);
+  return { ...welfare(afterDeathTimeline(i, i.today), "Months exclude the first day and end on the same date (or the month's last day); 'from the last day of the month' counts from the end of the month of death. A deadline on a weekend or public holiday moves to the next business day (민법 제161조, 국세기본법 제5조). death report and renunciation count from knownDate (default deathDate); everything else from deathDate. Situational tasks appear only when their flag is true.",
+    ["가족관계의 등록 등에 관한 법률 제84조·제122조", "민법 제157조·제161조·제1019조", "근로기준법 제36조·제49조", "주택임대차보호법 제9조", "부가가치세법 제49조", "소득세법 제74조", "지방세법 제20조①", "자동차등록령 제26조", "상속세 및 증여세법 제67조", "상법 제662조", "산업재해보상보험법 제112조", "국민연금법 제115조"],
+    ["Apply for the 안심상속 one-stop inquiry together with the death report to see assets and debts before the 3-month renunciation deadline", "Renunciation and limited acceptance are family-court procedures; free help: 대한법률구조공단 132", "Inheritance tax may be zero within the 500M lump-sum deduction (plus at least 500M when a spouse inherits)"],
+    "after-death-checklist"), asOf: AFTER_DEATH_AS_OF };
+}
 
 function youthRent(i) {
   return welfare(youthRentSupport(i), "youthLine = 2026 median income (youth household size) × 60%; parentLine = median (parents' household size) × 100%, skipped from age 30 or when exempt; rent ≤ 600k, or rent + deposit × 2.5% ÷ 12 ≤ 700k; deposit ≤ 50M; monthly = min(200k, rent) − housing benefit; total = monthly × 24.",
@@ -691,6 +701,7 @@ const HANDLERS = {
   "/v1/tax/kr/ticket-vs-presale": ticketPresale,
   "/v1/tax/kr/inherited-house-valuation": inheritedHouse,
   "/v1/tax/kr/inheritance-gift-filing-deadline": filingDeadline,
+  "/v1/benefits/kr/after-death-tasks": afterDeath,
   "/v1/benefits/kr/youth-rent-support": youthRent,
   "/v1/benefits/kr/policy-housing-loans": policyLoans,
   "/v1/benefits/kr/special-supply": specialSupply,
