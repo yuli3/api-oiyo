@@ -26,12 +26,13 @@ test("statutes and professional scope", () => {
   assert.equal(s.professions.length, 1);
   assert.equal(s.professions[0].act, "세무사법");
   assert.ok(s.professions[0].exclusive.some((x) => x.cite.article === "제20조 제3항"));
-  assert.equal(calculateBiz("/v1/law/kr/professional-scope", {}).professions.length, 14);
+  assert.equal(calculateBiz("/v1/law/kr/professional-scope", {}).professions.length, 15);
   assert.match(calculateBiz("/v1/law/kr/professional-scope", { domain: "family" }).professions[0].page, /divorce-family-law-guide\/$/);
   const ins = calculateBiz("/v1/law/kr/professional-scope", { domain: "insurance" });
   assert.equal(ins.professions[0].act, "보험업법");
   assert.match(ins.professions[0].page, /insurance-law-guide\/$/);
-  assert.equal(calculateBiz("/v1/law/kr/statutes", { query: "청약철회" }).results[0].id, "fcp-46");
+  assert.equal(calculateBiz("/v1/law/kr/statutes", { query: "보험 청약철회 15일" }).results[0].id, "fcp-46");
+  assert.equal(calculateBiz("/v1/law/kr/statutes", { query: "온라인 쇼핑 청약철회" }).results[0].id, "ecom-17");
   const cu = calculateBiz("/v1/law/kr/professional-scope", { domain: "customs" });
   assert.equal(cu.professions[0].act, "관세사법");
   assert.match(cu.professions[0].page, /customs-law-guide\/$/);

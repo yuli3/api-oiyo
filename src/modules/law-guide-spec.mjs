@@ -6,7 +6,7 @@
 // Data and formulas: tools-oiyo src/lib/kr-expert-guide-2026.ts (vendored by scripts/sync-tools-tax.mjs).
 import { TOPICS } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 
-const DOMAIN = { type: "string", enum: ["tax", "accounting", "labor", "admin", "court", "insurance", "customs", "ip", "appraisal", "realty", "building", "health", "family", "welfare"], description: "tax = 세금(세무사), accounting = 회계·장부(공인회계사), labor = 노동(공인노무사), admin = 행정(행정사), court = 등기·법원 서류(법무사), insurance = 보험(보험계리사·손해사정사·등록 설계사), customs = 관세·통관(관세사), ip = 특허·상표(변리사), appraisal = 감정평가·보상(감정평가사), realty = 부동산 중개(공인중개사), building = 건축·인허가(건축사), health = 보건·의료 이용(의료인·약사), family = 가사·이혼(변호사), welfare = 복지급여(사회복지사, 대행은 행정사)" };
+const DOMAIN = { type: "string", enum: ["tax", "accounting", "labor", "admin", "court", "insurance", "customs", "ip", "appraisal", "realty", "building", "health", "family", "welfare", "consumer"], description: "tax = 세금(세무사), accounting = 회계·장부(공인회계사), labor = 노동(공인노무사), admin = 행정(행정사), court = 등기·법원 서류(법무사), insurance = 보험(보험계리사·손해사정사·등록 설계사), customs = 관세·통관(관세사), ip = 특허·상표(변리사), appraisal = 감정평가·보상(감정평가사), realty = 부동산 중개(공인중개사), building = 건축·인허가(건축사), health = 보건·의료 이용(의료인·약사), family = 가사·이혼(변호사), welfare = 복지급여(사회복지사, 대행은 행정사), consumer = 소비자·온라인 구매(한국소비자원·변호사)" };
 const fn = (name, description, properties, required = []) => ({ type: "function", function: { name, description, parameters: { type: "object", properties, required } } });
 
 export const LAW_GUIDE_TOOLS = [

@@ -1,5 +1,5 @@
 // GENERATED from tools-oiyo src/lib/kr-law-packs-2026.ts by scripts/sync-tools-tax.mjs. Do not edit here.
-// 법령 길잡이 분야 팩: 관세·지식재산·감정평가·부동산 중개 (2026-11-17), 건축·보건·가사·복지급여 (11-20).
+// 법령 길잡이 분야 팩: 관세·지식재산·감정평가·부동산 중개 (2026-11-17), 건축·보건·가사·복지급여·소비자 (11-20).
 // WHY: 세운 "지식전문가를 더 늘릴 수 있어야 해요". 새 분야는 이 파일 같은 팩 하나(PACK)를 만들고
 //   kr-expert-guide-2026.ts의 PACKS에 넣으면 화면(LawGuide)·스킬 references·MCP(api-oiyo)가 함께 늘어나요.
 //   새 분야 체크리스트: ① DomainId에 id 추가 ② Profession(자격법 업무·독점·유사명칭 조문) ③ 조문 색인(확인한 조문만)
@@ -719,4 +719,104 @@ const welfare          = {
   ],
 };
 
-export const PACKS            = [customs, ip, appraisal, realty, building, health, family, welfare];
+/* ---------- 소비자·온라인 구매 (11-20) ---------- */
+// 조문: 전자상거래법 제17·18조, 방문판매법 제8·31조, 할부거래법 제8·16조, 소비자기본법 제55조, 변호사법 제109조.
+
+const consumer          = {
+  profession: {
+    domain: "consumer",
+    name: "소비자·온라인 구매 법령 길잡이",
+    licensed: "변호사(분쟁 대리) · 한국소비자원(피해구제)",
+    act: "소비자기본법",
+    scopeCite: { law: "소비자기본법", article: "제55조" },
+    scope: ["한국소비자원의 피해구제(상담·합의 권고)와 소비자분쟁조정위원회의 조정", "소송·분쟁 대리는 변호사", "판매자 신고·제재는 공정거래위원회·지자체"],
+    exclusive: [{ text: "변호사가 아닌 사람이 대가를 받고 환불 분쟁을 대리하거나 소송 서류를 쓰면 처벌돼요.", cite: { law: "변호사법", article: "제109조" } }],
+    guideDoes: ["청약철회 7일·3개월, 방문·전화판매 14일, 할부 7일 기한을 날짜로 계산해요.", "환불이 안 되는 경우와 반품 비용을 누가 내는지 설명해요.", "1372 상담과 피해구제 신청에 가져갈 자료를 정리해요."],
+    guideDoesNot: ["판매자와 대신 협상하거나 내용증명을 쓰지 않아요.", "환불 여부를 확정하지 않아요.", "특정 변호사를 소개하지 않아요."],
+    handOffWhen: ["판매자가 연락을 끊었거나 사기가 의심될 때(경찰 182·사이버범죄 신고)", "피해 금액이 크고 조정이 결렬됐을 때", "같은 피해자가 많을 때(집단분쟁조정)"],
+    freeHelp: [
+      { name: "1372 소비자상담센터", how: "☎ 1372 · ccn.go.kr", what: "환불·해지 상담, 판매자에게 처리 요청" },
+      { name: "한국소비자원", how: "kca.go.kr", what: "피해구제 신청, 소비자분쟁조정" },
+      { name: "전자거래분쟁조정위원회", how: "ecmc.or.kr", what: "온라인 거래 분쟁 무료 조정" },
+    ],
+  },
+  statutes: [
+    s("ecom-17", "consumer", "전자상거래 등에서의 소비자보호에 관한 법률", "제17조", "청약철회 등", "온라인·통신판매로 산 물건은 계약서를 받은 날(물건이 늦게 오면 받은 날)부터 7일 안에 청약을 철회할 수 있어요. 광고·계약 내용과 다르면 받은 날부터 3개월, 그 사실을 안 날부터 30일 안에 할 수 있어요. 소비자 잘못으로 훼손됐거나, 써서 가치가 크게 줄었거나, 복제 가능한 물건의 포장을 뜯었으면 안 될 수 있어요.", ["청약철회", "환불", "반품", "7일", "단순변심", "온라인 쇼핑", "택배"]),
+    s("ecom-18", "consumer", "전자상거래 등에서의 소비자보호에 관한 법률", "제18조", "청약철회 등의 효과", "판매자는 물건을 돌려받은 날부터 3영업일 안에 돈을 돌려줘야 하고, 늦으면 지연이자를 내요. 단순변심 반품 비용은 소비자가, 광고와 달라서 반품하면 판매자가 내요.", ["환불 기한", "3영업일", "반품 배송비", "지연이자"]),
+    s("door-8", "consumer", "방문판매 등에 관한 법률", "제8조", "방문·전화권유판매 청약철회", "방문판매·전화권유판매는 계약서를 받은 날부터 14일 안에 청약을 철회할 수 있어요.", ["방문판매", "전화권유", "14일", "텔레마케팅"]),
+    s("door-31", "consumer", "방문판매 등에 관한 법률", "제31조·제32조", "계속거래의 해지", "헬스장·학습지처럼 1개월 넘게 이어지는 계속거래는 소비자가 언제든 해지할 수 있고, 판매자는 지나친 위약금을 받을 수 없어요.", ["헬스장 환불", "학습지 해지", "중도 해지", "위약금", "계속거래"]),
+    s("inst-8", "consumer", "할부거래에 관한 법률", "제8조", "할부계약 청약철회", "할부로 산 물건은 계약서를 받은 날(물건이 늦게 오면 받은 날)부터 7일 안에 청약을 철회할 수 있어요.", ["할부 철회", "7일", "할부계약"]),
+    s("inst-16", "consumer", "할부거래에 관한 법률", "제16조", "소비자의 항변권", "할부 물건이 안 오거나 하자를 안 고쳐 주면 카드사에 남은 할부금 지급을 거절할 수 있어요. 할부가격 20만 원 이상(카드는 3개월 이상 할부)일 때예요.", ["항변권", "할부 중단", "카드사", "20만 원"]),
+    s("cba-55", "consumer", "소비자기본법", "제55조", "피해구제의 신청", "소비자는 한국소비자원에 피해구제를 신청할 수 있어요. 합의가 안 되면 소비자분쟁조정위원회 조정으로 넘어가요.", ["피해구제", "한국소비자원", "분쟁조정", "1372"]),
+  ],
+  topics: [
+    {
+      id: "cons-online",
+      domain: "consumer",
+      label: "온라인으로 산 물건을 환불받고 싶어요",
+      plain: "받은 날부터 7일 안에는 이유 없이도 청약철회할 수 있어요. 광고와 다르면 받은 날부터 3개월(안 날부터 30일)까지 돼요. 판매자는 물건을 돌려받고 3영업일 안에 환불해야 해요.",
+      questions: [
+        { key: "deliveredDate", ask: "물건을 받은 날은 언제인가요?", why: "청약철회 7일·3개월이 이날부터 시작해요.", kind: "date", required: true },
+        { key: "reason", ask: "왜 환불하려고 하나요?", why: "단순변심과 광고·불량은 기한과 반품비 부담이 달라요.", kind: "choice", required: true, options: [{ value: "change", label: "마음이 바뀌었어요" }, { value: "differs", label: "광고·설명과 달라요" }, { value: "defect", label: "불량·파손이에요" }] },
+        { key: "knewDate", ask: "광고와 다르다는 걸 안 날은 언제인가요?", why: "안 날부터 30일 기한이 있어요.", kind: "date", askIf: (a) => a.reason === "differs" || a.reason === "defect" },
+        { key: "used", ask: "포장을 뜯었거나 사용했나요?", why: "써서 가치가 크게 줄었거나 복제 가능한 물건의 포장을 뜯으면 철회가 안 될 수 있어요.", kind: "choice", options: [{ value: "no", label: "안 뜯었어요" }, { value: "opened", label: "확인하려고 뜯기만 했어요" }, { value: "used", label: "사용했어요" }] },
+        { key: "custom", ask: "주문 제작 물건인가요?", why: "개별 주문 제작품은 미리 알렸다면 철회가 제한될 수 있어요.", kind: "yesno" },
+      ],
+      statutes: ["ecom-17", "ecom-18", "cba-55"],
+      deadlines: [
+        { id: "withdraw", label: "청약철회(단순변심)", from: "deliveredDate", days: 7, cite: "전자상거래법 제17조 제1항" },
+        { id: "differs", label: "청약철회(광고·계약과 다름, 받은 날부터)", from: "deliveredDate", months: 3, cite: "전자상거래법 제17조 제3항", when: (a) => a.reason === "differs" || a.reason === "defect" },
+        { id: "differs-knew", label: "청약철회(광고·계약과 다름, 안 날부터)", from: "knewDate", days: 30, cite: "전자상거래법 제17조 제3항", when: (a) => a.reason === "differs" || a.reason === "defect" },
+      ],
+      tools: [],
+      flags: (a         ) => {
+        const f         = [];
+        if (a.reason === "change") f.push({ tone: "info", text: "단순변심 반품 배송비는 소비자가 내요. 위약금이나 손해배상은 받을 수 없어요.", cite: "전자상거래법 제18조" });
+        if (a.reason === "differs" || a.reason === "defect") f.push({ tone: "good", text: "광고와 다르거나 불량이면 반품 비용은 판매자가 내요. 사진·광고 화면을 저장해 두세요.", cite: "전자상거래법 제18조" });
+        if (a.used === "opened") f.push({ tone: "info", text: "내용을 확인하려고 포장만 뜯은 것은 철회를 막는 사유가 아니에요.", cite: "전자상거래법 제17조 제2항" });
+        if (a.used === "used") f.push({ tone: "warn", text: "사용해서 가치가 크게 줄었으면 단순변심 철회가 거절될 수 있어요. 불량이면 사용 여부와 관계없이 다툴 수 있어요.", cite: "전자상거래법 제17조 제2항" });
+        if (yes(a.custom)) f.push({ tone: "warn", text: "주문 제작품은 판매자가 미리 알리고 동의를 받았다면 철회가 제한될 수 있어요. 불량·광고와 다름은 별개예요.", cite: "전자상거래법 제17조 제2항" });
+        f.push({ tone: "info", text: "판매자가 거부하면 1372에 상담하고, 결제한 카드사에 결제 취소·이의 신청도 함께 하세요." });
+        return f;
+      },
+      handOff: () => null,
+      documents: ["주문 내역·결제 영수증", "상품 페이지 화면(광고)", "받은 물건 사진", "판매자와 주고받은 메시지"],
+    },
+    {
+      id: "cons-contract",
+      domain: "consumer",
+      label: "헬스장·학습지·방문판매·할부 계약을 그만두고 싶어요",
+      plain: "방문·전화권유판매는 14일, 할부는 7일 안에 철회할 수 있어요. 헬스장·학습지처럼 1개월 넘게 이어지는 계약은 언제든 해지할 수 있고 지나친 위약금은 안 돼요.",
+      questions: [
+        { key: "type", ask: "어떤 계약인가요?", why: "계약 방식마다 철회·해지 규칙이 달라요.", kind: "choice", required: true, options: [{ value: "visit", label: "방문·전화권유로 샀어요" }, { value: "installment", label: "할부로 샀어요" }, { value: "continuing", label: "헬스장·학습지·PT 같은 기간 계약" }] },
+        { key: "contractDate", ask: "계약서를 받은 날(물건을 받은 날)은 언제인가요?", why: "철회 기한이 이날부터예요.", kind: "date", required: true, askIf: (a) => a.type !== "continuing" },
+        { key: "price", ask: "할부로 낸 금액(할부가격)은 얼마인가요?", why: "20만 원 이상이면 카드사에 할부금 지급을 거절할 수 있어요.", kind: "number", unit: "won", askIf: (a) => a.type === "installment" },
+        { key: "months", ask: "몇 개월 할부인가요?", why: "카드 할부는 3개월 이상이어야 항변권이 있어요.", kind: "number", unit: "months", askIf: (a) => a.type === "installment" },
+        { key: "problem", ask: "물건이 안 왔거나 하자가 있나요?", why: "그러면 항변권을 쓸 수 있어요.", kind: "yesno", askIf: (a) => a.type === "installment" },
+      ],
+      statutes: ["door-8", "door-31", "inst-8", "inst-16", "cba-55"],
+      deadlines: [
+        { id: "visit", label: "방문·전화권유판매 청약철회", from: "contractDate", days: 14, cite: "방문판매법 제8조", when: (a) => a.type === "visit" },
+        { id: "installment", label: "할부계약 청약철회", from: "contractDate", days: 7, cite: "할부거래법 제8조", when: (a) => a.type === "installment" },
+      ],
+      tools: [],
+      flags: (a         ) => {
+        const f         = [];
+        if (a.type === "continuing") f.push({ tone: "good", text: "기간 계약은 언제든 해지할 수 있어요. 남은 기간 이용료에서 공정위 기준의 위약금(보통 총액의 10% 안팎)만 빼고 돌려받는지 확인하세요.", cite: "방문판매법 제31조·제32조" });
+        if (a.type === "installment") {
+          const p = num(a.price);
+          const m = num(a.months);
+          if (yes(a.problem) && p >= 200_000 && (!Number.isFinite(m) || m >= 3)) f.push({ tone: "good", text: "할부가격 20만 원 이상이고 물건이 안 왔거나 하자가 있으면, 카드사에 서면으로 항변권을 행사해 남은 할부금을 멈출 수 있어요.", cite: "할부거래법 제16조" });
+          else if (yes(a.problem)) f.push({ tone: "info", text: "항변권은 할부가격 20만 원 이상, 카드 3개월 이상 할부일 때 써요. 아니면 1372 상담부터 하세요.", cite: "할부거래법 제16조" });
+        }
+        f.push({ tone: "info", text: "철회·해지는 문자·이메일 등 기록이 남는 방법으로 보내세요." });
+        return f;
+      },
+      handOff: () => null,
+      documents: ["계약서", "결제 내역(카드 할부 명세)", "철회·해지 요청을 보낸 기록"],
+    },
+  ],
+  scope: [{ task: "소비자 피해구제·분쟁조정 신청", who: { consumer: "yes", lawyer: "yes" }, cite: "소비자기본법 제55조" }],
+};
+
+export const PACKS            = [customs, ip, appraisal, realty, building, health, family, welfare, consumer];
