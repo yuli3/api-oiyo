@@ -25,6 +25,7 @@ import { AFTER_DEATH_AS_OF, afterDeathTimeline } from "./vendor/tools-tax/after-
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 import { makePracticeHandlers } from "./practice.mjs";
+import { makeProGapHandlers } from "./pro-gap.mjs";
 
 export const BIZ_DISCLAIMER =
   "Decision support from the numbers you gave, not investment, legal or tax advice. Probabilities and estimates are yours; check filing dates with 홈택스 and statutes on law.go.kr.";
@@ -722,6 +723,8 @@ const HANDLERS = {
   "/v1/law/kr/statutes": statutes,
   // 2026-11-17: 전문 실무 계산·길잡이 8종(practice.mjs)
   ...makePracticeHandlers(InputError),
+  // 2026-11-21: 전문 직군 전수조사 계산 14종(pro-gap.mjs)
+  ...makeProGapHandlers(InputError),
 };
 
 export function calculateBiz(path, raw, coerce = false) {
