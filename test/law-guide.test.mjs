@@ -26,7 +26,7 @@ test("statutes and professional scope", () => {
   assert.equal(s.professions.length, 1);
   assert.equal(s.professions[0].act, "세무사법");
   assert.ok(s.professions[0].exclusive.some((x) => x.cite.article === "제20조 제3항"));
-  assert.equal(calculateBiz("/v1/law/kr/professional-scope", {}).professions.length, 15);
+  assert.equal(calculateBiz("/v1/law/kr/professional-scope", {}).professions.length, 16);
   assert.match(calculateBiz("/v1/law/kr/professional-scope", { domain: "family" }).professions[0].page, /divorce-family-law-guide\/$/);
   const ins = calculateBiz("/v1/law/kr/professional-scope", { domain: "insurance" });
   assert.equal(ins.professions[0].act, "보험업법");

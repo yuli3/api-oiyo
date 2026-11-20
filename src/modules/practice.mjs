@@ -2,6 +2,7 @@
 import { KR_HOLIDAYS } from "./vendor/tools-tax/kr-business-day.mjs";
 import { analyzeEntries, claimPlain, claimResult, csmPlain, csmResult, dutyPlain, dutyResult, finePlain, fineResult, kicsPlain, kicsResult } from "./vendor/tools-tax/pro-practice-2026.mjs";
 import { GUIDES, guideBySlug, guideDeadlines, recordCheck, recordText } from "./vendor/tools-tax/pro-practice-guides-2026.mjs";
+import { PRIVACY_AS_OF, breachClock, checkPolicy, parseAt } from "./vendor/tools-tax/privacy-check-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
 const NOTE = "정보·계산 도구예요. 과태료 부과, 품목분류, 책임준비금·지급여력 산출, 손해사정, 감사의견, 신고·서류 대리를 하지 않아요.";
@@ -56,7 +57,20 @@ export function makePracticeHandlers(InputError) {
     return { ...recordCheck(input), text: recordText(input), page: `${TOOLS}insurance-explanation-record/`, note: "개인 점검용이에요. 회사의 공식 확인서·녹취를 대신하지 않아요." };
   }
 
+  function privacy(i) {
+    const PNOTE = "판단 보조예요. 유출 신고·처리방침 작성을 대신하지 않아요. 문의: 개인정보침해신고센터 118, privacy.go.kr.";
+    if (i.mode === "policy") {
+      if (typeof i.policyText !== "string" || !i.policyText.trim()) throw new InputError(["policyText: the privacy policy text for mode=policy"]);
+      const ctx = { website: !!i.website, outsource: !!i.outsource, thirdParty: !!i.thirdParty, overseas: !!i.overseas };
+      return { asOf: PRIVACY_AS_OF, ...checkPolicy(i.policyText, ctx), page: `${TOOLS}privacy-breach-policy-check/`, note: PNOTE };
+    }
+    if (!parseAt(i.knownAt ?? "")) throw new InputError(["knownAt: YYYY-MM-DD or YYYY-MM-DDTHH:mm (when the breach became known)"]);
+    const r = breachClock({ knownAt: i.knownAt, affected: i.affected ?? 0, sensitive: !!i.sensitive, hacking: !!i.hacking, contactUnknown: !!i.contactUnknown });
+    return { asOf: PRIVACY_AS_OF, ...r, page: `${TOOLS}privacy-breach-policy-check/`, note: PNOTE };
+  }
+
   return {
+    "/v1/law/kr/privacy-check": privacy,
     "/v1/law/kr/fine-reduction": fine,
     "/v1/customs/kr/import-duty": duty,
     "/v1/insurance/ifrs17-csm": csm,
