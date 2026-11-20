@@ -179,3 +179,127 @@ export function taxCalendar(year        , p            ) {
 export function upcoming(events                 , today        , n = 5) {
   return events.filter((e) => e.due >= today).slice(0, n);
 }
+
+// ───────────────────────── 이번 달 백오피스 한 장 (2026-11-20, 다음 10종 #6) ─────────────────────────
+// 1인·소상공인이 "이번 달 무엇을, 언제까지, 어디서" 하는지 한 장으로 봐요. 위 taxCalendar에 매월 하는 노무 일(4대보험료,
+// 급여명세서), 입사·퇴사 때 생기는 기한, 월합계 세금계산서 마감, 기한은 없지만 매달 하면 좋은 장부 정리를 더해요.
+// 근거: 국민건강보험법 제78조·국민연금법 제89조(보험료 다음 달 10일), 근로기준법 제17조(근로계약서)·제36조(금품청산 14일)·
+// 제48조②(임금명세서), 국민연금법 시행규칙·국민건강보험법 시행규칙·고용보험법 제15조(취득·상실 신고 다음 달 15일),
+// 근로자퇴직급여 보장법 제9조(퇴직금 14일), 부가가치세법 제34조③(월합계 세금계산서 다음 달 10일).
+
+                                                  
+                                         
+                  
+ 
+
+                              
+                                
+                   
+                                             
+                    
+ 
+
+                            
+              
+                
+             
+                
+                
+                
+                     
+                
+                
+                               
+                    
+                    
+ 
+
+const WHERE                              = [
+  [/지방소득세/, "위택스(wetax.go.kr) 또는 홈택스에서 이어서", undefined],
+  [/원천세/, "홈택스 › 신고/납부 › 원천세", "/ko/salary-calculator/"],
+  [/간이지급명세서|지급명세서/, "홈택스 › 지급명세서·자료제출", undefined],
+  [/부가세|부가가치세/, "홈택스 › 신고/납부 › 부가가치세", "/ko/vat-calculator/"],
+  [/사업장현황/, "홈택스 › 신고/납부 › 사업장현황신고", undefined],
+  [/종합소득세/, "홈택스 › 신고/납부 › 종합소득세", "/ko/comprehensive-income-tax-calculator/"],
+  [/법인세/, "홈택스 › 신고/납부 › 법인세", undefined],
+  [/보수총액/, "4대사회보험 정보연계센터(EDI) 또는 고용·산재 토탈서비스", undefined],
+  [/반기납부/, "홈택스 › 신청/제출 › 원천징수 반기별 납부 승인 신청", undefined],
+];
+const whereOf = (title        ) => WHERE.find(([re]) => re.test(title)) ?? [/./, "홈택스", undefined];
+
+const iso = (d      ) => ymd(d);
+const addDays = (s        , n        ) => {
+  const [y, m, d] = s.split("-").map(Number);
+  return iso(new Date(y, m - 1, d + n));
+};
+const nextMonth15 = (s        ) => {
+  const [y, m] = s.split("-").map(Number);
+  return iso(new Date(y, m, 15));
+};
+const validDate = (s         )              => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(new Date(s).getTime());
+
+/** month "YYYY-MM"의 할 일. today를 주면 지난 일·남은 날을 붙여요. */
+export function monthlyBackoffice(month        , p              , ev              = {}, today         ) {
+  const m0 = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!m0) throw new Error("month: YYYY-MM");
+  const y = +m0[1];
+  const m = +m0[2];
+  const first = `${month}-01`;
+  const last = `${month}-${String(lastDay(y, m)).padStart(2, "0")}`;
+  const inMonth = (d        ) => d >= first && d <= last;
+  const roll = (s        ) => iso(krTaxDeadline(new Date(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10))));
+  const tasks              = [];
+  // 법정 기한이 이달이면 휴일로 다음 달 초로 밀려도 이달 할 일로 봐요.
+  const thisMonth = new Set           ();
+
+  for (const e of taxCalendar(y, p).events) {
+    if (!e.statutory.startsWith(month)) continue;
+    const [, where, tool] = whereOf(e.title);
+    const t            = { due: e.due, title: e.title, area: e.area, basis: e.basis, where, tool, note: e.note };
+    tasks.push(t);
+    thisMonth.add(t);
+  }
+  if (p.vat === "general") {
+    tasks.push({ due: roll(`${month}-10`), title: "지난달 공급분 월합계·일괄 세금계산서 발급 마감", area: "tax", basis: "부가가치세법 제34조③", where: "홈택스 › 전자세금계산서 발급", note: "거래할 때 바로 발급했으면 할 일 없음. 늦게 발급하면 가산세 1%" });
+  }
+  if (p.employer) {
+    tasks.push({ due: roll(`${month}-10`), title: "지난달분 4대보험료 납부", area: "labor", basis: "국민건강보험법 제78조·국민연금법 제89조", where: "4대사회보험 정보연계센터(EDI) 고지서·자동이체", note: "자동이체면 잔액만 확인" });
+    if (p.payday && p.payday >= 1 && p.payday <= 31) {
+      const d = `${month}-${String(Math.min(p.payday, lastDay(y, m))).padStart(2, "0")}`;
+      tasks.push({ due: d, title: "월급 지급과 임금명세서 주기", area: "labor", basis: "근로기준법 제43조·제48조②", where: "회사(문자·메일·메신저로 줘도 돼요)", tool: "/ko/salary-calculator/", note: "명세서에 기본급·수당·공제 항목과 계산 방법을 적어요. 안 주면 과태료" });
+    }
+  }
+  for (const h of (ev.hires ?? []).filter(validDate)) {
+    if (inMonth(h)) tasks.push({ due: h, title: `입사(${h}) 근로계약서 써서 1부 주기`, area: "labor", basis: "근로기준법 제17조", where: "회사", note: "임금·근로시간·휴일·연차를 적어요" });
+    tasks.push({ due: roll(nextMonth15(h)), title: `입사(${h}) 4대보험 취득신고`, area: "labor", basis: "국민연금법 시행규칙 제2조·국민건강보험법 시행규칙 제4조·고용보험법 제15조", where: "4대사회보험 정보연계센터(EDI)", note: "입사한 달의 다음 달 15일까지" });
+  }
+  for (const l of (ev.leaves ?? []).filter(validDate)) {
+    tasks.push({ due: addDays(l, 14), title: `퇴사(${l}) 월급·퇴직금 등 모두 정산`, area: "labor", basis: "근로기준법 제36조·근로자퇴직급여 보장법 제9조", where: "회사", tool: "/ko/severance-calculator/", note: "14일 안에. 합의하면 늦출 수 있어요" });
+    tasks.push({ due: roll(nextMonth15(l)), title: `퇴사(${l}) 4대보험 상실신고`, area: "labor", basis: "국민연금법 시행규칙 제3조·국민건강보험법 시행규칙 제4조·고용보험법 제15조", where: "4대사회보험 정보연계센터(EDI)", note: "실업급여를 받으려면 이직 사유를 정확히 적어요" });
+  }
+  if (m === 1 && p.employer) tasks.push({ due: `${month}-01`, title: "새해 최저임금 반영 확인", area: "labor", basis: "최저임금법 제6조·제10조", where: "회사", tool: "/ko/labor-cost-calculator/" });
+
+  const relevant = tasks.filter((t) => t.due <= last || thisMonth.has(t));
+  const out = relevant
+    .map((t) => {
+      if (!today || !validDate(today)) return t;
+      const left = Math.round((new Date(t.due).getTime() - new Date(today).getTime()) / 86_400_000);
+      return { ...t, daysLeft: left, overdue: left < 0 };
+    })
+    .sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : 0));
+  const later = tasks.filter((t) => t.due > last && !thisMonth.has(t)).sort((a, b) => (a.due < b.due ? -1 : 1));
+  const routine = [
+    { title: "지난달 통장·카드 내역을 장부로 정리", tool: "/ko/bookkeeping-data-bridge/", note: "미분류·불공제 항목을 이달 안에 없애 두면 신고 달이 편해요" },
+    { title: "받을 돈·줄 돈 맞추기(미수금·미지급금)", note: "늦어지는 거래처는 이달 안에 연락해요" },
+    { title: "다음 달 큰 지출(부가세·종소세·보험료) 미리 떼어 두기", note: "통장을 하나 따로 두면 편해요" },
+  ];
+  const area = (a      ) => out.filter((t) => t.area === a).length;
+  return {
+    month,
+    summary: `${month} 할 일 ${out.length}가지(세무 ${area("tax")}, 노무 ${area("labor")})${later.length ? `, 다음 달로 넘어가는 기한 ${later.length}가지` : ""}.`,
+    tasks: out,
+    later,
+    routine,
+    holidaysKnown: holidaysKnown(y),
+  };
+}

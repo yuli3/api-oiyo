@@ -44,6 +44,7 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_unit_economics_runway: `${TOOLS}unit-economics-runway-calculator/`,
   rank_priorities: `${TOOLS}priority-decision-matrix/`,
   get_kr_business_tax_calendar: `${TOOLS}business-must-do-checklist/`,
+  plan_kr_small_business_month: `${TOOLS}business-must-do-checklist/`,
   plan_campaign_supply: `${TOOLS}campaign-supply-planner/`,
   evaluate_influencer_deal: `${TOOLS}influencer-deal-calculator/`,
   plan_quality_recovery: `${TOOLS}quality-recovery-planner/`,

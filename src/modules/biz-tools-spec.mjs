@@ -129,6 +129,21 @@ export const BIZ_TOOLS = [
       role: { type: "string", enum: ["ceo", "team", "bookkeeper", "advisor"], description: "Add the checklist for this role" },
     }, ["year", "entity", "vat", "employer"]),
 
+  fn("plan_kr_small_business_month",
+    "One-page monthly back-office list for a Korean sole proprietor or small company: this month's filing deadlines (withholding tax, VAT, payment statements, income or corporate tax), 4 social insurance premiums (10th), monthly-total tax invoices (10th, 부가가치세법 제34조③), wage statements on payday (근로기준법 제48조②), and event deadlines for hires (written contract, insurance enrolment by the 15th of the next month) and leavers (settle wages and severance within 14 days, insurance loss report). Due dates move past weekends and public holidays; overdue items and deadlines that fall next month are separated; adds routine monthly bookkeeping. December fiscal year-end; no filing or drafting.",
+    {
+      month: { type: "string", pattern: "^\\d{4}-\\d{2}$", description: "Month YYYY-MM" },
+      entity: { type: "string", enum: ["corp", "indiv"], description: "corp (법인) or indiv (개인사업자)" },
+      vat: { type: "string", enum: ["general", "simple", "exempt"], description: "VAT type: general (일반), simple (간이), exempt (면세)" },
+      employer: { type: "boolean", description: "Pays employees or freelancers" },
+      halfYearWithholding: { type: "boolean", description: "Approved for half-yearly withholding tax filing" },
+      sincere: { type: "boolean", description: "Subject to 성실신고확인" },
+      payday: { type: "integer", minimum: 1, maximum: 31, description: "Monthly payday (day of month)" },
+      hires: list({ type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" }, 20, "Hire dates this or last month, YYYY-MM-DD"),
+      leaves: list({ type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" }, 20, "Leaving dates this or last month, YYYY-MM-DD"),
+      today: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Reference date for days left and overdue (YYYY-MM-DD)" },
+    }, ["month", "entity", "vat", "employer"]),
+
   // 2026-11-16: 운영 문제 8유형(tools-oiyo lib/biz-ops.ts)
   fn("plan_campaign_supply",
     "Campaign demand vs supply: from weekly demand, opening stock, weekly production capacity and the lead time for extra production, returns the first stockout week, total shortage, fill rate, the uniform extra production per week needed from the first week extra output can arrive, and the shortage that extra production cannot fix in time. Same engine as tools.oiyo.net.",
@@ -270,6 +285,7 @@ export const BIZ_ENDPOINTS = {
   calculate_unit_economics_runway: { path: "/v1/biz/unit-economics-runway", method: "POST" },
   rank_priorities: { path: "/v1/biz/priorities", method: "POST" },
   get_kr_business_tax_calendar: { path: "/v1/tax/kr/business-calendar" },
+  plan_kr_small_business_month: { path: "/v1/tax/kr/business-month", method: "POST" },
   plan_campaign_supply: { path: "/v1/biz/campaign-supply", method: "POST" },
   evaluate_influencer_deal: { path: "/v1/biz/influencer-deal", method: "POST" },
   plan_quality_recovery: { path: "/v1/biz/quality-recovery", method: "POST" },
