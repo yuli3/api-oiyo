@@ -9,7 +9,7 @@
 // - 대리·서류 작성 대행·소개·알선을 하지 않는다. 일반 법령 정보, 기한 계산, 질문 정리, 공공 무료 창구 안내만 한다.
 // - 조문 요약은 쉬운 말 풀이다. 원문은 국가법령정보센터(law.go.kr)에서 확인하라고 링크를 준다.
 // 이 파일은 api-oiyo(MCP)와 Claude 스킬(oiyo-kr-law-guide)이 그대로 가져다 쓴다(scripts/sync-tools-tax.mjs, build-law-guide-skill.mjs).
-import { krTaxDeadline } from "./kr-business-day.mjs";
+import { krTaxDeadlineUTC } from "./kr-business-day.mjs";
 import { isCivilHoliday } from "./kr-legal-2026.mjs";
 import { PACKS } from "./kr-law-packs-2026.mjs";
 import { formsFor } from "./kr-public-forms-2026.mjs";
@@ -1054,6 +1054,7 @@ const CORE_TOPICS          = [
       { id: "renew-last", label: "계약갱신요구 마지막 날(만료 2개월 전)", from: "endDate", months: -2, cite: "주택임대차보호법 제6조의3", note: "만료 6개월 전부터 이날까지 요구" },
     ],
     tools: [
+      { label: "경매 배당·최우선변제 계산기", href: "/ko/auction-distribution-calculator/" },
       { label: "전세보증보험 계산기", href: "/ko/jeonse-guarantee-calculator/" },
       { label: "법정이자 계산기", href: "/ko/legal-interest-calculator/" },
     ],
@@ -1356,7 +1357,7 @@ export function dueDate(rule                                                    
   // 갱신요구처럼 "그 전까지" 기한(음수 개월)이나 문서에 적힌 날(0일)은 휴일을 미루지 않아요.
   if ((rule.months ?? 0) < 0 || rule.days === 0) return { due: nominal, nominal, shifted: false };
   let t = d;
-  if (rule.tax) t = krTaxDeadline(d);
+  if (rule.tax) t = krTaxDeadlineUTC(d);
   else {
     for (let i = 0; i < 10 && isCivilHoliday(t.getTime()).holiday; i++) t = new Date(t.getTime() + 86_400_000);
   }

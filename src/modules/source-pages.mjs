@@ -103,6 +103,21 @@ export const SOURCE_PAGES = Object.freeze({
   analyze_journal_entries: `${TOOLS}journal-entry-analytics/`,
   get_kr_practice_guide: `${TOOLS}eportal-practice-guide/`,
   check_insurance_explanation_record: `${TOOLS}insurance-explanation-record/`,
+  // 2026-11-21: 전문직 전수조사 계산기 14종
+  plan_kr_appeal_deadline: `${TOOLS}appeal-deadline-calculator/`,
+  calculate_kr_corporate_tax: `${TOOLS}corporate-tax-adjustment-calculator/`,
+  calculate_kr_tax_penalty: `${TOOLS}tax-penalty-calculator/`,
+  calculate_kr_auction_distribution: `${TOOLS}auction-distribution-calculator/`,
+  calculate_kr_inheritance_share: `${TOOLS}inheritance-share-calculator/`,
+  calculate_kr_customs_practice: `${TOOLS}customs-practice-calculator/`,
+  calculate_kr_appraisal_compensation: `${TOOLS}appraisal-compensation-calculator/`,
+  calculate_kr_license_points: `${TOOLS}license-points-calculator/`,
+  calculate_accounting_schedule: `${TOOLS}accounting-schedule-calculator/`,
+  calculate_kr_vat_credits: `${TOOLS}vat-credit-calculator/`,
+  plan_kr_ip_deadlines: `${TOOLS}ip-deadline-calculator/`,
+  check_kr_workforce: `${TOOLS}workforce-schedule-check/`,
+  check_kr_franchise_contract: `${TOOLS}franchise-contract-check/`,
+  check_kr_apartment_management: `${TOOLS}apartment-management-check/`,
 });
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.

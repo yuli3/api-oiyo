@@ -6,6 +6,7 @@
 import { WELFARE_ENDPOINTS, WELFARE_TOOLS } from "./welfare-tools-spec.mjs";
 import { LAW_GUIDE_ENDPOINTS, LAW_GUIDE_TOOLS } from "./law-guide-spec.mjs";
 import { PRACTICE_ENDPOINTS, PRACTICE_TOOLS } from "./practice-spec.mjs";
+import { CENSUS_ENDPOINTS, CENSUS_TOOLS } from "./census-spec.mjs";
 
 const str = (description, maxLength = 120) => ({ type: "string", maxLength, description });
 const num = (description, minimum, maximum) => ({ type: "number", description, ...(minimum !== undefined && { minimum }), ...(maximum !== undefined && { maximum }) });
@@ -274,6 +275,8 @@ export const BIZ_TOOLS = [
   ...LAW_GUIDE_TOOLS,
   // 2026-11-17: 전문 실무 계산·길잡이 8종
   ...PRACTICE_TOOLS,
+  // 2026-11-21: 전문직 전수조사 계산기 14종(census-spec.mjs)
+  ...CENSUS_TOOLS,
 ];
 
 export const BIZ_ENDPOINTS = {
@@ -297,4 +300,5 @@ export const BIZ_ENDPOINTS = {
   ...WELFARE_ENDPOINTS,
   ...LAW_GUIDE_ENDPOINTS,
   ...PRACTICE_ENDPOINTS,
+  ...CENSUS_ENDPOINTS,
 };

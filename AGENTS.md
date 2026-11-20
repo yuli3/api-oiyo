@@ -54,6 +54,11 @@
 - 2026-11-16 B묶음 1차: `check_kr_family_loan_interest`, `check_kr_parent_house_free_use`, `check_kr_family_low_price_sale`, `check_kr_commercial_rent_increase`는 tools-oiyo `src/lib/kr-household-tax-2026.ts`가 정본이에요(sync 대상). 4.6%·2%·기준금리 기본값(3.0%)이 바뀌면 tools 쪽부터 고쳐요. B묶음 2차 `calculate_kr_sme_youth_tax_reduction`, `calculate_kr_yellow_umbrella_deduction`, `compare_kr_general_vs_simplified_vat`, 3차 `calculate_kr_business_car_expense`, `compare_kr_overseas_stock_vs_etf_tax`, 4차 `check_kr_officetel_house_count`, `compare_kr_ticket_vs_presale_tax`, `compare_kr_inherited_house_valuation`, `plan_kr_inheritance_gift_filing_deadline`도 같은 파일이 정본이에요(4차는 kr-real-estate-tax 재사용). C묶음 `check_kr_youth_rent_support`, `find_kr_policy_housing_loans`, `check_kr_special_supply`는 tools-oiyo `src/lib/kr-welfare-2026.ts`가 정본(기준중위소득·기금 한도는 매년 tools 쪽부터 고쳐요).
 - 같은 공식을 쓰는 Claude 스킬은 tools-oiyo `skills/oiyo-business-strategist`(다운로드 tools.oiyo.net/downloads/oiyo-business-strategist-skill.zip).
 
+## 전문직 전수조사 계산기 14종 (2026-11-21)
+- MCP `plan_kr_appeal_deadline`, `calculate_kr_corporate_tax`, `calculate_kr_tax_penalty`, `calculate_kr_auction_distribution`, `calculate_kr_inheritance_share`, `calculate_kr_customs_practice`, `calculate_kr_appraisal_compensation`, `calculate_kr_license_points`, `calculate_accounting_schedule`, `calculate_kr_vat_credits`, `plan_kr_ip_deadlines`, `check_kr_workforce`, `check_kr_franchise_contract`, `check_kr_apartment_management`(REST는 `src/modules/census-spec.mjs`의 `CENSUS_ENDPOINTS`).
+- 공식 정본은 tools-oiyo `src/lib/kr-*-2026.ts` 13개(sync 대상, `kr-incorporation-2026` 포함). `src/modules/census.mjs`는 입력 확인·응답 모양만 맡고, 모드별 필수 입력이 빠지면 400으로 거부한다. 결과에 `asOf`·`page`·`note`를 붙인다.
+- 날짜 기본값(today)은 서울 기준 오늘이다. 세금형 기한(`tax: true`)은 tools `krTaxDeadlineUTC`로 넘긴다(로컬 시각판은 KST에서 하루 어긋났다, 2026-11-21).
+
 ## MCP Registry (2026-11-09)
 - `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api-oiyo.861106.workers.dev/mcp` 우선, `https://api.oiyo.net/mcp` 보조). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
