@@ -98,6 +98,7 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_kics_ratio: `${TOOLS}kics-solvency-ratio-calculator/`,
   calculate_insurance_claim_payout: `${TOOLS}disability-fault-claim-calculator/`,
   check_kr_privacy_breach_policy: `${TOOLS}privacy-breach-policy-check/`,
+  check_kr_freelance_contract: `${TOOLS}freelance-contract-check/`,
   analyze_journal_entries: `${TOOLS}journal-entry-analytics/`,
   get_kr_practice_guide: `${TOOLS}eportal-practice-guide/`,
   check_insurance_explanation_record: `${TOOLS}insurance-explanation-record/`,

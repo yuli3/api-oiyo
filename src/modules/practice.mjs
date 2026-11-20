@@ -3,6 +3,7 @@ import { KR_HOLIDAYS } from "./vendor/tools-tax/kr-business-day.mjs";
 import { analyzeEntries, claimPlain, claimResult, csmPlain, csmResult, dutyPlain, dutyResult, finePlain, fineResult, kicsPlain, kicsResult } from "./vendor/tools-tax/pro-practice-2026.mjs";
 import { GUIDES, guideBySlug, guideDeadlines, recordCheck, recordText } from "./vendor/tools-tax/pro-practice-guides-2026.mjs";
 import { PRIVACY_AS_OF, breachClock, checkPolicy, parseAt } from "./vendor/tools-tax/privacy-check-2026.mjs";
+import { CONTRACT_AS_OF, checkContract } from "./vendor/tools-tax/freelance-contract-check-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
 const NOTE = "정보·계산 도구예요. 과태료 부과, 품목분류, 책임준비금·지급여력 산출, 손해사정, 감사의견, 신고·서류 대리를 하지 않아요.";
@@ -69,7 +70,15 @@ export function makePracticeHandlers(InputError) {
     return { asOf: PRIVACY_AS_OF, ...r, page: `${TOOLS}privacy-breach-policy-check/`, note: PNOTE };
   }
 
+  function contract(i) {
+    if (typeof i.contractText !== "string" || !i.contractText.trim()) throw new InputError(["contractText: the freelance or outsourcing contract text"]);
+    const amount = i.amount === undefined || i.amount === null ? undefined : Number(i.amount);
+    const r = checkContract(i.contractText, { creative: !!i.creative, registered: !!i.registered }, amount);
+    return { asOf: CONTRACT_AS_OF, ...r, page: `${TOOLS}freelance-contract-check/`, note: "읽기 보조예요. 계약서를 대신 쓰거나 고치지 않아요. 고칠 부분은 상대와 합의하세요. 문의: 대한법률구조공단 132." };
+  }
+
   return {
+    "/v1/law/kr/freelance-contract": contract,
     "/v1/law/kr/privacy-check": privacy,
     "/v1/law/kr/fine-reduction": fine,
     "/v1/customs/kr/import-duty": duty,

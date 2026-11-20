@@ -92,6 +92,14 @@ export const PRACTICE_TOOLS = [
       thirdParty: yes("Provides data to other companies (policy)"),
       overseas: yes("Transfers data overseas (policy)"),
     }),
+  fn("check_kr_freelance_contract",
+    "Reads a Korean freelance or outsourcing service contract (용역·외주 계약서) for the freelancer before signing. Checks by keyword for 13 items that prevent disputes (scope and deliverables, deadline, fee, payment date (민법 제665조), tax handling 3.3% or VAT, acceptance, revision count, copyright ownership and portfolio use (when deliverables are copyrightable; 저작권법 제45조), termination settlement (민법 제673조), liability cap (민법 제398조), confidentiality, dispute resolution) and flags risky sentences: transfer of all rights, unlimited revisions, payment only after the end client pays, one-sided termination, large penalties, fixed office hours or supervision (possible employee status, 근로기준법 제2조), non-compete. Notes payment terms over 60 days (하도급법 제13조). With amount, returns take-home pay: 3% income tax + 0.3% local tax withheld, or +10% VAT for a registered business. Keyword check only; never drafts or edits the contract.",
+    {
+      contractText: { type: "string", maxLength: 100000, description: "Contract text in Korean" },
+      amount: num("Contract amount in KRW before tax (optional)", 0, 1e13),
+      creative: yes("Deliverables are copyrightable: design, writing, video, photos, software"),
+      registered: yes("The freelancer is a registered general VAT business"),
+    }, ["contractText"]),
   fn("get_kr_practice_guide",
     "Korean practice checklists for work next to licensed professions: business permit filings (restaurant/cafe, online retail, beauty), foreigner stay deadlines (registration 90 days, address change 15 days, extension window), public e-portals (Hometax, 4 social insurances/Work24, Internet Registry, e-Court, UNI-PASS, Patent-ro) and how to read professional documents (loss adjustment report, appraisal report, broker's confirmation statement, patent specification/claims, import declaration documents). Returns what to prepare, what to check (with statute citations), deadlines computed from given dates (first day excluded, holiday roll-over), official links and who may act as representative. Information only; no filing or drafting.",
     {
@@ -121,6 +129,7 @@ export const PRACTICE_ENDPOINTS = {
   calculate_kics_ratio: { path: "/v1/insurance/kics-ratio", method: "POST" },
   calculate_insurance_claim_payout: { path: "/v1/insurance/claim-payout", method: "POST" },
   analyze_journal_entries: { path: "/v1/audit/journal-entries", method: "POST" },
+  check_kr_freelance_contract: { path: "/v1/law/kr/freelance-contract", method: "POST" },
   check_kr_privacy_breach_policy: { path: "/v1/law/kr/privacy-check", method: "POST" },
   get_kr_practice_guide: { path: "/v1/law/kr/practice-guide", method: "POST" },
   check_insurance_explanation_record: { path: "/v1/insurance/explanation-record", method: "POST" },
