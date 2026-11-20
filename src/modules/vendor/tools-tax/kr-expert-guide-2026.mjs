@@ -1404,13 +1404,22 @@ export function intake(topicId        , answers          = {}, today         = L
 }
 
 /** 상황 한 줄에서 주제를 고르는 간단한 찾기(스킬·MCP용) */
+/** 상황 문장에 흔한 서술어(받았어요·했어요 등)는 주제를 가르지 못해 점수에서 빼요. */
+const STOP_WORD = /^(받았|받은|했|했는데|됐|되었|있|없|싶|어떻게|어떡|해야|하나요|인가요|있나요|당했|문자로|회사에서|지금|너무|제가|저는)/;
+
 export function suggestTopics(text        , domain           , limit = 3)                                           {
   const q = text.toLowerCase();
   const pool = domain ? TOPICS.filter((t) => t.domain === domain) : TOPICS;
   const scored = pool.map((t) => {
     const words = [t.label, t.plain, ...t.statutes.flatMap((id) => STATUTES.find((x) => x.id === id)?.keywords ?? [])].join(" ").toLowerCase();
     let score = 0;
-    for (const w of q.split(/[\s,.?!·]+/).filter((x) => x.length >= 2)) if (words.includes(w)) score += 1;
+    for (const w of q.split(/[\s,.?!·]+/).filter((x) => x.length >= 2 && !STOP_WORD.test(x))) {
+      if (words.includes(w)) score += t.label.toLowerCase().includes(w) ? 1.5 : 1;
+      else {
+        // 2026-11-20 평가 세트에서 발견: "해고됐어요"처럼 어미·조사가 붙은 낱말은 통째로는 안 맞아요. 앞부분(2글자 이상)이 맞으면 반점만 줘요.
+        for (let k = w.length - 1; k >= 2; k--) if (words.includes(w.slice(0, k))) { score += 0.5; break; }
+      }
+    }
     return { t, score };
   });
   return scored
