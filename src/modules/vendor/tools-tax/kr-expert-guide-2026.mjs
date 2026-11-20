@@ -12,6 +12,7 @@
 import { krTaxDeadline } from "./kr-business-day.mjs";
 import { isCivilHoliday } from "./kr-legal-2026.mjs";
 import { PACKS } from "./kr-law-packs-2026.mjs";
+import { formsFor } from "./kr-public-forms-2026.mjs";
 
 export const LAW_GUIDE_AS_OF = "2026-11-17";
 
@@ -1397,6 +1398,8 @@ export function daysBetween(today        , due        )         {
                                            
                          
                       
+                                            
+                                     
                                    
                      
  
@@ -1444,6 +1447,7 @@ export function intake(topicId        , answers          = {}, today         = L
     tools: topic.tools,
     handOff: topic.handOff(a),
     documents: topic.documents,
+    forms: formsFor(topic.id),
     freeHelp: prof.freeHelp,
     disclaimer: DISCLAIMER,
   };
