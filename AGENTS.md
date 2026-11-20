@@ -78,6 +78,7 @@
 - 테스트: `npm test`
 - 문법 검사: `npm run check`
 
-## 전문 직군 전수조사 계산 14종 (2026-11-21)
+## 전문 직군 전수조사 계산 20종 (2026-11-21)
 - MCP `calculate_kr_corporate_tax`, `calculate_kr_tax_penalty`, `find_kr_appeal_deadlines`, `calculate_kr_inheritance_reserve`, `simulate_kr_auction_distribution`, `calculate_kr_customs_practice`, `check_kr_workforce`, `build_accounting_schedule`, `calculate_kr_license_points`, `estimate_kr_appraisal_compensation`, `plan_kr_ip_deadlines`, `calculate_kr_vat_credits`, `check_kr_franchise_contract`, `check_kr_apartment_management`. 스키마 `src/modules/pro-gap-spec.mjs`, 처리 `src/modules/pro-gap.mjs`(여러 계산을 묶은 도구는 `mode`로 고르고, 모드에 필요한 입력이 없으면 400).
 - 공식 정본은 tools-oiyo `src/lib/kr-corp-tax-2026.ts` … `kr-franchise-housing-2026.ts`(sync 대상 14개, tools #120~#128). 세율·표가 바뀌면 tools 쪽부터 고치고 sync해요. 2027 부가세 정부안(카드 공제 1.2%·500만 원)은 국회 통과 전이라 넣지 않았어요.
+- 1.33.0 추가 6종: `calculate_kr_deferred_tax`, `plan_kr_audit_materiality_sample`(결산 계산기 페이지), `calculate_kr_injury_disability_benefit`, `check_kr_court_deposit`, `estimate_kr_self_registration_cost`, `calculate_kr_f27_points`. 정본 tools `kr-audit-deferred-2026`·`kr-injury-disability-2026`·`kr-court-deposit-2026`·`kr-self-registration-2026`·`kr-f27-points-2026`(tools #130). 공탁 이자 일수 계산은 어림이라고 응답 note에 밝혀요.
