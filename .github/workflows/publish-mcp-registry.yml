@@ -1,13 +1,14 @@
 # Publishes server.json (remote servers https://api-oiyo.861106.workers.dev/mcp, alias https://api.oiyo.net/mcp) to the official MCP Registry.
 # The io.github.yuli3/* name is verified with GitHub OIDC, so no secret is needed.
 # Runs when server.json changes on main (bump "version" together with tools-spec.mjs), or by hand.
+# 2026-11-20: registry/<name>/server.json are focused profiles (e.g. /mcp/welfare) published as separate servers.
 name: Publish to MCP Registry
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [server.json]
+    paths: [server.json, "registry/*/server.json"]
 
 permissions:
   id-token: write
@@ -27,4 +28,20 @@ jobs:
         run: ./mcp-publisher login github-oidc
 
       - name: Publish
-        run: ./mcp-publisher publish
+        # Each file is published on its own; a version that is already live is not an error
+        # (one file can change while the others keep their version).
+        run: |
+          publish() {
+            out=$(./mcp-publisher publish 2>&1) && { echo "$out"; return 0; }
+            echo "$out"
+            echo "$out" | grep -qiE "already exists|duplicate version|cannot publish duplicate" && return 0
+            return 1
+          }
+          cp server.json /tmp/main-server.json
+          status=0
+          for file in /tmp/main-server.json registry/*/server.json; do
+            echo "Publishing $file"
+            cp "$file" server.json
+            publish || status=1
+          done
+          exit $status

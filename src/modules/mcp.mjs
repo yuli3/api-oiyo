@@ -2,6 +2,7 @@ import { McpServer, createMcpHandler } from "@modelcontextprotocol/server";
 import * as z from "zod";
 import { TOOLS_SPEC, TOOL_ENDPOINTS } from "./tools-spec.mjs";
 import { mcpMedium, sourcePageUrl } from "./source-pages.mjs";
+import { MCP_PROFILES } from "./mcp-profiles.mjs";
 
 // 2026-11-12 세운 승인: Glama health checks send Origin https://glama.ai; allow exactly that origin.
 const ALLOWED_ORIGINS = new Set([
@@ -46,9 +47,13 @@ function inputSchema(parameters) {
   return z.strictObject(shape);
 }
 
-export function createCalculationServer(dispatch, medium = "unknown") {
-  const server = new McpServer({ name: "oiyo-calculations", version: TOOLS_SPEC.version });
+export function createCalculationServer(dispatch, medium = "unknown", profileName = null) {
+  const profile = profileName ? MCP_PROFILES[profileName] : null;
+  if (profileName && !profile) throw new Error("Unknown MCP profile");
+  const allowed = profile ? new Set(profile.tools) : null;
+  const server = new McpServer({ name: profile ? profile.serverName : "oiyo-calculations", version: TOOLS_SPEC.version });
   for (const { function: tool } of TOOLS_SPEC.tools) {
+    if (allowed && !allowed.has(tool.name)) continue;
     const endpoint = TOOL_ENDPOINTS[tool.name];
     if (!endpoint) throw new Error("Tool endpoint missing");
     server.registerTool(tool.name, {
@@ -86,7 +91,7 @@ export function createCalculationServer(dispatch, medium = "unknown") {
   return server;
 }
 
-export async function handleMcp(request, dispatch) {
+export async function handleMcp(request, dispatch, profileName = null) {
   const headers = {
     "Cache-Control": "no-store", "X-Robots-Tag": "noindex",
     "X-Content-Type-Options": "nosniff",
@@ -101,7 +106,7 @@ export async function handleMcp(request, dispatch) {
   if (request.method !== "POST") return Response.json({ error: "method_not_allowed" }, { status: 405, headers: { ...headers, Allow: "POST, OPTIONS" } });
   // No server subscriptions, persistence, or shared session state in this gateway.
   const medium = mcpMedium(request);
-  const handler = createMcpHandler(() => createCalculationServer(dispatch, medium), {
+  const handler = createMcpHandler(() => createCalculationServer(dispatch, medium, profileName), {
     responseMode: "auto", maxRequestBodySize: 32768, maxSubscriptions: 0,
   });
   try {

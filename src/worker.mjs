@@ -44,6 +44,7 @@ import { KR_RATES_2026 } from "./modules/kr-rates-2026.mjs";
 import { TOOLS_SPEC } from "./modules/tools-spec.mjs";
 import { minimumWageForYear } from "./modules/kr-rates-registry.mjs";
 import { handleMcp } from "./modules/mcp.mjs";
+import { PROFILE_PATHS, profileForPath } from "./modules/mcp-profiles.mjs";
 import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { handleAdvisory } from "./modules/kr-advisory.mjs";
 import { handleBiz } from "./modules/biz-strategy.mjs";
@@ -87,7 +88,7 @@ const MACHINE_FILE_ROBOTS = { "X-Robots-Tag": "noindex" };
 const MCP_WORKERS_DEV_HOST = "api-oiyo.861106.workers.dev";
 // 2026-11-12: clients (Glama) also call /mcp/ with a trailing slash. Serve it here; never redirect an
 // MCP path off workers.dev into the oiyo.net zone, where Bot Fight Mode challenges datacenter clients.
-const MCP_PATHS = new Set(["/mcp", "/mcp/"]);
+const MCP_PATHS = new Set(["/mcp", "/mcp/", ...PROFILE_PATHS]);
 // Glama probes /.well-known/glama.json on the server host for ownership; same content as repo glama.json.
 const GLAMA_JSON = JSON.stringify({ $schema: "https://glama.ai/mcp/schemas/server.json", maintainers: ["yuli3"] });
 
@@ -124,7 +125,7 @@ async function route(request, env) {
         const response = await route(restRequest, env);
         recordUsage(env, restRequest, response, Date.now() - started, "mcp-tool");
         return response;
-      });
+      }, profileForPath(path));
     }
 
     // 1. CORS Preflight
