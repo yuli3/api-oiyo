@@ -99,3 +99,19 @@ test("server.json for the MCP Registry matches the served tool catalog version",
     { type: "streamable-http", url: "https://api.oiyo.net/mcp" },
   ]);
 });
+
+test("profile server.json files match their MCP profile endpoints and the catalog version", async () => {
+  const { TOOLS_SPEC } = await import("../src/modules/tools-spec.mjs");
+  const { MCP_PROFILES } = await import("../src/modules/mcp-profiles.mjs");
+  for (const [name, profile] of Object.entries(MCP_PROFILES)) {
+    const server = JSON.parse(readFileSync(new URL(`../registry/${profile.serverName}/server.json`, import.meta.url), "utf8"));
+    assert.equal(server.name, `io.github.yuli3/${profile.serverName}`, name);
+    assert.ok(server.description.length <= 100);
+    assert.equal(server.version, TOOLS_SPEC.version, "bump registry/*/server.json with tools-spec.mjs");
+    const path = profile.paths[0];
+    assert.deepEqual(server.remotes, [
+      { type: "streamable-http", url: `https://api-oiyo.861106.workers.dev${path}` },
+      { type: "streamable-http", url: `https://api.oiyo.net${path}` },
+    ]);
+  }
+});

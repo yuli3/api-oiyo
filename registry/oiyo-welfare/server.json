@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.yuli3/oiyo-welfare",
+  "title": "OIYO Korea Welfare & Benefits",
+  "description": "Korean welfare & worker-rights calculators: EITC, unemployment, maternity, unpaid wages, youth rent.",
+  "websiteUrl": "https://api.oiyo.net/docs",
+  "repository": {
+    "url": "https://github.com/yuli3/api-oiyo",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://oiyo.net/icon-512.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    },
+    {
+      "src": "https://oiyo.net/icon-192.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "192x192"
+      ]
+    }
+  ],
+  "version": "1.24.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api-oiyo.861106.workers.dev/mcp/welfare"
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://api.oiyo.net/mcp/welfare"
+    }
+  ]
+}
