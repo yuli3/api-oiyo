@@ -23,6 +23,7 @@ import { HOME_TAX_AS_OF, comprehensiveRealEstateTax, rentalIncomeTax } from "./v
 import { HOUSEHOLD_TAX_AS_OF, dependentsTax, majorShareholderTax, familyLoanGift, freeUseGift, lowPriceSale, commercialRentCheck, smeYouthReduction, yellowUmbrella, vatTypeCompare, businessCarExpense, overseasCompare, officetelHouseCount, ticketPresaleTax, inheritedValuation, filingDeadlines } from "./vendor/tools-tax/kr-household-tax-2026.mjs";
 import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRIX, TOPICS, findStatutes, intake, statuteUrl, suggestTopics } from "./vendor/tools-tax/kr-expert-guide-2026.mjs";
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
+import { makePracticeHandlers } from "./practice.mjs";
 
 export const BIZ_DISCLAIMER =
   "Decision support from the numbers you gave, not investment, legal or tax advice. Probabilities and estimates are yours; check filing dates with 홈택스 and statutes on law.go.kr.";
@@ -696,6 +697,8 @@ const HANDLERS = {
   "/v1/law/kr/professional-scope": professionalScope,
   "/v1/law/kr/intake": lawIntake,
   "/v1/law/kr/statutes": statutes,
+  // 2026-11-17: 전문 실무 계산·길잡이 8종(practice.mjs)
+  ...makePracticeHandlers(InputError),
 };
 
 export function calculateBiz(path, raw, coerce = false) {

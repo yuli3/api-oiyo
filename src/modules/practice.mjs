@@ -1,0 +1,69 @@
+// 전문 실무 계산·길잡이 핸들러 (2026-11-17). 스키마: practice-spec.mjs. 계산은 tools-oiyo와 같은 vendored 파일이에요.
+import { KR_HOLIDAYS } from "./vendor/tools-tax/kr-business-day.mjs";
+import { analyzeEntries, claimPlain, claimResult, csmPlain, csmResult, dutyPlain, dutyResult, finePlain, fineResult, kicsPlain, kicsResult } from "./vendor/tools-tax/pro-practice-2026.mjs";
+import { GUIDES, guideBySlug, guideDeadlines, recordCheck, recordText } from "./vendor/tools-tax/pro-practice-guides-2026.mjs";
+
+const TOOLS = "https://tools.oiyo.net/ko/";
+const NOTE = "정보·계산 도구예요. 과태료 부과, 품목분류, 책임준비금·지급여력 산출, 손해사정, 감사의견, 신고·서류 대리를 하지 않아요.";
+const HOLIDAYS = Object.entries(KR_HOLIDAYS).flatMap(([y, list]) => list.map((md) => `${y}-${md}`));
+const fin = (n) => (Number.isFinite(n) ? n : null);
+
+/** biz-strategy.mjs의 InputError를 받아 핸들러를 만들어요(순환 import를 피하려고). */
+export function makePracticeHandlers(InputError) {
+
+  function fine(i) {
+    const input = { fine: i.fine, noticeDate: i.noticeDate ?? "", opinionDays: i.opinionDays ?? 10, when: i.when, monthsLate: i.monthsLate ?? 0, vulnerable: i.vulnerable ?? false };
+    return { result: fineResult(input), plain: finePlain(input), page: `${TOOLS}fine-reduction-calculator/`, note: NOTE };
+  }
+  function duty(i) {
+    const input = { price: i.price, freight: i.freight ?? 0, insurance: i.insurance ?? 0, fx: i.fx, baseRate: i.baseRate, ftaRate: i.ftaRate ?? i.baseRate, hasOrigin: i.hasOrigin ?? false, personal: i.personal ?? false, fromUS: i.fromUS ?? false };
+    return { result: dutyResult(input), plain: dutyPlain(input), page: `${TOOLS}import-duty-fta-calculator/`, note: NOTE };
+  }
+  function csm(i) {
+    const input = { premium: i.premium, years: i.years, claims: i.claims, expense: i.expense ?? 0, acquisition: i.acquisition ?? 0, rate: i.rate, ra: i.ra ?? 0 };
+    return { result: csmResult(input), plain: csmPlain(input), page: `${TOOLS}ifrs17-csm-simulator/`, note: NOTE };
+  }
+  function kics(i) {
+    const input = { available: i.available, life: i.life ?? 0, nonlife: i.nonlife ?? 0, market: i.market ?? 0, credit: i.credit ?? 0, operational: i.operational ?? 0, taxAdj: i.taxAdj ?? 0 };
+    const r = kicsResult(input);
+    return { result: { ...r, ratio: fin(r.ratio) }, plain: kicsPlain(input), correlation: "illustrative Solvency II-like correlations, not the supervisory K-ICS parameters", page: `${TOOLS}kics-solvency-ratio-calculator/`, note: NOTE };
+  }
+  function claim(i) {
+    const input = { kind: i.kind, sum: i.sum ?? 0, rates: i.rates ?? [], prior: i.prior ?? 0, damage: i.damage ?? 0, fault: i.fault ?? 0, deductible: i.deductible ?? 0, limit: i.limit ?? 0 };
+    if (input.kind === "disability" && !input.rates.length) throw new InputError(["rates: at least one disability rate for kind=disability"]);
+    return { result: claimResult(input), plain: claimPlain(input), page: `${TOOLS}disability-fault-claim-calculator/`, note: NOTE };
+  }
+  function entries(i) {
+    const rows = i.entries.map((e) => ({ date: e.date, account: e.account ?? "", amount: e.amount, memo: e.memo, user: e.user }));
+    const r = analyzeEntries(rows, { approvalLimit: i.approvalLimit ?? 0, holidays: HOLIDAYS });
+    return { ...r, flagged: r.flagged.slice(0, i.top ?? 30), page: `${TOOLS}journal-entry-analytics/`, note: "Signals are an order to review, not evidence of fraud. 감사의견은 감사인이 판단해요." };
+  }
+  function practiceGuide(i) {
+    if (!i.guide) return { guides: GUIDES.map((g) => ({ slug: g.slug, title: g.title, cases: g.cases.map((c) => ({ id: c.id, label: c.label })), page: `${TOOLS}${g.slug}/` })), note: NOTE };
+    const g = guideBySlug(i.guide);
+    const dates = i.dates ?? {};
+    const keys = Object.entries(dates);
+    const problems = [];
+    if (keys.length > 10) problems.push("dates: at most 10 keys");
+    for (const [k, v] of keys) if (!/^[a-z0-9-]{1,30}$/.test(k) || typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) problems.push(`dates.${k.slice(0, 30)}: YYYY-MM-DD keyed by a deadline id`);
+    const cases = i.case ? g.cases.filter((c) => c.id === i.case) : g.cases;
+    if (i.case && !cases.length) problems.push(`case: one of ${g.cases.map((c) => c.id).join(", ")}`);
+    if (problems.length) throw new InputError(problems);
+    return { slug: g.slug, title: g.title, intro: g.intro, cases: cases.map((c) => ({ ...c, deadlines: guideDeadlines(c, dates) })), page: `${TOOLS}${g.slug}/`, note: NOTE };
+  }
+  function explanation(i) {
+    const input = { customer: i.customer ?? "", product: i.product ?? "", date: i.date ?? "", suitability: i.suitability ?? [], explained: i.explained ?? [], delivered: i.delivered ?? "", confirm: i.confirm ?? "", replace: i.replace ?? false, note: i.note ?? "" };
+    return { ...recordCheck(input), text: recordText(input), page: `${TOOLS}insurance-explanation-record/`, note: "개인 점검용이에요. 회사의 공식 확인서·녹취를 대신하지 않아요." };
+  }
+
+  return {
+    "/v1/law/kr/fine-reduction": fine,
+    "/v1/customs/kr/import-duty": duty,
+    "/v1/insurance/ifrs17-csm": csm,
+    "/v1/insurance/kics-ratio": kics,
+    "/v1/insurance/claim-payout": claim,
+    "/v1/audit/journal-entries": entries,
+    "/v1/law/kr/practice-guide": practiceGuide,
+    "/v1/insurance/explanation-record": explanation,
+  };
+}

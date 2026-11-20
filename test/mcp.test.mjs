@@ -90,6 +90,14 @@ const fixtures = {
   get_kr_professional_scope: { domain: "labor" },
   start_kr_law_intake: { situation: "회사에서 문자로 해고 통보를 받았어요", answers: { size: "5plus", dismissDate: "2026-10-30" }, today: "2026-11-16" },
   search_kr_statutes: { query: "경정청구" },
+  calculate_kr_fine_reduction: { fine: 500000, noticeDate: "2026-11-02", when: "early" },
+  calculate_kr_import_duty: { price: 1000, freight: 50, fx: 1400, baseRate: 0.13, ftaRate: 0, hasOrigin: true },
+  simulate_ifrs17_csm: { premium: 1000000, years: 10, claims: 600000, rate: 0.03 },
+  calculate_kics_ratio: { available: 300e9, life: 100e9, market: 100e9 },
+  calculate_insurance_claim_payout: { kind: "fault", damage: 10000000, fault: 0.3 },
+  analyze_journal_entries: { entries: [{ date: "2026-03-07", account: "여비", amount: 4980000 }], approvalLimit: 5000000 },
+  get_kr_practice_guide: { guide: "visa-stay-status-guide", case: "arrival", dates: { register: "2026-09-01" } },
+  check_insurance_explanation_record: { date: "2026-11-17", delivered: "paper", confirm: "sign" },
   calculate_kr_housing_rental_income_tax: { houses: 2, annualRent: 12000000, deposits: 0, registered: false, otherIncome: 40000000 },
 };
 
