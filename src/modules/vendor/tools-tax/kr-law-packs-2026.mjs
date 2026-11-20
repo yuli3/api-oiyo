@@ -855,7 +855,7 @@ const privacy          = {
     {
       id: "privacy-breach",
       domain: "privacy",
-      label: "고객 개인정보가 새어 나갔어요(사업자)",
+      label: "고객 개인정보가 유출됐어요(사업자)",
       plain: "유출을 알게 된 때부터 72시간 안에 정보주체에게 알리고, 1천 명 이상·민감정보·해킹이면 같은 72시간 안에 보호위원회나 KISA에 신고해요. 먼저 더 새지 않게 막고 기록을 남겨요.",
       questions: [
         { key: "knownDate", ask: "유출을 알게 된 날은 언제인가요?", why: "통지·신고 72시간이 이때부터 시작해요(시각까지 계산하려면 점검 도구를 쓰세요).", kind: "date", required: true },
