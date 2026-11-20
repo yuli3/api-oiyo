@@ -1054,6 +1054,7 @@ const CORE_TOPICS          = [
       { id: "renew-last", label: "계약갱신요구 마지막 날(만료 2개월 전)", from: "endDate", months: -2, cite: "주택임대차보호법 제6조의3", note: "만료 6개월 전부터 이날까지 요구" },
     ],
     tools: [
+      { label: "경매 배당·최우선변제 계산기", href: "/ko/auction-distribution-calculator/" },
       { label: "전세보증보험 계산기", href: "/ko/jeonse-guarantee-calculator/" },
       { label: "법정이자 계산기", href: "/ko/legal-interest-calculator/" },
     ],
