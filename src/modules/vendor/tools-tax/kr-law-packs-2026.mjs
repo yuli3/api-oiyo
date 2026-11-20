@@ -944,4 +944,101 @@ const privacy          = {
   scope: [{ task: "개인정보 침해 신고·분쟁조정 신청", who: { privacy: "yes", lawyer: "yes" }, cite: "개인정보 보호법 제40조·제62조" }],
 };
 
-export const PACKS            = [customs, ip, appraisal, realty, building, health, family, welfare, consumer, privacy];
+const traffic          = {
+  profession: {
+    domain: "traffic",
+    name: "교통사고 법령 길잡이",
+    licensed: "변호사(형사·민사 대리) · 손해사정사(손해액 산정)",
+    act: "교통사고처리 특례법·자동차손해배상 보장법",
+    scopeCite: { law: "교통사고처리 특례법", article: "제3조·제4조" },
+    scope: ["형사 절차(수사·재판)와 합의·소송 대리는 변호사", "보험금 손해액 산정은 손해사정사(대리 아님)", "과실비율 다툼은 손해보험협회 과실비율분쟁심의위원회(보험사 사이)"],
+    exclusive: [{ text: "변호사가 아닌 사람이 대가를 받고 합의를 대신하거나 소송 서류를 쓰면 처벌돼요. 이른바 '합의 브로커'를 조심하세요.", cite: { law: "변호사법", article: "제109조" } }],
+    guideDoes: ["사고 직후 할 일 순서(구호·신고·보험 접수)와 손해배상 청구 3년 기한을 날짜로 보여 줘요.", "12대 중과실·사망·도주·중상해처럼 종합보험이 있어도 형사처벌을 피하지 못하는 경우를 가려요.", "상대 보험사 직접 청구·가불금, 뺑소니·무보험이면 정부보장사업을 안내해요."],
+    guideDoesNot: ["과실비율이나 합의금을 정하지 않아요.", "합의를 대신하거나 형사 절차를 대리하지 않아요.", "특정 변호사·손해사정사를 소개하지 않아요."],
+    handOffWhen: ["사람이 크게 다치거나 숨졌을 때(형사 절차, 형사합의)", "12대 중과실에 해당하거나 도주로 조사받을 때", "보험사 제시액과 실제 손해 차이가 클 때"],
+    freeHelp: [
+      { name: "대한법률구조공단", how: "☎ 132 · klac.or.kr", what: "교통사고 법률상담, 소송 지원(소득 기준)" },
+      { name: "과실비율 분쟁심의위원회(손해보험협회)", how: "knia.or.kr", what: "보험사 사이 과실비율 다툼 심의" },
+      { name: "정부보장사업(자동차손해배상)", how: "각 손해보험사 창구", what: "뺑소니·무보험 차 사고 피해 보상" },
+    ],
+  },
+  statutes: [
+    s("rta-54", "traffic", "도로교통법", "제54조", "사고발생 시의 조치", "사고가 나면 바로 멈추고 다친 사람을 구호하고 연락처를 주고, 경찰에 사고를 신고해야 해요. 운행 중인 차만 부서졌고 위험 방지 조치를 했으면 신고하지 않아도 돼요.", ["교통사고 신고", "사고 후 조치", "구호", "물피도주", "뺑소니"]),
+    s("tsa-3", "traffic", "교통사고처리 특례법", "제3조", "처벌의 특례(12대 중과실)", "업무상 과실로 사람을 다치게 해도 피해자와 합의하면 공소를 제기하지 않아요. 다만 신호위반, 중앙선 침범, 제한속도 20km/h 초과, 앞지르기·끼어들기 위반, 철길건널목 위반, 횡단보도 보행자 보호 위반, 무면허, 음주·약물, 보도 침범, 승객 추락 방지 위반, 어린이보호구역 안전 위반, 화물 고정 위반(12대 중과실)과 도주·사망은 예외예요.", ["12대 중과실", "형사처벌", "합의", "신호위반", "중앙선", "횡단보도", "음주운전", "어린이보호구역"]),
+    s("tsa-4", "traffic", "교통사고처리 특례법", "제4조", "보험 등에 가입된 경우의 특례", "종합보험(공제)에 가입했으면 합의한 것으로 봐 공소를 제기하지 않아요. 12대 중과실, 도주, 피해자가 생명이 위험하거나 불구·난치병이 된 중상해는 예외예요.", ["종합보험", "공소권 없음", "중상해", "보험 특례"]),
+    s("capa-3", "traffic", "자동차손해배상 보장법", "제3조", "자동차손해배상책임", "자기를 위해 자동차를 운행하는 사람은 그 운행으로 다른 사람이 죽거나 다치면 손해를 배상해야 해요(운행자 책임).", ["운행자 책임", "대인 배상", "손해배상"]),
+    s("capa-10", "traffic", "자동차손해배상 보장법", "제10조", "보험회사등에 대한 직접청구", "피해자는 가해 차의 보험회사에 보험금을 직접 청구할 수 있어요.", ["직접 청구", "상대 보험사", "대인 접수"]),
+    s("capa-11", "traffic", "자동차손해배상 보장법", "제11조", "피해자에 대한 가불금", "치료비 등 당장 필요한 돈은 보험회사에 가불금(책임보험금의 일부)을 먼저 청구할 수 있고, 보험회사는 10일 안에 줘야 해요.", ["가불금", "치료비 먼저", "10일"]),
+    s("capa-30", "traffic", "자동차손해배상 보장법", "제30조·제41조", "자동차손해배상 보장사업(정부보장사업)", "뺑소니로 가해자를 모르거나 무보험 차에 다치면 정부보장사업으로 책임보험 한도 안에서 보상받아요. 청구권은 3년이 지나면 사라져요.", ["정부보장사업", "뺑소니 보상", "무보험차", "3년"]),
+  ],
+  topics: [
+    {
+      id: "traffic-victim",
+      domain: "traffic",
+      label: "교통사고를 당했어요(피해자)",
+      plain: "다쳤으면 상대 보험사에 직접 대인 접수하고, 치료비가 급하면 가불금을 청구해요. 뺑소니·무보험이면 정부보장사업으로 보상받아요. 손해배상은 손해와 가해자를 안 날부터 3년 안에 청구해요.",
+      questions: [
+        { key: "accidentDate", ask: "사고가 난 날은 언제인가요?", why: "손해배상·보상 청구 3년이 이때부터예요.", kind: "date", required: true },
+        { key: "injured", ask: "다쳤나요?", why: "대인 배상(치료비·위자료·휴업손해) 여부가 갈려요.", kind: "yesno", required: true },
+        { key: "other", ask: "상대 차의 보험은 어떤가요?", why: "보험이 없거나 도망갔으면 정부보장사업으로 가요.", kind: "choice", options: [{ value: "insured", label: "보험이 있어요" }, { value: "uninsured", label: "보험이 없어요" }, { value: "hitrun", label: "도망가서 몰라요" }] },
+        { key: "reported", ask: "경찰에 신고했나요?", why: "사고 사실 확인원과 블랙박스가 과실 다툼의 근거가 돼요.", kind: "yesno" },
+        { key: "faultDispute", ask: "과실비율에 동의하지 않나요?", why: "보험사 사이 분쟁은 심의위원회가 있어요.", kind: "yesno" },
+      ],
+      statutes: ["capa-10", "capa-11", "capa-30", "civ-766", "rta-54"],
+      deadlines: [
+        { id: "claim", label: "손해배상 청구(안 날부터 3년)", from: "accidentDate", years: 3, cite: "민법 제766조" },
+        { id: "gov", label: "정부보장사업 보상 청구(3년)", from: "accidentDate", years: 3, cite: "자동차손해배상 보장법 제41조", when: (a) => a.other === "uninsured" || a.other === "hitrun" },
+      ],
+      tools: [{ label: "장해·과실 보험금 계산기", href: "/ko/disability-fault-claim-calculator/" }],
+      flags: (a         ) => {
+        const f         = [];
+        if (yes(a.injured)) f.push({ tone: "good", text: "상대 보험사에 직접 대인 접수를 요청할 수 있어요. 치료비가 급하면 가불금을 청구하면 10일 안에 줘야 해요.", cite: "자동차손해배상 보장법 제10조·제11조" });
+        if (a.other === "hitrun" || a.other === "uninsured") f.push({ tone: "warn", text: "뺑소니·무보험이면 경찰 신고 뒤 손해보험사 창구에서 정부보장사업을 청구해요. 내 자동차보험의 무보험차 상해 담보도 확인하세요.", cite: "자동차손해배상 보장법 제30조" });
+        if (a.reported === "no") f.push({ tone: "info", text: "다쳤다면 지금이라도 경찰에 사고를 신고하고, 블랙박스·사진·목격자 연락처를 보관하세요." });
+        if (yes(a.faultDispute)) f.push({ tone: "info", text: "과실비율은 보험사가 정하는 게 아니라 다툴 수 있어요. 보험사 사이라면 과실비율분쟁심의위원회, 아니면 소송·조정으로 가요." });
+        f.push({ tone: "info", text: "합의서에 서명하면 다시 청구하기 어려워요. 후유장해가 남을 수 있으면 치료가 끝난 뒤 합의하세요." });
+        return f;
+      },
+      handOff: (a         ) => (yes(a.injured) ? "후유장해가 남거나 보험사 제시액과 차이가 크면 손해사정사(산정)나 변호사(소송) 상담을 고려하세요. 무료 상담은 132예요." : null),
+      documents: ["교통사고 사실 확인원(경찰)", "진단서·치료비 영수증", "블랙박스·사진", "휴업손해 증빙(급여명세서 등)"],
+    },
+    {
+      id: "traffic-driver",
+      domain: "traffic",
+      label: "교통사고를 냈어요(가해자)",
+      plain: "바로 멈춰 다친 사람을 돕고 경찰과 보험사에 알려요. 종합보험이 있으면 대부분 형사처벌 없이 끝나지만, 12대 중과실·도주·사망·중상해는 예외라 형사 절차가 진행돼요.",
+      questions: [
+        { key: "accidentDate", ask: "사고가 난 날은 언제인가요?", why: "보험금 청구 3년이 이때부터예요.", kind: "date", required: true },
+        { key: "harm", ask: "상대방은 어떻게 됐나요?", why: "물건만 부서졌는지, 다쳤는지에 따라 형사 절차가 달라요.", kind: "choice", required: true, options: [{ value: "property", label: "차·물건만 부서졌어요" }, { value: "injury", label: "다쳤어요" }, { value: "serious", label: "크게 다쳤어요(생명 위험·장애)" }, { value: "death", label: "숨졌어요" }] },
+        { key: "comprehensive", ask: "종합보험(대인배상Ⅱ 무한)에 가입했나요?", why: "가입했으면 형사처벌 특례가 적용될 수 있어요.", kind: "yesno", required: true },
+        { key: "gross", ask: "신호위반·중앙선 침범·과속(20km/h 초과)·횡단보도·음주·무면허·어린이보호구역 등에 해당하나요?", why: "12대 중과실이면 보험이 있어도 처벌 특례가 없어요.", kind: "yesno" },
+        { key: "left", ask: "조치 없이 현장을 떠났나요?", why: "도주는 특례가 없고 처벌이 무거워요.", kind: "yesno" },
+      ],
+      statutes: ["rta-54", "tsa-3", "tsa-4", "capa-3", "com-662"],
+      deadlines: [{ id: "insclaim", label: "내 보험금 청구(3년)", from: "accidentDate", years: 3, cite: "상법 제662조" }],
+      tools: [],
+      flags: (a         ) => {
+        const f         = [];
+        const hurt = a.harm === "injury" || a.harm === "serious" || a.harm === "death";
+        if (yes(a.left)) f.push({ tone: "warn", text: "조치 없이 떠난 것은 도주로 보아 보험·합의와 관계없이 형사처벌 대상이에요. 지금이라도 경찰에 연락하세요.", cite: "도로교통법 제54조" });
+        if (hurt && yes(a.gross)) f.push({ tone: "warn", text: "12대 중과실이면 종합보험이 있어도 형사 절차가 진행돼요. 피해자와의 형사합의나 공탁이 양형에 영향을 줘요.", cite: "교통사고처리 특례법 제3조②" });
+        else if (a.harm === "death") f.push({ tone: "warn", text: "사망 사고는 처벌 특례가 없어요. 형사 절차를 변호사와 상의하세요.", cite: "교통사고처리 특례법 제3조" });
+        else if (a.harm === "serious") f.push({ tone: "warn", text: "피해자가 생명 위험·불구·난치병의 중상해이면 종합보험이 있어도 공소가 제기될 수 있어요.", cite: "교통사고처리 특례법 제4조①" });
+        else if (a.harm === "injury" && yes(a.comprehensive)) f.push({ tone: "good", text: "12대 중과실이 아니고 종합보험이 있으면 공소를 제기하지 않는 것이 원칙이에요(보험 처리로 마무리).", cite: "교통사고처리 특례법 제4조" });
+        else if (a.harm === "injury") f.push({ tone: "warn", text: "종합보험이 없으면 피해자와 합의해야 처벌을 피할 수 있어요.", cite: "교통사고처리 특례법 제3조②" });
+        if (a.harm === "property") f.push({ tone: "info", text: "물건만 부서졌으면 보험 처리로 끝나는 게 보통이에요. 운행 중인 차만 부서졌고 위험 방지 조치를 했으면 경찰 신고 의무가 없어요.", cite: "도로교통법 제54조②" });
+        f.push({ tone: "info", text: "운전자보험이 있으면 형사합의금·변호사 비용·벌금 담보를 확인하세요. 보험사에는 사고를 바로 알려요." });
+        return f;
+      },
+      handOff: (a         ) => (a.harm === "death" || a.harm === "serious" || yes(a.gross) || yes(a.left) ? "형사 절차가 진행될 수 있어요. 조사 전에 변호사 상담을 받고, 소득 기준에 맞으면 대한법률구조공단 132를 이용하세요." : null),
+      documents: ["보험 가입 증명서", "블랙박스·사진", "사고 경위 메모(시각·장소·신호)", "피해자 연락처"],
+    },
+  ],
+  scope: [
+    { task: "교통사고 합의·손해배상 소송 대리", who: { lawyer: "yes" }, cite: "변호사법 제109조" },
+    { task: "교통사고 피해 상담·보상 안내(정부보장사업·법률구조)", who: { traffic: "yes", lawyer: "yes" }, cite: "자동차손해배상 보장법 제30조" },
+    { task: "보험금 손해액 산정(대리 아님)", who: { insurance: "yes", lawyer: "partial" }, cite: "보험업법 제188조" },
+  ],
+};
+
+export const PACKS            = [customs, ip, appraisal, realty, building, health, family, welfare, consumer, privacy, traffic];
