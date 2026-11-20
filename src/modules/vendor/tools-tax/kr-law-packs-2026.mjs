@@ -1,5 +1,5 @@
 // GENERATED from tools-oiyo src/lib/kr-law-packs-2026.ts by scripts/sync-tools-tax.mjs. Do not edit here.
-// 법령 길잡이 분야 팩: 관세·지식재산·감정평가·부동산 중개 (2026-11-17).
+// 법령 길잡이 분야 팩: 관세·지식재산·감정평가·부동산 중개 (2026-11-17), 건축·보건·가사·복지급여 (11-20).
 // WHY: 세운 "지식전문가를 더 늘릴 수 있어야 해요". 새 분야는 이 파일 같은 팩 하나(PACK)를 만들고
 //   kr-expert-guide-2026.ts의 PACKS에 넣으면 화면(LawGuide)·스킬 references·MCP(api-oiyo)가 함께 늘어나요.
 //   새 분야 체크리스트: ① DomainId에 id 추가 ② Profession(자격법 업무·독점·유사명칭 조문) ③ 조문 색인(확인한 조문만)
@@ -349,4 +349,374 @@ const realty          = {
   scope: [{ task: "부동산 매매·임대차 중개", who: { realty: "yes" }, cite: "공인중개사법 제9조" }],
 };
 
-export const PACKS            = [customs, ip, appraisal, realty];
+
+/* ---------- 건축·인허가 (11-20) ---------- */
+// 조문: 건축법 제11·14·19·22·23·79·80조, 건축사법 제19조. 건축사 명칭 조문은 번호를 확인하지 못해 쓰지 않아요.
+
+const building          = {
+  profession: {
+    domain: "building",
+    name: "건축·인허가 법령 길잡이",
+    licensed: "건축사",
+    act: "건축사법",
+    scopeCite: { law: "건축사법", article: "제19조" },
+    scope: ["건축물의 설계와 공사감리", "건축허가·신고·사용승인 등 건축 행정 절차의 대행", "건축물 조사·감정과 건축 상담"],
+    exclusive: [{ text: "건축허가를 받거나 신고해야 하는 건축물(소규모 예외 제외)은 건축사가 아니면 설계할 수 없어요.", cite: { law: "건축법", article: "제23조" } }],
+    guideDoes: ["허가·신고·용도변경 중 어느 절차인지 질문으로 가려요.", "시정명령·이행강제금 불복 기한과 착공 기한을 날짜로 계산해요.", "건축물대장·도면처럼 구청이나 건축사에게 가져갈 자료를 정리해요."],
+    guideDoesNot: ["도면을 그리거나 허가 신청서를 대신 내지 않아요.", "특정 건물이 허가될지 확정하지 않아요(지구단위계획·조례에 따라 달라져요).", "특정 건축사를 소개하지 않아요."],
+    handOffWhen: ["증축·대수선·용도변경 설계가 필요할 때", "위반건축물로 시정명령을 받았을 때", "사용승인 전에 공사 내용이 바뀌었을 때"],
+    freeHelp: [
+      { name: "세움터", how: "cloud.eais.go.kr", what: "건축물대장 열람·발급, 건축 인허가 전자 신청" },
+      { name: "시·군·구청 건축과", how: "☎ 120(다산콜, 서울) 또는 해당 구청", what: "허가·신고 대상 여부, 위반건축물 상담" },
+      { name: "온라인 행정심판", how: "simpan.go.kr", what: "시정명령·이행강제금 행정심판 청구" },
+    ],
+  },
+  statutes: [
+    s("bld-11", "building", "건축법", "제11조", "건축허가", "건축물을 짓거나 대수선하려면 시장·군수·구청장의 허가를 받아요. 허가를 받은 날부터 2년(공장은 3년) 안에 공사를 시작하지 않으면 허가가 취소돼요(1년 연장 가능).", ["건축허가", "착공", "2년", "허가 취소"]),
+    s("bld-14", "building", "건축법", "제14조", "건축신고", "바닥면적 85㎡ 이내 증축·개축·재축, 소규모 대수선 같은 일은 허가 대신 신고로 해요. 신고하고 1년 안에 공사를 시작하지 않으면 신고 효력이 없어져요.", ["건축신고", "85㎡", "소규모 증축", "1년"]),
+    s("bld-19", "building", "건축법", "제19조", "용도변경", "건물 쓰임을 바꿀 때 위 시설군으로 올리면 허가, 아래 시설군으로 내리면 신고, 같은 시설군 안에서는 건축물대장 기재내용 변경을 신청해요.", ["용도변경", "시설군", "근린생활시설", "건축물대장 변경"]),
+    s("bld-22", "building", "건축법", "제22조", "사용승인", "허가·신고한 공사를 마치면 사용승인을 받아야 건물을 쓸 수 있어요.", ["사용승인", "준공", "입주"]),
+    s("bld-23", "building", "건축법", "제23조", "건축물의 설계", "허가·신고 대상 건축물의 설계는 건축사가 해야 해요. 바닥면적 85㎡ 미만 증축처럼 작은 공사는 예외가 있어요.", ["설계", "건축사 설계", "도면"]),
+    s("bld-79", "building", "건축법", "제79조", "위반 건축물 등에 대한 조치", "허가·신고 없이 짓거나 바꾼 건물에는 철거·사용금지 같은 시정명령을 내리고, 건축물대장에 위반건축물로 적어요.", ["위반건축물", "불법 증축", "시정명령", "불법건축물"]),
+    s("bld-80", "building", "건축법", "제80조", "이행강제금", "시정명령을 지키지 않으면 이행강제금을 매기고, 고칠 때까지 1년에 2번 이내로 되풀이해 매길 수 있어요. 고치면 새로 매기지 않지만 이미 매긴 것은 내야 해요.", ["이행강제금", "1년 2회", "위반건축물 벌금"]),
+    s("arch-19", "building", "건축사법", "제19조", "건축사의 업무", "건축사는 설계·공사감리와 건축물 조사·감정, 건축 행정 대행을 해요.", ["건축사 업무", "감리"]),
+  ],
+  topics: [
+    {
+      id: "bld-violation",
+      domain: "building",
+      label: "위반건축물·이행강제금 통지를 받았어요",
+      plain: "허가·신고 없이 증축하거나 용도를 바꾸면 시정명령이 나오고, 지키지 않으면 이행강제금이 1년에 2번까지 되풀이돼요. 처분을 다투려면 통지를 받은 날부터 90일 안에 행정심판을 청구해요.",
+      questions: [
+        { key: "stage", ask: "지금 어떤 통지를 받았나요?", why: "의견제출·시정명령·이행강제금 단계마다 할 일이 달라요.", kind: "choice", required: true, options: [{ value: "notice", label: "처분 전 의견제출 안내" }, { value: "order", label: "시정명령" }, { value: "fine", label: "이행강제금 부과" }] },
+        { key: "noticeDate", ask: "통지를 받은 날은 언제인가요?", why: "행정심판 90일이 이날부터 시작해요.", kind: "date", required: true },
+        { key: "cause", ask: "무엇이 문제라고 하나요?", why: "고칠 방법(철거·추인 허가·용도 되돌림)이 달라요.", kind: "choice", required: true, options: [{ value: "extension", label: "무단 증축(베란다·옥탑 등)" }, { value: "use", label: "무단 용도변경" }, { value: "other", label: "기타" }] },
+        { key: "boughtAsIs", ask: "이미 위반 상태인 건물을 사거나 빌렸나요?", why: "이행강제금은 지금 소유자에게 나와요. 전 주인과의 계약을 확인해야 해요.", kind: "yesno" },
+      ],
+      statutes: ["bld-79", "bld-80", "bld-14", "bld-19", "aaa-27"],
+      deadlines: [{ id: "trial", label: "행정심판 청구", from: "noticeDate", days: 90, cite: "행정심판법 제27조", when: (a) => a.stage === "order" || a.stage === "fine" }],
+      tools: [{ label: "건폐율·용적률 계산기(증축 여유 확인)", href: "/ko/building-coverage-floor-area-ratio-calculator/" }, { label: "과태료 감경·가산금 계산기", href: "/ko/fine-reduction-calculator/" }],
+      flags: (a         ) => {
+        const f         = [];
+        if (a.stage === "notice") f.push({ tone: "info", text: "처분 전 의견제출 기간에 고치겠다는 계획이나 사정을 내면 처분 내용에 반영될 수 있어요.", cite: "행정절차법 제21조·제22조" });
+        if (a.stage === "fine") f.push({ tone: "warn", text: "고치지 않으면 이행강제금은 1년에 2번까지 계속 나와요. 원상복구하거나 허가·신고로 바로잡으면 새로 매기지 않아요.", cite: "건축법 제80조" });
+        if (a.cause === "extension") f.push({ tone: "info", text: "바닥면적 85㎡ 이내 증축은 신고 대상일 수 있어요. 건폐율·용적률 여유가 있으면 추인(사후 신고·허가)으로 바로잡을 수 있는지 구청에 물어보세요.", cite: "건축법 제14조" });
+        if (a.cause === "use") f.push({ tone: "info", text: "용도변경은 위 시설군이면 허가, 아래 시설군이면 신고, 같은 시설군이면 대장 변경이에요. 어느 경우인지부터 확인하세요.", cite: "건축법 제19조" });
+        if (yes(a.boughtAsIs)) f.push({ tone: "warn", text: "위반 상태로 넘겨받으면 지금 소유자가 시정 의무와 이행강제금을 져요. 매매·임대 계약서의 위반건축물 특약과 확인·설명서를 확인하세요.", cite: "건축법 제79조·제80조" });
+        return f;
+      },
+      handOff: (a) => (a.stage === "fine" || a.cause === "use" ? "설계 변경으로 바로잡거나 용도변경 허가가 필요하면 건축사와 상의하고, 처분 자체를 다투면 행정사·변호사와 상의하세요." : null),
+      documents: ["시정명령·이행강제금 통지서", "건축물대장(세움터)", "현황 사진", "매매·임대차 계약서"],
+    },
+    {
+      id: "bld-permit",
+      domain: "building",
+      label: "증축·용도변경, 허가가 필요한지 알고 싶어요",
+      plain: "공사 규모와 바꾸려는 용도에 따라 허가·신고·대장 변경으로 나뉘어요. 허가 뒤 2년(신고는 1년) 안에 공사를 시작해야 하고, 다 지으면 사용승인을 받아요.",
+      questions: [
+        { key: "work", ask: "어떤 공사인가요?", why: "신축·증축·용도변경마다 절차가 달라요.", kind: "choice", required: true, options: [{ value: "new", label: "새로 짓기" }, { value: "extend", label: "증축" }, { value: "use", label: "용도변경(가게 열기 등)" }] },
+        { key: "area", ask: "늘리는 바닥면적은 몇 ㎡인가요?", why: "85㎡ 이내 증축은 신고로 할 수 있어요.", kind: "number", unit: "sqm", askIf: (a) => a.work === "extend" },
+        { key: "direction", ask: "바꾸려는 용도가 지금보다 위 시설군인가요?", why: "위로 가면 허가, 아래면 신고, 같으면 대장 변경이에요.", kind: "choice", options: [{ value: "up", label: "위 시설군" }, { value: "down", label: "아래 시설군" }, { value: "same", label: "같은 시설군" }, { value: "unknown", label: "잘 모르겠어요" }], askIf: (a) => a.work === "use" },
+        { key: "approvedDate", ask: "허가·신고를 받은 날이 있나요?", why: "착공 기한(허가 2년, 신고 1년)을 계산해요.", kind: "date" },
+      ],
+      statutes: ["bld-11", "bld-14", "bld-19", "bld-22", "bld-23"],
+      deadlines: [
+        { id: "start-permit", label: "착공(허가 취소 전)", from: "approvedDate", years: 2, cite: "건축법 제11조", when: (a) => a.work === "new" || (a.work === "extend" && !(num(a.area) <= 85)) },
+        { id: "start-report", label: "착공(신고 효력 상실 전)", from: "approvedDate", years: 1, cite: "건축법 제14조", when: (a) => a.work === "extend" && num(a.area) <= 85 },
+      ],
+      tools: [{ label: "건폐율·용적률 계산기", href: "/ko/building-coverage-floor-area-ratio-calculator/" }, { label: "영업신고·허가 준비 서류 점검표", href: "/ko/permit-document-checklist/" }],
+      flags: (a         ) => {
+        const f         = [];
+        const area = num(a.area);
+        if (a.work === "extend" && Number.isFinite(area)) f.push(area <= 85 ? { tone: "good", text: `증축 ${area}㎡는 85㎡ 이내라 신고로 할 수 있는 범위예요(지역·구조에 따라 달라요).`, cite: "건축법 제14조" } : { tone: "info", text: `증축 ${area}㎡는 85㎡를 넘어 허가 대상이에요.`, cite: "건축법 제11조" });
+        if (a.work === "use") f.push({ tone: "info", text: a.direction === "up" ? "위 시설군으로 바꾸면 용도변경 허가를 받아요." : a.direction === "down" ? "아래 시설군으로 바꾸면 신고해요." : a.direction === "same" ? "같은 시설군 안이면 건축물대장 기재내용 변경을 신청해요." : "건축물대장에서 지금 용도를 확인하고 바꿀 용도의 시설군을 구청에 물어보세요.", cite: "건축법 제19조" });
+        f.push({ tone: "info", text: "공사를 마치면 사용승인을 받아야 써요. 영업신고 때 건축물 용도가 맞는지도 함께 봐요.", cite: "건축법 제22조" });
+        return f;
+      },
+      handOff: (a) => (a.work === "new" || a.direction === "up" || num(a.area) > 85 ? "허가 대상 설계는 건축사가 해야 해요. 대장·도면을 들고 건축사와 상의하세요." : null),
+      documents: ["건축물대장·토지이용계획확인원", "현황 도면·사진", "토지·건물 등기부"],
+    },
+  ],
+  scope: [{ task: "건축물 설계·감리, 건축허가·사용승인 대행", who: { building: "yes", admin: "partial" }, cite: "건축법 제23조, 건축사법 제19조" }],
+};
+
+/* ---------- 보건·의료 이용 (11-20) ---------- */
+// 조문: 의료법 제17·21·27조, 시행규칙 제15조, 약사법 제44조, 의료분쟁조정법 제27조, 국민건강보험법 제48조, 민법 제766조.
+
+const health          = {
+  profession: {
+    domain: "health",
+    name: "보건·의료 이용 길잡이",
+    licensed: "의료인·약사",
+    act: "의료법",
+    scopeCite: { law: "의료법", article: "제2조" },
+    scope: ["의사·치과의사·한의사의 진료와 진단서 발급", "간호·조산", "약사의 조제와 의약품 판매(약사법)"],
+    exclusive: [
+      { text: "의료인이 아니면 의료행위를 할 수 없어요.", cite: { law: "의료법", article: "제27조" } },
+      { text: "약국 개설자가 아니면 의약품을 팔 수 없어요.", cite: { law: "약사법", article: "제44조" } },
+    ],
+    guideDoes: ["진료기록 사본·진단서를 받는 방법과 보존기간을 알려 줘요.", "의료분쟁 조정 신청과 손해배상 시효를 날짜로 계산해요.", "비급여 진료비가 맞는지 확인하는 절차를 정리해요."],
+    guideDoesNot: ["진단·치료 방법을 판단하거나 약을 권하지 않아요.", "의료과실이 있는지 판정하지 않아요.", "특정 병원·변호사를 소개하지 않아요."],
+    handOffWhen: ["몸이 아프거나 증상이 바뀔 때(먼저 진료를 받으세요)", "의료사고로 큰 손해가 났을 때", "병원이 기록 제공을 거부할 때"],
+    freeHelp: [
+      { name: "한국의료분쟁조정중재원", how: "☎ 1670-2545 · k-medi.or.kr", what: "의료사고 무료 상담, 감정·조정·중재" },
+      { name: "건강보험심사평가원", how: "☎ 1644-2000 · hira.or.kr", what: "진료비 확인 요청, 비급여 진료비 비교" },
+      { name: "응급의료 상담", how: "☎ 119", what: "응급 상황, 가까운 응급실 안내" },
+    ],
+  },
+  statutes: [
+    s("med-17", "health", "의료법", "제17조", "진단서 등", "직접 진찰한 의사·치과의사·한의사만 진단서·소견서를 발급하고, 정당한 이유 없이 거부할 수 없어요.", ["진단서", "소견서", "발급 거부"]),
+    s("med-21", "health", "의료법", "제21조", "기록 열람 등", "환자 본인은 진료기록 열람과 사본 발급을 요청할 수 있고, 의료기관은 정당한 이유 없이 거부할 수 없어요. 가족·대리인은 동의서·위임장이 있어야 해요.", ["진료기록", "의무기록 사본", "열람", "차트"]),
+    s("med-15r", "health", "의료법 시행규칙", "제15조", "진료기록부 등의 보존", "진료기록부·수술기록은 10년, 검사기록·방사선 사진·간호기록부는 5년, 진단서 부본은 3년, 처방전은 2년 보존해요.", ["보존기간", "10년", "처방전 2년"]),
+    s("med-27", "health", "의료법", "제27조", "무면허 의료행위 등 금지", "의료인이 아니면 의료행위를 할 수 없고, 돈을 주고 환자를 소개·유인하는 것도 금지예요.", ["무면허", "불법 시술", "환자 유인", "알선"]),
+    s("pha-44", "health", "약사법", "제44조", "의약품 판매", "약국 개설자 등이 아니면 의약품을 팔거나 팔려고 가지고 있을 수 없어요.", ["의약품 판매", "약 판매", "약국"]),
+    s("mdr-27", "health", "의료사고 피해구제 및 의료분쟁 조정 등에 관한 법률", "제27조", "조정의 신청", "의료사고 피해자는 한국의료분쟁조정중재원에 조정을 신청할 수 있어요. 손해와 가해자를 안 날부터 3년, 의료행위가 끝난 날부터 10년 안에 해요.", ["의료분쟁", "의료사고", "조정 신청", "중재원"]),
+    s("nhi-48", "health", "국민건강보험법", "제48조", "요양급여 대상 여부의 확인", "낸 비급여 진료비가 건강보험 대상인지 건강보험심사평가원에 확인을 요청할 수 있고, 잘못 받은 돈은 돌려받아요.", ["진료비 확인", "비급여", "과다 청구", "환불"]),
+    s("civ-766h", "health", "민법", "제766조", "손해배상청구권의 소멸시효", "의료사고 손해배상도 손해와 가해자를 안 날부터 3년, 사고가 있은 날부터 10년이 지나면 청구할 수 없어요.", ["의료소송", "손해배상 시효", "3년"]),
+  ],
+  topics: [
+    {
+      id: "health-records",
+      domain: "health",
+      label: "진료기록·진단서를 받고 싶어요",
+      plain: "환자 본인은 진료기록 사본과 진단서를 요청할 수 있고 병원은 정당한 이유 없이 거부하지 못해요. 진료기록부는 10년, 처방전은 2년 보존해요.",
+      questions: [
+        { key: "who", ask: "누가 요청하나요?", why: "본인이 아니면 동의서·위임장 등 서류가 필요해요.", kind: "choice", required: true, options: [{ value: "self", label: "환자 본인" }, { value: "family", label: "가족" }, { value: "proxy", label: "대리인" }] },
+        { key: "what", ask: "무엇이 필요한가요?", why: "기록마다 보존기간과 발급 방식이 달라요.", kind: "choice", required: true, options: [{ value: "chart", label: "진료기록 사본" }, { value: "cert", label: "진단서·소견서" }, { value: "rx", label: "처방전" }, { value: "image", label: "영상(CT·MRI 등)" }] },
+        { key: "visitDate", ask: "진료받은 날은 언제인가요?", why: "보존기간이 지났는지 확인해요.", kind: "date" },
+        { key: "refused", ask: "병원이 발급을 거부했나요?", why: "정당한 이유 없는 거부는 의료법 위반이에요.", kind: "yesno" },
+      ],
+      statutes: ["med-21", "med-17", "med-15r"],
+      deadlines: [
+        { id: "keep-chart", label: "진료기록부 보존 끝", from: "visitDate", years: 10, cite: "의료법 시행규칙 제15조", when: (a) => a.what === "chart" || a.what === "cert" },
+        { id: "keep-rx", label: "처방전 보존 끝", from: "visitDate", years: 2, cite: "의료법 시행규칙 제15조", when: (a) => a.what === "rx" },
+        { id: "keep-image", label: "방사선 사진 등 보존 끝", from: "visitDate", years: 5, cite: "의료법 시행규칙 제15조", when: (a) => a.what === "image" },
+      ],
+      tools: [{ label: "의료비 세액공제 계산기", href: "/ko/medical-expense-tax-credit-calculator/" }],
+      flags: (a         ) => {
+        const f         = [];
+        if (a.who === "family") f.push({ tone: "info", text: "가족은 환자 동의서와 가족관계증명서, 신분증을 가져가요. 환자가 사망·의식불명 등이면 동의서 없이 받을 수 있는 경우가 있어요.", cite: "의료법 제21조" });
+        if (a.who === "proxy") f.push({ tone: "info", text: "대리인은 환자 동의서·위임장과 환자 신분증 사본이 필요해요.", cite: "의료법 제21조" });
+        if (yes(a.refused)) f.push({ tone: "warn", text: "환자 본인의 요청을 정당한 이유 없이 거부하면 의료법 위반이에요. 관할 보건소에 민원을 낼 수 있어요.", cite: "의료법 제21조" });
+        return f;
+      },
+      handOff: () => null,
+      documents: ["신분증", "가족관계증명서·동의서·위임장(대리 시)", "진료 날짜·진료과 메모"],
+    },
+    {
+      id: "health-dispute",
+      domain: "health",
+      label: "의료사고가 의심되거나 진료비가 이상해요",
+      plain: "의료사고는 한국의료분쟁조정중재원에 무료 상담·조정을 신청할 수 있고, 손해를 안 날부터 3년이 시효예요. 비급여 진료비가 이상하면 심평원에 진료비 확인을 요청해요.",
+      questions: [
+        { key: "issue", ask: "어떤 문제인가요?", why: "의료사고와 진료비 문제는 창구가 달라요.", kind: "choice", required: true, options: [{ value: "injury", label: "치료 뒤 나빠졌어요(의료사고 의심)" }, { value: "bill", label: "진료비가 너무 많이 나왔어요" }] },
+        { key: "knewDate", ask: "손해(악화)를 알게 된 날은 언제인가요?", why: "조정 신청과 손해배상 시효 3년이 이날부터 시작해요.", kind: "date", required: true, askIf: (a) => a.issue === "injury" },
+        { key: "treatEnd", ask: "그 진료가 끝난 날은 언제인가요?", why: "진료가 끝난 날부터 10년이 지나면 조정을 신청할 수 없어요.", kind: "date", askIf: (a) => a.issue === "injury" },
+        { key: "records", ask: "진료기록 사본을 받아 두었나요?", why: "조정·소송 모두 진료기록이 핵심 증거예요.", kind: "yesno", askIf: (a) => a.issue === "injury" },
+        { key: "amount", ask: "의심되는 진료비는 얼마인가요?", why: "확인 요청 결과 돌려받을 금액을 메모해요.", kind: "number", unit: "won", askIf: (a) => a.issue === "bill" },
+      ],
+      statutes: ["mdr-27", "civ-766h", "med-21", "nhi-48"],
+      deadlines: [
+        { id: "mediate", label: "의료분쟁 조정 신청·손해배상 청구(안 날부터)", from: "knewDate", years: 3, cite: "의료분쟁조정법 제27조, 민법 제766조", when: (a) => a.issue === "injury" },
+        { id: "mediate-long", label: "의료분쟁 조정 신청(진료 끝난 날부터)", from: "treatEnd", years: 10, cite: "의료분쟁조정법 제27조", when: (a) => a.issue === "injury" },
+      ],
+      tools: [{ label: "건강보험료 계산기", href: "/ko/health-insurance-calculator/" }],
+      flags: (a         ) => {
+        const f         = [];
+        if (a.issue === "injury" && !yes(a.records)) f.push({ tone: "warn", text: "진료기록 사본부터 받아 두세요. 환자 본인은 바로 요청할 수 있어요.", cite: "의료법 제21조" });
+        if (a.issue === "injury") f.push({ tone: "info", text: "조정은 병원이 참여에 동의해야 시작되지만, 사망·중상해 등은 자동으로 시작돼요. 조정 중에도 소송 시효는 따로 챙기세요.", cite: "의료분쟁조정법 제27조" });
+        if (a.issue === "bill") f.push({ tone: "info", text: "심평원 진료비 확인 요청은 무료이고, 건강보험 대상인데 비급여로 받은 돈은 돌려받아요.", cite: "국민건강보험법 제48조" });
+        return f;
+      },
+      handOff: (a) => (a.issue === "injury" ? "중상해·사망 등 손해가 크면 의료소송 경험이 있는 변호사나 대한법률구조공단(132)과 상의하세요." : null),
+      documents: ["진료기록 사본·영상", "진료비 영수증·세부 내역서", "증상 경과 메모·사진"],
+    },
+  ],
+  scope: [{ task: "진료·진단서 발급, 의약품 조제·판매", who: { health: "yes" }, cite: "의료법 제27조, 약사법 제44조" }],
+};
+
+/* ---------- 가사·이혼 (11-20) ---------- */
+// 조문: 민법 제836조의2·제839조의2·제840조·제841조·제842조·제837조, 가족관계등록법 제75조, 가사소송법 제64·68조, 변호사법 제109조.
+
+const family          = {
+  profession: {
+    domain: "family",
+    name: "가사·이혼 법령 길잡이",
+    licensed: "변호사(가정법원 제출 서류 작성은 법무사)",
+    act: "변호사법",
+    scopeCite: { law: "변호사법", article: "제3조" },
+    scope: ["이혼·양육비·재산분할 소송과 조정의 대리", "가사 법률상담", "법무사는 가정법원에 내는 서류 작성(법무사법 제2조)"],
+    exclusive: [{ text: "변호사가 아닌 사람이 대가를 받고 이혼 상담·소송 서류 작성·대리를 하면 처벌돼요.", cite: { law: "변호사법", article: "제109조" } }],
+    guideDoes: ["협의이혼 숙려기간, 이혼신고 3개월, 재산분할 2년 같은 기한을 날짜로 계산해요.", "양육비를 안 줄 때 쓰는 이행명령·감치 순서를 설명해요.", "가정법원·양육비이행관리원에 가져갈 서류를 정리해요."],
+    guideDoesNot: ["이혼 여부나 소송 승패를 판단하지 않아요.", "협의서·소장을 대신 쓰지 않아요.", "특정 변호사를 소개하지 않아요."],
+    handOffWhen: ["재판상 이혼이나 재산분할 다툼이 있을 때", "폭력이 있어 보호가 급할 때(112·1366)", "상대가 재산을 숨기거나 처분할 때"],
+    freeHelp: [
+      { name: "대한법률구조공단", how: "☎ 132", what: "가사 무료 법률상담, 소득 요건에 맞으면 소송 지원" },
+      { name: "양육비이행관리원", how: "☎ 1644-6621", what: "양육비 상담·협의·추심 지원, 한시적 긴급 지원" },
+      { name: "여성긴급전화", how: "☎ 1366", what: "가정폭력 긴급 상담·보호(24시간)" },
+    ],
+  },
+  statutes: [
+    s("fam-836-2", "family", "민법", "제836조의2", "이혼의 절차(숙려기간)", "협의이혼은 가정법원 안내를 받고 양육할 미성년 자녀가 있으면 3개월, 없으면 1개월이 지나야 의사확인을 받아요. 폭력 등 급한 사정이 있으면 줄이거나 면제할 수 있어요. 자녀가 있으면 양육·친권 협의서를 내요.", ["협의이혼", "숙려기간", "3개월", "1개월", "이혼 절차"]),
+    s("fam-75", "family", "가족관계의 등록 등에 관한 법률", "제75조", "협의이혼의 신고", "가정법원 확인을 받은 날부터 3개월 안에 이혼신고를 해야 하고, 지나면 확인의 효력이 없어져요.", ["이혼신고", "3개월", "확인서"]),
+    s("fam-839-2", "family", "민법", "제839조의2", "재산분할청구권", "이혼한 날부터 2년이 지나면 재산분할을 청구할 수 없어요.", ["재산분할", "2년", "이혼 재산"]),
+    s("fam-840", "family", "민법", "제840조", "재판상 이혼원인", "부정행위, 악의의 유기, 심히 부당한 대우, 3년 이상 생사불명, 혼인을 계속하기 어려운 중대한 사유가 있으면 재판으로 이혼할 수 있어요.", ["재판상 이혼", "이혼 사유", "외도", "이혼소송"]),
+    s("fam-841", "family", "민법", "제841조·제842조", "이혼청구권의 소멸", "부정행위는 안 날부터 6개월, 있은 날부터 2년 안에 이혼을 청구해요. 중대한 사유는 안 날부터 6개월, 있은 날부터 2년이 지나면 청구할 수 없어요(사유가 계속되면 예외).", ["이혼 청구 기간", "6개월", "부정행위"]),
+    s("fam-837", "family", "민법", "제837조·제837조의2", "자녀의 양육책임과 면접교섭", "이혼할 때 양육자·양육비·면접교섭을 정하고, 정하지 못하면 가정법원이 정해요. 양육하지 않는 부모는 자녀를 만날 권리가 있어요.", ["양육비", "양육권", "면접교섭"]),
+    s("fls-64", "family", "가사소송법", "제64조·제68조", "이행명령과 감치", "양육비를 안 주면 가정법원에 이행명령을 신청하고, 그래도 정당한 이유 없이 3기 이상 안 주면 30일 이내 감치를 신청할 수 있어요.", ["이행명령", "감치", "양육비 미지급"]),
+    s("civ-766f", "family", "민법", "제766조", "위자료(손해배상) 시효", "외도 상대방 등에 대한 위자료는 손해와 가해자를 안 날부터 3년, 그 일이 있은 날부터 10년 안에 청구해요.", ["위자료", "상간자", "3년"]),
+  ],
+  topics: [
+    {
+      id: "fam-divorce",
+      domain: "family",
+      label: "협의이혼 절차와 기한을 알고 싶어요",
+      plain: "가정법원에 함께 신청하고 안내를 받은 뒤, 자녀가 있으면 3개월(없으면 1개월) 숙려기간이 지나 의사확인을 받아요. 확인받은 날부터 3개월 안에 이혼신고를 하고, 재산분할은 이혼한 날부터 2년 안에 청구해요.",
+      questions: [
+        { key: "kids", ask: "양육할 미성년 자녀가 있나요?", why: "숙려기간이 3개월과 1개월로 달라요.", kind: "yesno", required: true },
+        { key: "applyDate", ask: "가정법원에 이혼의사확인을 신청(안내)한 날은 언제인가요?", why: "숙려기간이 이날부터 시작해요.", kind: "date" },
+        { key: "confirmDate", ask: "의사확인을 받은 날이 있나요?", why: "이혼신고 3개월 기한이 이날부터예요.", kind: "date" },
+        { key: "divorceDate", ask: "이혼이 확정(신고)된 날이 있나요?", why: "재산분할 청구 2년이 이날부터예요.", kind: "date" },
+        { key: "violence", ask: "폭력 등 급박한 사정이 있나요?", why: "숙려기간을 줄이거나 면제받을 수 있어요.", kind: "yesno" },
+      ],
+      statutes: ["fam-836-2", "fam-75", "fam-839-2", "fam-837"],
+      deadlines: [
+        { id: "cooling", label: "숙려기간 끝(의사확인 가능)", from: "applyDate", months: 3, cite: "민법 제836조의2", when: (a) => yes(a.kids) },
+        { id: "cooling-1", label: "숙려기간 끝(의사확인 가능)", from: "applyDate", months: 1, cite: "민법 제836조의2", when: (a) => a.kids === "no" || a.kids === false },
+        { id: "report", label: "이혼신고", from: "confirmDate", months: 3, cite: "가족관계등록법 제75조" },
+        { id: "split", label: "재산분할 청구", from: "divorceDate", years: 2, cite: "민법 제839조의2" },
+      ],
+      tools: [],
+      flags: (a         ) => {
+        const f         = [];
+        if (yes(a.kids)) f.push({ tone: "info", text: "자녀가 있으면 양육자·양육비·면접교섭을 정한 협의서(또는 법원 심판)를 의사확인 때 내야 해요. 양육비는 법원 양육비 산정기준표를 참고해요.", cite: "민법 제836조의2·제837조" });
+        if (yes(a.violence)) f.push({ tone: "warn", text: "폭력이 있으면 숙려기간 단축·면제를 신청할 수 있어요. 지금 위험하면 112나 1366에 먼저 연락하세요.", cite: "민법 제836조의2" });
+        if (a.confirmDate) f.push({ tone: "warn", text: "확인받고 3개월 안에 신고하지 않으면 확인이 효력을 잃어 처음부터 다시 해야 해요.", cite: "가족관계등록법 제75조" });
+        return f;
+      },
+      handOff: () => "재산분할·위자료 액수를 다투거나 상대가 협의를 거부하면 변호사나 대한법률구조공단(132)과 상의하세요.",
+      documents: ["협의이혼의사확인신청서", "가족관계증명서·혼인관계증명서", "양육 및 친권자 결정 협의서(자녀가 있을 때)", "재산 목록(등기부·통장·보험·연금)"],
+    },
+    {
+      id: "fam-support",
+      domain: "family",
+      label: "양육비를 안 줘요",
+      plain: "양육비가 정해졌는데 안 주면 가정법원에 이행명령을 신청하고, 그래도 3기 이상 안 주면 감치를 신청할 수 있어요. 양육비이행관리원(1644-6621)이 상담·추심을 도와줘요.",
+      questions: [
+        { key: "decided", ask: "양육비가 판결·조정·협의서로 정해져 있나요?", why: "정해져 있어야 이행명령·강제집행을 할 수 있어요.", kind: "yesno", required: true },
+        { key: "missed", ask: "몇 달 밀렸나요?", why: "3기 이상 밀리면 감치를 신청할 수 있어요.", kind: "number", unit: "months", required: true },
+        { key: "monthly", ask: "한 달 양육비는 얼마인가요?", why: "밀린 금액을 계산해요.", kind: "number", unit: "won" },
+        { key: "order", ask: "이행명령을 이미 받았나요?", why: "감치는 이행명령을 어긴 뒤에 신청해요.", kind: "yesno" },
+      ],
+      statutes: ["fls-64", "fam-837"],
+      deadlines: [],
+      tools: [],
+      flags: (a         ) => {
+        const f         = [];
+        const missed = num(a.missed);
+        const monthly = num(a.monthly);
+        if (!yes(a.decided)) f.push({ tone: "warn", text: "양육비가 아직 정해지지 않았다면 가정법원에 양육비 심판(또는 조정)부터 청구해요. 과거 양육비도 함께 청구할 수 있어요.", cite: "민법 제837조" });
+        if (Number.isFinite(missed) && Number.isFinite(monthly)) f.push({ tone: "info", text: `밀린 양육비는 대략 ${won(missed * monthly)}이에요.` });
+        if (yes(a.decided) && !yes(a.order)) f.push({ tone: "info", text: "먼저 가정법원에 이행명령을 신청하세요. 양육비이행관리원이 신청을 도와줘요.", cite: "가사소송법 제64조" });
+        if (yes(a.order) && missed >= 3) f.push({ tone: "warn", text: "이행명령을 받고도 3기 이상 안 줬으면 30일 이내 감치를 신청할 수 있어요. 운전면허 정지·출국금지·명단 공개 같은 제재도 양육비이행관리원에 문의하세요.", cite: "가사소송법 제68조" });
+        return f;
+      },
+      handOff: (a) => (yes(a.decided) ? null : "양육비 심판·조정 청구는 변호사나 대한법률구조공단(132)과 상의하세요. 법무사는 서류 작성을 도울 수 있어요."),
+      documents: ["판결문·조정조서·협의서", "입금 내역(통장)", "가족관계증명서"],
+    },
+  ],
+  scope: [
+    { task: "이혼·양육비·재산분할 소송 대리와 상담", who: { family: "yes", lawyer: "yes" }, cite: "변호사법 제3조·제109조" },
+    { task: "가정법원 제출 서류 작성", who: { court: "yes", lawyer: "yes" }, cite: "법무사법 제2조" },
+  ],
+};
+
+/* ---------- 복지급여 (11-20) ---------- */
+// 조문: 국민기초생활 보장법 제21·26·38조, 긴급복지지원법 제7·9조, 사회보장급여법 제5조, 사회복지사업법 제11조, 행정사법 제2·3조.
+
+const welfare          = {
+  profession: {
+    domain: "welfare",
+    name: "복지급여 길잡이",
+    licensed: "사회복지사(신청 서류 대행은 행정사)",
+    act: "사회복지사업법",
+    scopeCite: { law: "사회복지사업법", article: "제11조" },
+    scope: ["사회복지 상담과 사례관리(사회복지사)", "읍·면·동 사회복지전담공무원의 급여 신청 접수와 직권 신청", "행정기관에 내는 신청서 작성·제출 대행(행정사)"],
+    exclusive: [{ text: "다른 법률이 허용하는 경우 말고는 행정사가 아닌 사람이 남의 행정 서류 작성·제출을 업으로 대행할 수 없어요.", cite: { law: "행정사법", article: "제3조 제1항" } }],
+    guideDoes: ["기초생활·긴급복지 신청 순서와 결정 30일, 이의신청 90일을 날짜로 계산해요.", "가족이 대신 신청할 수 있는지, 무엇을 가져갈지 정리해요.", "다른 지원(복지 찾기 도구)으로 이어 줘요."],
+    guideDoesNot: ["수급 자격을 확정하지 않아요(소득인정액 조사는 지자체가 해요).", "신청서를 대신 내지 않아요.", "특정 대행업체를 소개하지 않아요."],
+    handOffWhen: ["급여가 거절·중지돼 이의신청할 때", "재산·부양의무자 판단이 복잡할 때", "당장 생계가 위급할 때(129)"],
+    freeHelp: [
+      { name: "보건복지상담센터", how: "☎ 129", what: "복지 제도 상담, 긴급지원 요청(24시간)" },
+      { name: "복지로", how: "bokjiro.go.kr", what: "온라인 복지급여 신청·모의계산" },
+      { name: "읍·면·동 행정복지센터", how: "주소지 센터 방문", what: "기초생활·긴급복지 신청 접수, 사례관리" },
+    ],
+  },
+  statutes: [
+    s("nbl-21", "welfare", "국민기초생활 보장법", "제21조", "급여의 신청", "본인·친족·관계인이 주소지 시장·군수·구청장(읍·면·동)에 신청해요. 사회복지 전담공무원이 직권으로 신청할 수도 있어요.", ["기초생활수급", "수급 신청", "생계급여", "의료급여", "주거급여"]),
+    s("nbl-26", "welfare", "국민기초생활 보장법", "제26조", "급여의 결정", "신청한 날부터 30일 안에 급여 여부를 정해 알려 줘요. 조사가 늦어지는 등 특별한 사유가 있으면 60일까지 걸릴 수 있어요.", ["결정 기간", "30일", "60일", "수급 결과"]),
+    s("nbl-38", "welfare", "국민기초생활 보장법", "제38조", "시·도지사에 대한 이의신청", "급여 결정·변경·중지에 이의가 있으면 통지를 받은 날부터 90일 안에 시장·군수·구청장을 거쳐 시·도지사에게 이의신청해요.", ["수급 탈락", "이의신청", "90일", "급여 중지"]),
+    s("ews-7", "welfare", "긴급복지지원법", "제7조", "지원요청 및 신고", "갑자기 생계가 어려워진 사람과 친족·이웃은 시장·군수·구청장이나 129에 긴급지원을 요청할 수 있어요.", ["긴급복지", "긴급지원", "129", "위기가구"]),
+    s("ews-9", "welfare", "긴급복지지원법", "제9조", "긴급지원의 종류", "생계·의료·주거·교육·연료비 등을 먼저 지원하고 나중에 조사해요.", ["긴급 생계비", "긴급 의료비", "선지원"]),
+    s("ssa-5", "welfare", "사회보장급여의 이용·제공 및 수급권자 발굴에 관한 법률", "제5조", "사회보장급여의 신청", "사회보장급여는 본인·친족·후견인 등이 신청하고, 담당 공무원은 지원이 필요한 사람을 직권으로 신청할 수 있어요.", ["복지 신청", "직권 신청", "복지로"]),
+    s("swa-11", "welfare", "사회복지사업법", "제11조", "사회복지사 자격증의 발급", "보건복지부장관이 사회복지사 자격증을 발급해요. 사회복지사는 상담·사례관리를 맡아요.", ["사회복지사", "사례관리"]),
+  ],
+  topics: [
+    {
+      id: "welfare-basic",
+      domain: "welfare",
+      label: "기초생활수급을 신청하거나 탈락했어요",
+      plain: "주소지 행정복지센터에 신청하면 30일(길면 60일) 안에 결과가 나와요. 탈락·중지에 이의가 있으면 통지를 받은 날부터 90일 안에 이의신청해요.",
+      questions: [
+        { key: "stage", ask: "지금 어떤 단계인가요?", why: "신청 전·결과 대기·탈락마다 할 일이 달라요.", kind: "choice", required: true, options: [{ value: "before", label: "신청하려고 해요" }, { value: "waiting", label: "신청하고 기다려요" }, { value: "denied", label: "탈락·중지 통지를 받았어요" }] },
+        { key: "applyDate", ask: "신청한 날은 언제인가요?", why: "결정 기한 30일을 계산해요.", kind: "date", required: true, askIf: (a) => a.stage === "waiting" },
+        { key: "noticeDate", ask: "통지를 받은 날은 언제인가요?", why: "이의신청 90일이 이날부터예요.", kind: "date", required: true, askIf: (a) => a.stage === "denied" },
+        { key: "byFamily", ask: "본인 대신 가족이나 이웃이 신청하나요?", why: "친족·관계인도 신청할 수 있어요.", kind: "yesno", askIf: (a) => a.stage === "before" },
+      ],
+      statutes: ["nbl-21", "nbl-26", "nbl-38", "ssa-5"],
+      deadlines: [
+        { id: "decide", label: "급여 결정(통상)", from: "applyDate", days: 30, cite: "국민기초생활 보장법 제26조", when: (a) => a.stage === "waiting" },
+        { id: "objection", label: "이의신청", from: "noticeDate", days: 90, cite: "국민기초생활 보장법 제38조", when: (a) => a.stage === "denied" },
+      ],
+      tools: [{ label: "복지 혜택 찾기", href: "/ko/benefit-finder/" }, { label: "복지·권리 도구 모음", href: "/ko/benefit-rights-toolkit/" }],
+      flags: (a         ) => {
+        const f         = [];
+        if (yes(a.byFamily)) f.push({ tone: "info", text: "친족·관계인도 신청할 수 있고, 행정복지센터 담당 공무원이 직권으로 신청해 줄 수도 있어요.", cite: "국민기초생활 보장법 제21조" });
+        if (a.stage === "waiting") f.push({ tone: "info", text: "30일이 지나도 연락이 없으면 행정복지센터에 조사 진행 상황을 물어보세요. 특별한 사유가 있으면 60일까지 걸릴 수 있어요.", cite: "국민기초생활 보장법 제26조" });
+        if (a.stage === "denied") f.push({ tone: "warn", text: "이의신청은 결정 통지서에 적힌 사유(소득인정액·부양의무자·재산)를 반박할 자료를 붙여 내요. 생계가 급하면 긴급복지(129)를 함께 요청하세요.", cite: "국민기초생활 보장법 제38조, 긴급복지지원법 제7조" });
+        return f;
+      },
+      handOff: (a) => (a.stage === "denied" ? "재산·부양의무자 판단을 다투기 어렵다면 대한법률구조공단(132)이나 행정사와 상의하세요." : null),
+      documents: ["신분증", "통장 사본·임대차계약서", "소득·재산 자료(급여명세서 등)", "결정 통지서(이의신청 때)"],
+    },
+    {
+      id: "welfare-emergency",
+      domain: "welfare",
+      label: "갑자기 생계가 막막해요(긴급복지)",
+      plain: "실직·질병·화재처럼 갑자기 위기가 오면 129나 행정복지센터에 긴급지원을 요청해요. 생계·의료·주거비를 먼저 지원하고 나중에 조사해요.",
+      questions: [
+        { key: "cause", ask: "무슨 일이 있었나요?", why: "위기 사유에 해당해야 긴급지원을 받아요.", kind: "choice", required: true, options: [{ value: "job", label: "주 소득자 실직·폐업" }, { value: "ill", label: "중한 질병·부상" }, { value: "home", label: "화재·퇴거로 집을 잃음" }, { value: "violence", label: "가정폭력·방임" }, { value: "other", label: "기타" }] },
+        { key: "urgentNow", ask: "오늘 먹을 것·잘 곳이 없나요?", why: "급하면 129에 바로 전화해요(24시간).", kind: "yesno", required: true },
+        { key: "eventDate", ask: "그 일이 생긴 날은 언제인가요?", why: "위기 상황을 설명할 때 써요.", kind: "date" },
+      ],
+      statutes: ["ews-7", "ews-9", "ssa-5"],
+      deadlines: [],
+      tools: [{ label: "복지 혜택 찾기", href: "/ko/benefit-finder/" }, { label: "실업급여 계산기", href: "/ko/unemployment-benefits-calculator/" }],
+      flags: (a         ) => {
+        const f         = [];
+        if (yes(a.urgentNow)) f.push({ tone: "warn", text: "지금 바로 129(보건복지상담센터)에 전화하세요. 먼저 지원하고 나중에 조사해요.", cite: "긴급복지지원법 제7조·제9조" });
+        if (a.cause === "violence") f.push({ tone: "warn", text: "위험하면 112, 가정폭력 상담은 1366(24시간)이에요." });
+        if (a.cause === "job") f.push({ tone: "info", text: "고용보험에 가입했다면 실업급여도 함께 신청하세요.", cite: "고용보험법 제40조" });
+        return f;
+      },
+      handOff: () => null,
+      documents: ["신분증", "위기 사유를 보여 주는 자료(해고 통지·진단서·화재 증명 등)", "통장 사본"],
+    },
+  ],
+  scope: [
+    { task: "복지 상담·사례관리", who: { welfare: "yes" }, cite: "사회복지사업법 제11조" },
+    { task: "복지급여 신청서 작성·제출 대행", who: { admin: "yes", lawyer: "yes" }, cite: "행정사법 제2조·제3조" },
+  ],
+};
+
+export const PACKS            = [customs, ip, appraisal, realty, building, health, family, welfare];
