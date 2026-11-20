@@ -98,6 +98,7 @@ const fixtures = {
   calculate_insurance_claim_payout: { kind: "fault", damage: 10000000, fault: 0.3 },
   analyze_journal_entries: { entries: [{ date: "2026-03-07", account: "여비", amount: 4980000 }], approvalLimit: 5000000 },
   check_kr_privacy_breach_policy: { knownAt: "2026-11-20T09:00", affected: 1500 },
+  check_kr_freelance_contract: { contractText: "대금은 고객사로부터 결제를 받은 후 지급한다.", amount: 1000000, creative: true },
   get_kr_practice_guide: { guide: "visa-stay-status-guide", case: "arrival", dates: { register: "2026-09-01" } },
   check_insurance_explanation_record: { date: "2026-11-17", delivered: "paper", confirm: "sign" },
   calculate_kr_housing_rental_income_tax: { houses: 2, annualRent: 12000000, deposits: 0, registered: false, otherIncome: 40000000 },
