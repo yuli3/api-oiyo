@@ -84,6 +84,7 @@ export const SOURCE_PAGES = Object.freeze({
   check_kr_officetel_house_count: `${TOOLS}officetel-house-count-checker/`,
   compare_kr_ticket_vs_presale_tax: `${TOOLS}redevelopment-ticket-vs-presale-tax-calculator/`,
   compare_kr_inherited_house_valuation: `${TOOLS}inherited-house-appraisal-vs-official-price-calculator/`,
+  plan_kr_after_death_tasks: `${TOOLS}after-death-checklist/`,
   plan_kr_inheritance_gift_filing_deadline: `${TOOLS}inheritance-gift-filing-deadline-calculator/`,
   check_kr_youth_rent_support: `${TOOLS}youth-monthly-rent-support-checker/`,
   find_kr_policy_housing_loans: `${TOOLS}policy-housing-loan-eligibility-checker/`,

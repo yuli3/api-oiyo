@@ -83,6 +83,7 @@ const fixtures = {
   check_kr_officetel_house_count: { price: 250000000, acquired: "2023-05-01", residentialUse: true, otherHouses: 1, nextHomePrice: 800000000, nextRegulated: true },
   compare_kr_ticket_vs_presale_tax: { kind: "presale", gain: 100000000, holdYears: 1.5 },
   compare_kr_inherited_house_valuation: { official: 600000000, appraisal: 900000000, otherEstate: 200000000, spouse: false, salePrice: 1000000000, yearsAfter: 1 },
+  plan_kr_after_death_tasks: { deathDate: "2026-03-10", realEstate: true, today: "2026-05-01" },
   plan_kr_inheritance_gift_filing_deadline: { kind: "gift", date: "2026-11-16", tax: 10000000 },
   check_kr_youth_rent_support: { age: 27, livesApart: true, ownsHome: false, youthIncome: 1400000, youthAssets: 30000000, parentIncome: 5000000, parentAssets: 300000000, deposit: 10000000, rent: 550000 },
   check_kr_special_supply: { sector: "private", householdSize: 3, monthlyIncome: 9000000, dualIncome: true, realEstate: 0, noHome: true, neverOwned: true, marriedYears: 2, childUnder2: false, minorChildren: 1, taxPaid5y: true, elderParent3y: false },
