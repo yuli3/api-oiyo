@@ -9,7 +9,7 @@ import {
   factorScore, ieMatrix, positioningMap, riceScores, runway, scheduleCpm, swotPosition, treeFromOptions, unitEconomics,
   weightedDecision,
 } from "./vendor/tools-tax/biz-strategy.mjs";
-import { AREA_LABEL, CHECKLIST_AS_OF, filterItems, taxCalendar, upcoming } from "./vendor/tools-tax/biz-checklist.mjs";
+import { AREA_LABEL, CHECKLIST_AS_OF, filterItems, monthlyBackoffice, taxCalendar, upcoming } from "./vendor/tools-tax/biz-checklist.mjs";
 import {
   INFLUENCER_CHECKS, OPS_AS_OF, PMI_TEMPLATE, acquisitionCheck, campaignSupply, influencerDeal, marketEntry, materialSwitch, orderAllocation,
   proportionTest, qualityRecovery, rebateCheck, sampleSizePerGroup,
@@ -293,6 +293,17 @@ function businessCalendar(i) {
       "사업연도가 12월 말이 아닌 법인, 연장·납부기한 직권연장, 개별 고지서 금액",
       holidaysKnown ? "임시공휴일은 지정되면 바뀔 수 있어요" : `${i.year}년 공휴일 목록이 아직 없어 토·일만 반영했어요`,
     ],
+    disclaimer: TAX_DISCLAIMER,
+  };
+}
+
+function businessMonth(i) {
+  const profile = { entity: i.entity, vat: i.vat, employer: !!i.employer, halfYearWithholding: !!i.halfYearWithholding, sincere: !!i.sincere, payday: i.payday };
+  const r = monthlyBackoffice(i.month, profile, { hires: i.hires ?? [], leaves: i.leaves ?? [] }, i.today);
+  return {
+    asOf: CHECKLIST_AS_OF, isEstimate: true, ...r,
+    basis: ["국세기본법 제5조(기한이 토·일·공휴일이면 다음 날)", "각 할 일의 basis에 근거 조문"],
+    notCovered: ["사업연도가 12월 말이 아닌 법인, 개별 고지서 금액, 업종별 인허가 갱신", "신고서 작성·제출은 하지 않아요"],
     disclaimer: TAX_DISCLAIMER,
   };
 }
@@ -660,6 +671,7 @@ const HANDLERS = {
   "/v1/biz/unit-economics-runway": economics,
   "/v1/biz/priorities": priorities,
   "/v1/tax/kr/business-calendar": businessCalendar,
+  "/v1/tax/kr/business-month": businessMonth,
   "/v1/biz/campaign-supply": campaign,
   "/v1/biz/influencer-deal": influencer,
   "/v1/biz/quality-recovery": quality,

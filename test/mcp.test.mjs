@@ -44,6 +44,7 @@ const fixtures = {
   calculate_unit_economics_runway: { arpu: 50000, grossMargin: 0.7, monthlyChurn: 0.04, cac: 300000, cash: 300000000, revenue: 20000000, revenueGrowth: 0.06, expenses: 45000000, expenseGrowth: 0.01 },
   rank_priorities: { method: "weighted", criteria: [{ name: "비용", weight: 2 }, { name: "속도", weight: 1 }], options: [{ name: "X", scores: [5, 1] }, { name: "Y", scores: [2, 4] }] },
   get_kr_business_tax_calendar: { year: 2026, entity: "corp", vat: "general", employer: true, from: "2026-11-15", stage: "hire" },
+  plan_kr_small_business_month: { month: "2026-12", entity: "indiv", vat: "general", employer: true, payday: 25, hires: ["2026-11-17"], today: "2026-11-20" },
   plan_campaign_supply: { demand: [100, 100, 300, 300, 100], openingStock: 100, capacityPerWeek: 150, leadTimeWeeks: 1 },
   evaluate_influencer_deal: { fee: 3000000, views: 200000, clickRate: 0.02, conversionRate: 0.05, aov: 30000, grossMargin: 0.7, payee: "freelancer" },
   plan_quality_recovery: { lots: [{ id: "L1", units: 1000, defectRate: 0.1, shippedRatio: 0.5 }], recallCostPerUnit: 500, remakeCostPerUnit: 2000, goodStock: 600, customers: [{ name: "A", demand: 600, priority: 2, penaltyPerUnit: 1000 }, { name: "B", demand: 400, priority: 1, penaltyPerUnit: 200 }] },
