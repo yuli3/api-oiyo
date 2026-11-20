@@ -43,3 +43,13 @@ export function krTaxDeadline(d      )       {
   while (isKrNonBusinessDay(out)) out.setDate(out.getDate() + 1);
   return out;
 }
+
+/**
+ * Same rule for a date held as UTC midnight (Date.UTC / toISOString code paths).
+ * WHY 2026-11-21: krTaxDeadline reads local-time fields, so a UTC-midnight date in a Korean
+ * browser (UTC+9) came back one day early once formatted with toISOString.
+ */
+export function krTaxDeadlineUTC(d      )       {
+  const local = krTaxDeadline(new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  return new Date(Date.UTC(local.getFullYear(), local.getMonth(), local.getDate()));
+}
