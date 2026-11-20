@@ -1,4 +1,4 @@
-// 전문 직군 전수조사 계산 14종 핸들러 (2026-11-21). 스키마: pro-gap-spec.mjs. 계산은 tools-oiyo와 같은 vendored 파일이에요.
+// 전문 직군 전수조사 계산 20종 핸들러 (2026-11-21). 스키마: pro-gap-spec.mjs. 계산은 tools-oiyo와 같은 vendored 파일이에요.
 import { CORP_TAX_AS_OF, CORP_TAX_NOTE, corpTax } from "./vendor/tools-tax/kr-corp-tax-2026.mjs";
 import { PENALTY_AS_OF, PENALTY_NOTE, nextReductionStep, taxPenalty } from "./vendor/tools-tax/kr-tax-penalty-2026.mjs";
 import { APPEAL_AS_OF, APPEAL_NOTE, appealDue, appealsFrom } from "./vendor/tools-tax/kr-appeal-deadlines-2026.mjs";
@@ -12,6 +12,11 @@ import { APPRAISAL_AS_OF, APPRAISAL_NOTE, businessLoss, costApproach, incomeAppr
 import { IP_AS_OF, IP_NOTE, ipDeadlines } from "./vendor/tools-tax/kr-ip-deadlines-2026.mjs";
 import { VAT_CREDIT_AS_OF, VAT_CREDIT_NOTE, badDebtCredit, cardSalesCredit, deemedInputCredit } from "./vendor/tools-tax/kr-vat-credits-2026.mjs";
 import { FH_AS_OF, FH_NOTE, apartmentSchedule, franchiseCheck } from "./vendor/tools-tax/kr-franchise-housing-2026.mjs";
+import { AUDIT_DEFERRED_AS_OF, AUDIT_DEFERRED_NOTE, attributeSample, deferredTax, materiality, musSample } from "./vendor/tools-tax/kr-audit-deferred-2026.mjs";
+import { DISABILITY_AS_OF, DISABILITY_NOTE, disabilityBenefit } from "./vendor/tools-tax/kr-injury-disability-2026.mjs";
+import { DEPOSIT_AS_OF, DEPOSIT_NOTE, depositCheck } from "./vendor/tools-tax/kr-court-deposit-2026.mjs";
+import { REG_AS_OF, REG_NOTE, selfRegistrationCost } from "./vendor/tools-tax/kr-self-registration-2026.mjs";
+import { F27_AS_OF, F27_NOTE, f27Points } from "./vendor/tools-tax/kr-f27-points-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -132,6 +137,30 @@ export function makeProGapHandlers(InputError) {
     const { today, ...x } = i;
     return out(FH_AS_OF, "apartment-management-check", FH_NOTE, apartmentSchedule(x, today ?? todayIso()));
   }
+  function deferred(i) {
+    return out(AUDIT_DEFERRED_AS_OF, "accounting-schedule-calculator", AUDIT_DEFERRED_NOTE, deferredTax(i));
+  }
+  function auditPlan(i) {
+    const m = i.benchmark ? materiality({ benchmark: i.benchmark, base: i.base ?? 0, pct: i.pct, risk: i.risk, trivialPct: i.trivialPct }) : null;
+    if (!m && i.population === undefined && i.tolerableRate === undefined) throw new InputError(["benchmark, population or tolerableRate: give at least one"]);
+    if (i.benchmark && i.base === undefined) throw new InputError(["base: required with benchmark"]);
+    const tolerable = i.tolerable ?? m?.performance;
+    const mus = i.population !== undefined ? musSample({ population: i.population, tolerable: tolerable ?? 0, expected: i.expected, confidence: i.confidence }) : null;
+    const attribute = i.tolerableRate !== undefined ? attributeSample({ tolerableRate: i.tolerableRate, confidence: i.confidence, population: i.controlPopulation }) : null;
+    return out(AUDIT_DEFERRED_AS_OF, "accounting-schedule-calculator", AUDIT_DEFERRED_NOTE, { materiality: m, mus, attribute });
+  }
+  function disability(i) {
+    return out(DISABILITY_AS_OF, "industrial-injury-disability-calculator", DISABILITY_NOTE, disabilityBenefit(i));
+  }
+  function deposit(i) {
+    return out(DEPOSIT_AS_OF, "court-deposit-interest-calculator", DEPOSIT_NOTE, depositCheck({ ...i, withdrawn: i.withdrawn ?? todayIso() }));
+  }
+  function registration(i) {
+    return out(REG_AS_OF, "self-registration-cost-calculator", REG_NOTE, selfRegistrationCost(i));
+  }
+  function f27(i) {
+    return out(F27_AS_OF, "f27-points-calculator", F27_NOTE, f27Points(i));
+  }
 
   return {
     "/v1/tax/kr/corporate-tax": corporate,
@@ -148,5 +177,11 @@ export function makeProGapHandlers(InputError) {
     "/v1/tax/kr/vat-credits": vat,
     "/v1/law/kr/franchise-contract": franchise,
     "/v1/law/kr/apartment-management": apartment,
+    "/v1/accounting/deferred-tax": deferred,
+    "/v1/accounting/audit-plan": auditPlan,
+    "/v1/labor/kr/injury-disability": disability,
+    "/v1/law/kr/court-deposit": deposit,
+    "/v1/realestate/kr/self-registration": registration,
+    "/v1/immigration/kr/f27-points": f27,
   };
 }
