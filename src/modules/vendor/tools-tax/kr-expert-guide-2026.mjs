@@ -16,7 +16,7 @@ import { PACKS } from "./kr-law-packs-2026.mjs";
 export const LAW_GUIDE_AS_OF = "2026-11-17";
 
 /** 앞의 6개는 이 파일, 뒤의 분야는 kr-law-packs-2026.ts의 팩이에요. 새 분야는 팩 하나를 더하면 돼요. */
-                                                                                                                                                                                                            
+                                                                                                                                                                                                                        
 
                        
               
@@ -43,7 +43,7 @@ export const LAW_GUIDE_AS_OF = "2026-11-17";
                                                           
  
 
-const CORE_PROFESSIONS                                                                                                                                                        = {
+const CORE_PROFESSIONS                                                                                                                                                                    = {
   tax: {
     domain: "tax",
     name: "세금 법령 길잡이",
@@ -219,6 +219,7 @@ export const DOMAIN_LABEL                                                  = {
   welfare: { area: "복지급여", pro: "사회복지사" },
   consumer: { area: "소비자·온라인 구매", pro: "변호사·소비자원" },
   privacy: { area: "개인정보", pro: "변호사·보호위원회" },
+  traffic: { area: "교통사고", pro: "변호사·손해사정사" },
 };
 
 export const PROFESSIONS = { ...CORE_PROFESSIONS, ...Object.fromEntries(PACKS.map((p) => [p.profession.domain, p.profession])) }                                ;
