@@ -18,18 +18,54 @@ export const DOCS_HTML = `<!doctype html>
     <meta property="og:url" content="https://api.oiyo.net/docs" />
     <meta property="og:image" content="https://oiyo.net/images/api/og-docs.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
-    <style>.oiyo-hero{display:block;width:100%;max-width:960px;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:12px;margin:8px 0 16px}.oiyo-mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px;list-style:none;padding:0;margin:8px 0 24px;max-width:960px}.oiyo-mods li{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;text-align:center}.oiyo-mods img{width:56px;height:56px}</style>
+    <style>
+      /* 2026-11-20: intro block sat above Scalar unstyled (black text on Scalar's dark body, full-bleed hero).
+         Use Scalar's own theme variables so the intro follows its light/dark mode and type. */
+      .oiyo-intro{box-sizing:border-box;max-width:1120px;margin:0 auto;padding:40px 24px 28px;font-family:var(--scalar-font,ui-sans-serif,system-ui,sans-serif);color:var(--scalar-color-1,#1b1b1b);border-bottom:1px solid var(--scalar-border-color,#e5e5e5)}
+      .oiyo-intro *{box-sizing:border-box}
+      .oiyo-top{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;align-items:center}
+      .oiyo-intro h1{margin:0 0 12px;font-size:30px;line-height:1.25;font-weight:700;letter-spacing:-.01em}
+      .oiyo-lead{margin:0 0 20px;font-size:16px;line-height:1.65;color:var(--scalar-color-2,#555);max-width:62ch}
+      .oiyo-links{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:0;list-style:none}
+      .oiyo-links a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border:1px solid var(--scalar-border-color,#ddd);border-radius:8px;background:var(--scalar-background-2,#f6f6f6);color:var(--scalar-color-1,#1b1b1b);font-size:14px;font-weight:500;text-decoration:none}
+      .oiyo-links a:hover{border-color:var(--scalar-color-accent,#0a85d1)}
+      .oiyo-links li:first-child a{background:var(--scalar-color-accent,#0a85d1);border-color:transparent;color:#fff}
+      .oiyo-endpoint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;font-size:13px;color:var(--scalar-color-2,#555)}
+      .oiyo-endpoint code{padding:4px 8px;border-radius:6px;background:var(--scalar-background-2,#f6f6f6);border:1px solid var(--scalar-border-color,#ddd);color:var(--scalar-color-1,#1b1b1b);font-size:13px;word-break:break-all}
+      .oiyo-hero{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:12px;border:1px solid var(--scalar-border-color,#ddd)}
+      .oiyo-mods{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:28px 0 0}
+      .oiyo-mods li{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--scalar-background-2,#f6f6f6);border:1px solid var(--scalar-border-color,#ddd);font-size:13px;color:var(--scalar-color-2,#555)}
+      .oiyo-mods img{width:24px;height:24px;border-radius:50%}
+      .oiyo-more{margin-top:20px;font-size:14px;line-height:1.65;color:var(--scalar-color-2,#555)}
+      .oiyo-more summary{cursor:pointer;min-height:32px;color:var(--scalar-color-1,#1b1b1b);font-weight:500}
+      .oiyo-more h2{margin:16px 0 6px;font-size:15px;color:var(--scalar-color-1,#1b1b1b)}
+      .oiyo-more p{margin:0 0 10px}
+      .oiyo-intro a{color:var(--scalar-color-accent,#0a85d1)}
+      .oiyo-intro .oiyo-links a{color:inherit}.oiyo-intro .oiyo-links li:first-child a{color:#fff}
+      .oiyo-intro code{font-family:var(--scalar-font-code,ui-monospace,SFMono-Regular,Menlo,monospace)}
+      .oiyo-note{margin:16px 0 0;font-size:12px;line-height:1.6;color:var(--scalar-color-3,#777)}
+      @media (max-width:760px){.oiyo-intro{padding:28px 16px 20px}.oiyo-top{grid-template-columns:1fr;gap:20px}.oiyo-hero{max-width:420px}.oiyo-intro h1{font-size:24px}}
+    </style>
   </head>
   <body>
-    <main>
-      <h1>OIYO API 사용 안내</h1>
-      <p>달력·한국 노동·생활 계산·단위 변환을JSON으로 호출하는 결정적 연산 API예요. 요청·응답과 입력 조건은 아래 OpenAPI 문서에서 확인할 수 있어요.</p>
-      <img class="oiyo-hero" src="https://oiyo.net/images/api/docs-hero.webp" alt="" width="1280" height="853" />
-      <ul class="oiyo-mods" aria-label="계산 모듈"><li><img src="https://oiyo.net/images/api/module-calendar.webp" alt="" width="56" height="56" loading="lazy" /><span>달력·공휴일</span></li><li><img src="https://oiyo.net/images/api/module-labor.webp" alt="" width="56" height="56" loading="lazy" /><span>노동·수당</span></li><li><img src="https://oiyo.net/images/api/module-kr-payroll-2026.webp" alt="" width="56" height="56" loading="lazy" /><span>급여 실수령</span></li><li><img src="https://oiyo.net/images/api/module-kr-income-tax-2026.webp" alt="" width="56" height="56" loading="lazy" /><span>종합소득세</span></li><li><img src="https://oiyo.net/images/api/module-kr-year-end-2026.webp" alt="" width="56" height="56" loading="lazy" /><span>연말정산</span></li><li><img src="https://oiyo.net/images/api/module-kr-personal-tax.webp" alt="" width="56" height="56" loading="lazy" /><span>개인 세금</span></li><li><img src="https://oiyo.net/images/api/module-kr-vat-2026.webp" alt="" width="56" height="56" loading="lazy" /><span>부가가치세</span></li><li><img src="https://oiyo.net/images/api/module-kr-real-estate-tax.webp" alt="" width="56" height="56" loading="lazy" /><span>부동산 세금</span></li><li><img src="https://oiyo.net/images/api/module-real-estate.webp" alt="" width="56" height="56" loading="lazy" /><span>부동산</span></li><li><img src="https://oiyo.net/images/api/module-finance.webp" alt="" width="56" height="56" loading="lazy" /><span>금융</span></li><li><img src="https://oiyo.net/images/api/module-assets.webp" alt="" width="56" height="56" loading="lazy" /><span>자산</span></li><li><img src="https://oiyo.net/images/api/module-insurance.webp" alt="" width="56" height="56" loading="lazy" /><span>보험</span></li><li><img src="https://oiyo.net/images/api/module-auto.webp" alt="" width="56" height="56" loading="lazy" /><span>자동차</span></li><li><img src="https://oiyo.net/images/api/module-energy.webp" alt="" width="56" height="56" loading="lazy" /><span>공과금</span></li><li><img src="https://oiyo.net/images/api/module-military.webp" alt="" width="56" height="56" loading="lazy" /><span>군 복무</span></li><li><img src="https://oiyo.net/images/api/module-units.webp" alt="" width="56" height="56" loading="lazy" /><span>단위 변환</span></li><li><img src="https://oiyo.net/images/api/module-saju.webp" alt="" width="56" height="56" loading="lazy" /><span>사주</span></li><li><img src="https://oiyo.net/images/api/module-usage.webp" alt="" width="56" height="56" loading="lazy" /><span>사용량</span></li></ul>
-      <p>세금·수당 결과는 모의계산이며 신고·수급 자격 확정이나 전문가 상담을 대체하지 않아요. 근로소득세는 연간 환산 추정치예요. 사주 연주·월주는 단순 근사이며 정밀 절기·시간대 계산을 제공하지 않아요.</p>
-      <section id="mcp"><h2>MCP 연결과 연도별 요율</h2><p>MCP를 지원하는 클라이언트에는 <code>https://api-oiyo.861106.workers.dev/mcp</code>를 Streamable HTTP 서버로 등록해요(<code>https://api.oiyo.net/mcp</code>도 같은 도구를 제공해요). 공식 SDK가 2026-07-28과 구형 초기화 방식의 요청을 처리해요. 별도 로그인 없이 기존 공개 계산 도구를 호출하며, 앱은 입력을 별도 저장하지 않아요. 개인 생년월일·재정 정보를 보내기 전 클라이언트가 전송할 입력을 확인해 주세요.</p><p><code>tools/list</code>로 목록을 확인하고 <code>tools/call</code>로 호출해요. 예: <code>convert_units</code>에 value=1, from=m, to=cm → 100cm; <code>get_kr_minimum_wage</code>에 year=2027 → 시급10,700원; <code>calculate_weekly_allowance</code>는 고용기간·출근 확인값을 명시해요. 최저임금의 월209시간 환산은 예시이며 2027 실수령액 계산 지원을 뜻하지 않아요. <a href="https://minimumwage.go.kr/minWage/policy/decisionMain.do">최저임금위원회 공식 결정현황</a></p></section>
-      <nav aria-label="API 참고 자료"><a href="/openapi.json">OpenAPI 명세</a> · <a href="/tools.json">에이전트 도구 정의</a> · <a href="/llms-full.txt">전체 사용 가이드</a> · <a href="/health">서비스 상태</a></nav>
-      <p>공개 문서 화면은 방문 통계와 광고를 사용해요. JSON API 응답에는 브라우저 통계·광고 스크립트를 넣지 않아요. <a href="https://blog.oiyo.net/ko/privacy/">개인정보 처리방침</a></p>
+    <main class="oiyo-intro">
+      <div class="oiyo-top">
+        <div>
+          <h1>OIYO API 사용 안내</h1>
+          <p class="oiyo-lead">달력·한국 노동·세금·생활 계산·단위 변환을 JSON과 MCP로 호출하는 결정적 연산 API예요. 요청·응답과 입력 조건은 아래 OpenAPI 문서에서 확인할 수 있어요.</p>
+          <nav aria-label="API 참고 자료"><ul class="oiyo-links"><li><a href="#mcp" onclick="document.getElementById('mcp').open=true">MCP 연결</a></li><li><a href="/openapi.json">OpenAPI 명세</a></li><li><a href="/tools.json">에이전트 도구 정의</a></li><li><a href="/llms-full.txt">전체 사용 가이드</a></li><li><a href="/health">서비스 상태</a></li></ul></nav>
+          <p class="oiyo-endpoint"><span>MCP 서버</span><code>https://api-oiyo.861106.workers.dev/mcp</code></p>
+        </div>
+        <img class="oiyo-hero" src="https://oiyo.net/images/api/docs-hero.webp" alt="" width="1280" height="853" />
+      </div>
+      <ul class="oiyo-mods" aria-label="계산 모듈"><li><img src="https://oiyo.net/images/api/module-calendar.webp" alt="" width="24" height="24" loading="lazy" /><span>달력·공휴일</span></li><li><img src="https://oiyo.net/images/api/module-labor.webp" alt="" width="24" height="24" loading="lazy" /><span>노동·수당</span></li><li><img src="https://oiyo.net/images/api/module-kr-payroll-2026.webp" alt="" width="24" height="24" loading="lazy" /><span>급여 실수령</span></li><li><img src="https://oiyo.net/images/api/module-kr-income-tax-2026.webp" alt="" width="24" height="24" loading="lazy" /><span>종합소득세</span></li><li><img src="https://oiyo.net/images/api/module-kr-year-end-2026.webp" alt="" width="24" height="24" loading="lazy" /><span>연말정산</span></li><li><img src="https://oiyo.net/images/api/module-kr-personal-tax.webp" alt="" width="24" height="24" loading="lazy" /><span>개인 세금</span></li><li><img src="https://oiyo.net/images/api/module-kr-vat-2026.webp" alt="" width="24" height="24" loading="lazy" /><span>부가가치세</span></li><li><img src="https://oiyo.net/images/api/module-kr-real-estate-tax.webp" alt="" width="24" height="24" loading="lazy" /><span>부동산 세금</span></li><li><img src="https://oiyo.net/images/api/module-real-estate.webp" alt="" width="24" height="24" loading="lazy" /><span>부동산</span></li><li><img src="https://oiyo.net/images/api/module-finance.webp" alt="" width="24" height="24" loading="lazy" /><span>금융</span></li><li><img src="https://oiyo.net/images/api/module-assets.webp" alt="" width="24" height="24" loading="lazy" /><span>자산</span></li><li><img src="https://oiyo.net/images/api/module-insurance.webp" alt="" width="24" height="24" loading="lazy" /><span>보험</span></li><li><img src="https://oiyo.net/images/api/module-auto.webp" alt="" width="24" height="24" loading="lazy" /><span>자동차</span></li><li><img src="https://oiyo.net/images/api/module-energy.webp" alt="" width="24" height="24" loading="lazy" /><span>공과금</span></li><li><img src="https://oiyo.net/images/api/module-military.webp" alt="" width="24" height="24" loading="lazy" /><span>군 복무</span></li><li><img src="https://oiyo.net/images/api/module-units.webp" alt="" width="24" height="24" loading="lazy" /><span>단위 변환</span></li><li><img src="https://oiyo.net/images/api/module-saju.webp" alt="" width="24" height="24" loading="lazy" /><span>사주</span></li><li><img src="https://oiyo.net/images/api/module-usage.webp" alt="" width="24" height="24" loading="lazy" /><span>사용량</span></li></ul>
+      <details class="oiyo-more" id="mcp">
+        <summary>MCP 연결과 연도별 요율</summary>
+        <p>MCP를 지원하는 클라이언트에는 <code>https://api-oiyo.861106.workers.dev/mcp</code>를 Streamable HTTP 서버로 등록해요(<code>https://api.oiyo.net/mcp</code>도 같은 도구를 제공해요). 공식 SDK가 2026-07-28과 구형 초기화 방식의 요청을 처리해요. 별도 로그인 없이 기존 공개 계산 도구를 호출하며, 앱은 입력을 별도 저장하지 않아요. 개인 생년월일·재정 정보를 보내기 전 클라이언트가 전송할 입력을 확인해 주세요.</p><p><code>tools/list</code>로 목록을 확인하고 <code>tools/call</code>로 호출해요. 예: <code>convert_units</code>에 value=1, from=m, to=cm → 100cm; <code>get_kr_minimum_wage</code>에 year=2027 → 시급10,700원; <code>calculate_weekly_allowance</code>는 고용기간·출근 확인값을 명시해요. 최저임금의 월209시간 환산은 예시이며 2027 실수령액 계산 지원을 뜻하지 않아요. <a href="https://minimumwage.go.kr/minWage/policy/decisionMain.do">최저임금위원회 공식 결정현황</a></p>
+        <h2>계산 결과 안내</h2>
+        <p>세금·수당 결과는 모의계산이며 신고·수급 자격 확정이나 전문가 상담을 대체하지 않아요. 근로소득세는 연간 환산 추정치예요. 사주 연주·월주는 단순 근사이며 정밀 절기·시간대 계산을 제공하지 않아요.</p>
+      </details>
+      <p class="oiyo-note">공개 문서 화면은 방문 통계와 광고를 사용해요. JSON API 응답에는 브라우저 통계·광고 스크립트를 넣지 않아요. <a href="https://blog.oiyo.net/ko/privacy/">개인정보 처리방침</a></p>
     </main>
     <script id="api-reference" data-url="/openapi.json"></script>
     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
