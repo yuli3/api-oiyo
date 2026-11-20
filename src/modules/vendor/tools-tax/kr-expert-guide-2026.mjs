@@ -16,7 +16,7 @@ import { PACKS } from "./kr-law-packs-2026.mjs";
 export const LAW_GUIDE_AS_OF = "2026-11-17";
 
 /** 앞의 6개는 이 파일, 뒤의 분야는 kr-law-packs-2026.ts의 팩이에요. 새 분야는 팩 하나를 더하면 돼요. */
-                                                                                                                                                                                                
+                                                                                                                                                                                                            
 
                        
               
@@ -43,7 +43,7 @@ export const LAW_GUIDE_AS_OF = "2026-11-17";
                                                           
  
 
-const CORE_PROFESSIONS                                                                                                                                            = {
+const CORE_PROFESSIONS                                                                                                                                                        = {
   tax: {
     domain: "tax",
     name: "세금 법령 길잡이",
@@ -218,6 +218,7 @@ export const DOMAIN_LABEL                                                  = {
   family: { area: "가사·이혼", pro: "변호사" },
   welfare: { area: "복지급여", pro: "사회복지사" },
   consumer: { area: "소비자·온라인 구매", pro: "변호사·소비자원" },
+  privacy: { area: "개인정보", pro: "변호사·보호위원회" },
 };
 
 export const PROFESSIONS = { ...CORE_PROFESSIONS, ...Object.fromEntries(PACKS.map((p) => [p.profession.domain, p.profession])) }                                ;
@@ -398,6 +399,8 @@ export function findStatutes(query        , domain           , limit = 8)       
                
                 
                   
+                 
+                                                                   
                  
                           
                          
@@ -1287,10 +1290,14 @@ function addMonthsSameDay(d      , months        )       {
 }
 
 /** 기한의 마지막 날. 초일 불산입(민법 제157조), 월·년은 역에 따라(제160조), 말일이 휴일이면 다음 날(제161조, 국세기본법 제5조). */
-export function dueDate(rule                                                                          , from        )                                                            {
+export function dueDate(rule                                                                                    , from        )                                                            {
   const start = parseDate(from);
   if (!start) return null;
   let d = start;
+  if (rule.hours) {
+    const due = isoOf(new Date(d.getTime() + Math.ceil(rule.hours / 24) * 86_400_000));
+    return { due, nominal: due, shifted: false };
+  }
   if (rule.fromMonthEnd) d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
   if (rule.years) d = addMonthsSameDay(d, rule.years * 12);
   if (rule.months) {
