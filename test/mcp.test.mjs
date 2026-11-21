@@ -137,6 +137,12 @@ const fixtures = {
   calculate_us_irs_penalty: { tax: 2000, due: "2027-04-15", filed: "2027-07-01", paid: "2027-07-01" },
   calculate_us_tax_appeal_deadlines: { notice: "2027-05-03" },
   calculate_us_depreciation: { cost: 10000, life: 5, placed: "2026-05-01", bonus: false },
+  get_fr_tax_calendar: { year: 2027, is: true, cfe: true, tva: "simplifie", today: "2027-03-01" },
+  calculate_fr_micro_entrepreneur: { activity: "services", ca: 50000, rfr: 20000, vl: true },
+  check_fr_vat_franchise: { activity: "services", caPrev: 30000, ca: 42000 },
+  calculate_fr_tax_penalty: { tax: 10000, fault: "retard", months: 3 },
+  calculate_fr_claim_deadline: { eventYear: 2026 },
+  calculate_fr_depreciation: { cost: 10000, life: 5, start: "2026-04-10", method: "degressif" },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
@@ -242,6 +248,7 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     assert.ok(/^\/(ko|ja|en|fr|es|zh)\//.test(url.pathname) && url.pathname.endsWith("/"));
     if (/_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
     if (/_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
+    if (/_(fr)_/.test(name)) assert.ok(url.pathname.startsWith("/fr/"), name);
     assert.equal(url.searchParams.get("utm_source"), "mcp");
     assert.equal(url.searchParams.get("utm_medium"), "smithery");
     assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");

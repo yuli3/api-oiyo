@@ -138,6 +138,64 @@ export const US_TAX_TOOLS = [
     }, ["cost", "life", "placed"]),
 ];
 
+const FR = "France, as of 2026-11-21 (service-public.fr and BOFiP). General information and estimates only; no personalised advice, bookkeeping or filing.";
+
+export const FR_TAX_TOOLS = [
+  fn("get_fr_tax_calendar",
+    `French business tax dates for a year: income tax return (opens in April; per-département deadlines published each spring), corporate tax instalments 15 March/June/September/December for calendar-year companies (BOI-IS-DECLA-20-10), CFE by 15 December (F23547), and VAT (réel simplifié: annual CA12 in May, 55% July and 40% December instalments; réel normal monthly, F23566). Weekend dates move to the next business day. ${FR}`,
+    {
+      year: int("Year", 2024, 2035),
+      tva: pick(["franchise", "simplifie", "normal"], "VAT regime"),
+      cfe: yes("Liable for CFE"),
+      is: yes("Company subject to corporate tax (calendar year)"),
+      today: date("Reference date YYYY-MM-DD for days left"),
+    }, ["year"]),
+  fn("calculate_fr_micro_entrepreneur",
+    `French micro-entrepreneur 2026: turnover ceilings 203,100 EUR (sales, lodging) / 83,600 EUR (services, BNC) with exit after two consecutive years above (F32353); social contributions 12.3% / 21.2% / 25.6% / CIPAV 23.2% of turnover (F36232); taxable income after the 71% / 50% / 34% allowance and the progressive scale (2025 income scale, 2026 not yet voted, no family quotient cap) versus the versement libératoire 1% / 1.7% / 2.2% (allowed if N-2 reference income < 29,579 EUR per part, F23267). ${FR}`,
+    {
+      activity: pick(["vente", "services", "bnc", "cipav"], "vente = sales/lodging, services = BIC services, bnc = unregulated liberal profession, cipav = regulated (CIPAV)"),
+      ca: num("Annual turnover collected (EUR)"),
+      caPrev: num("Turnover last year (EUR)"),
+      caPrev2: num("Turnover two years ago (EUR)"),
+      rfr: num("Household reference tax income N-2 (EUR)"),
+      parts: num("Household tax parts (quotient familial)", 1, 20),
+      otherIncome: num("Other taxable household income (EUR)"),
+      vl: yes("Opted for the versement libératoire"),
+    }, ["activity", "ca"]),
+  fn("check_fr_vat_franchise",
+    `French VAT franchise en base 2026 (F21746): exempt while last year's turnover is at most 85,000 EUR (sales, lodging) or 37,500 EUR (services); VAT due immediately above 93,500 / 41,250 EUR this year, or from next 1 January between the two. The single 25,000 EUR threshold plan was abandoned. Rates 20/10/5.5/2.1%. ${FR}`,
+    {
+      activity: pick(["vente", "services"], "Sales/lodging or services"),
+      caPrev: num("Turnover excl. VAT last year (EUR)"),
+      ca: num("Turnover excl. VAT this year (EUR)"),
+    }, ["activity", "caPrev", "ca"]),
+  fn("calculate_fr_tax_penalty",
+    `French late interest 0.20% per month (CGI 1727) and surcharges: late filing 10%, 40% if not filed within 30 days of a formal notice, 80% for hidden activity (CGI 1728); deliberate failure 40%, fraudulent manoeuvres 80% (CGI 1729). Income tax late filing (CGI 1758 A) is flagged, not computed. ${FR}`,
+    {
+      tax: num("Tax due (EUR)"),
+      fault: pick(["retard", "retard-apres-mise-en-demeure", "defaut-apres-mise-en-demeure", "activite-occulte", "manquement-delibere", "manoeuvres-frauduleuses"], "Situation"),
+      due: date("Payment deadline"),
+      paid: date("Payment date"),
+      months: int("Months late (overrides the dates)", 0, 600),
+      incomeTax: yes("Personal income tax"),
+    }, ["tax", "fault"]),
+  fn("calculate_fr_claim_deadline",
+    `French tax claim (réclamation contentieuse) deadline: 31 December of the second year after the assessment, payment or event; local direct taxes (taxe foncière, CFE) 31 December of the following year (LPF R*196-1, BOI-CTX-PREA-10-30). The administration answers in principle within 6 months. ${FR}`,
+    {
+      eventYear: int("Year of the assessment, payment or event", 2015, 2040),
+      local: yes("Local direct tax"),
+    }, ["eventYear"]),
+  fn("calculate_fr_depreciation",
+    `French depreciation schedule: straight-line with day-based pro rata from first use, or declining balance (coefficient 1.25 for 3-4 years, 1.75 for 5-6, 2.25 above 6, CGI 39 A) from the first day of the acquisition month with a switch to straight-line; small tools and office equipment up to 500 EUR excl. VAT expensed immediately (BOI-BIC-CHG-20-30-10). ${FR}`,
+    {
+      cost: num("Cost excl. VAT (EUR)"),
+      life: int("Useful life in years", 1, 50),
+      start: date("Acquisition or first-use date"),
+      method: pick(["lineaire", "degressif"], "Straight-line or declining balance"),
+      toolUnder500: yes("Small tool or office equipment"),
+    }, ["cost", "life", "start"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -151,6 +209,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_us_irs_penalty: { path: "/v1/tax/us/penalty", method: "POST" },
   calculate_us_tax_appeal_deadlines: { path: "/v1/tax/us/appeal-deadlines", method: "POST" },
   calculate_us_depreciation: { path: "/v1/tax/us/depreciation", method: "POST" },
+  get_fr_tax_calendar: { path: "/v1/tax/fr/calendar", method: "POST" },
+  calculate_fr_micro_entrepreneur: { path: "/v1/tax/fr/micro-entrepreneur", method: "POST" },
+  check_fr_vat_franchise: { path: "/v1/tax/fr/vat-franchise", method: "POST" },
+  calculate_fr_tax_penalty: { path: "/v1/tax/fr/penalty", method: "POST" },
+  calculate_fr_claim_deadline: { path: "/v1/tax/fr/claim-deadline", method: "POST" },
+  calculate_fr_depreciation: { path: "/v1/tax/fr/depreciation", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS];
