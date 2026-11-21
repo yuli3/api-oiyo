@@ -261,6 +261,77 @@ export const ES_TAX_TOOLS = [
     }, ["elemento", "coste", "inicio"]),
 ];
 
+const CN = "Mainland China, as of 2026-11-21 (laws and State Taxation Administration announcements in the official regulations database). General information and estimates only; no individual tax consulting, agency or filing. The 2027 filing calendar is not yet published.";
+
+export const CN_TAX_TOOLS = [
+  fn("get_cn_tax_calendar",
+    `Chinese monthly/quarterly filing deadlines for 2026 from 税总办征科函〔2025〕64号 (15th, extended to 1/20, 2/24, 3/16, 4/20, 5/22, 8/17, 10/26, 11/16), for VAT and individual income tax on business income (预缴), plus annual reconciliation: comprehensive income 3/1-6/30 and business income by 3/31 (IIT Law art. 11, 12). Other years return months only. ${CN}`,
+    {
+      year: int("Year (exact dates only for 2026)", 2024, 2035),
+      vat: pick(["month", "quarter", "none"], "VAT filing period"),
+      business: pick(["month", "quarter", "none"], "Business income prepayment period"),
+      comprehensive: yes("Include comprehensive income reconciliation (default true)"),
+      today: date("Reference date YYYY-MM-DD for days left"),
+    }, ["year"]),
+  fn("calculate_cn_business_income_tax",
+    `Chinese individual income tax on business income (经营所得) at 5-35% progressive rates (IIT Law table 2), computed bracket by bracket, with the individual industrial and commercial household (个体工商户) 50% relief on the part up to 2 million CNY until 2027-12-31 (MOF/STA 2023 No. 12), estimated pro rata. ${CN}`,
+    {
+      taxable: num("Annual taxable business income (CNY)"),
+      individual: yes("Individual industrial and commercial household (default true)"),
+    }, ["taxable"]),
+  fn("calculate_cn_comprehensive_income_tax",
+    `Chinese individual income tax on comprehensive income (wages etc.): annual income minus the 60,000 CNY basic deduction, special and additional special deductions, taxed at 3-45% (IIT Law art. 3, 6). ${CN}`,
+    {
+      income: num("Annual income (CNY)"),
+      special: num("Special deductions: social insurance and housing fund (CNY)"),
+      additional: num("Additional special deductions (CNY)"),
+      other: num("Other legal deductions (CNY)"),
+    }, ["income"]),
+  fn("calculate_cn_small_profit_cit",
+    `Chinese small low-profit enterprise corporate income tax: 25% of taxable income at 20% (5% effective) until 2027-12-31 when taxable income <= 3 million CNY, employees <= 300, assets <= 50 million CNY and the industry is not restricted (MOF/STA 2023 No. 12); otherwise 25%. ${CN}`,
+    {
+      taxable: num("Annual taxable income (CNY)"),
+      employees: num("Employees", 0, 1e7),
+      assets: num("Total assets, quarterly average (CNY)"),
+      restricted: yes("Restricted or prohibited industry"),
+    }, ["taxable", "employees", "assets"]),
+  fn("check_cn_small_scale_vat",
+    `Chinese small-scale VAT taxpayer 2026: threshold (起征点) 100,000 CNY per month or 300,000 CNY per quarter until 2027-12-31 - below it VAT is exempt, at or above it the whole amount is taxed (VAT Law art. 23, MOF/STA 2026 No. 10); 3% levy rate reduced to 1% except selling or leasing real estate and land use rights; above 5 million CNY a year the taxpayer is no longer small-scale (VAT Law art. 9). ${CN}`,
+    {
+      sales: num("Sales this period excl. VAT (CNY)"),
+      period: pick(["month", "quarter"], "Filing period"),
+      realEstate: yes("Sale or lease of real estate or transfer of land use rights"),
+      annualSales: num("Sales over the last 12 months (CNY)"),
+    }, ["sales", "period"]),
+  fn("calculate_cn_late_payment_surcharge",
+    `Chinese late payment surcharge (滞纳金) of 0.05% per day from the day after the deadline (Tax Collection Law art. 32), with fine ranges: late filing up to 2,000 or 2,000-10,000 CNY (art. 62), tax evasion or unpaid tax 50%-5x (art. 63, 64), and the first-violation no-penalty lists (STA 2021 No. 6 and No. 33). ${CN}`,
+    {
+      tax: num("Unpaid tax (CNY)"),
+      due: date("Payment deadline"),
+      paid: date("Payment date"),
+    }, ["tax", "due", "paid"]),
+  fn("calculate_cn_tax_appeal_deadlines",
+    `Chinese tax dispute dates: administrative reconsideration within 60 days of knowing the act (tax payment disputes require paying or guaranteeing first, Tax Collection Law art. 88), lawsuit within 15 days of the reconsideration decision, direct lawsuit against penalties within 6 months, overpaid tax refund claim within 3 years of payment (art. 51); recovery periods 3/5 years or unlimited (art. 52). Weekends shift to Monday; public holidays are not included. ${CN}`,
+    {
+      known: date("Date you learned of the tax authority's act"),
+      kind: pick(["dispute", "penalty"], "Tax payment dispute or penalty/enforcement"),
+      decision: date("Date the reconsideration decision was received"),
+      paid: date("Date the overpaid tax was paid"),
+    }, []),
+  fn("calculate_cn_depreciation",
+    `Chinese corporate income tax depreciation: minimum useful lives (buildings 20, machinery 10, tools and furniture 5, other vehicles 4, electronics 3 years; Implementation Regulations art. 60), straight-line from the month after first use with a reasonable residual value (art. 59); one-off deduction for new equipment up to 5 million CNY bought 2024-2027 (MOF/STA 2023 No. 37); accelerated depreciation with lives >= 60% of the minimum, double-declining or sum-of-years (art. 98). ${CN}`,
+    {
+      category: pick(["buildings", "machinery", "tools", "vehicles", "electronics"], "Asset category"),
+      cost: num("Tax basis (CNY)"),
+      start: date("Date put into use"),
+      years: int("Useful life in years", 1, 100),
+      residualRate: num("Residual value rate as a fraction", 0, 0.5),
+      method: pick(["straight", "double", "sum"], "Method (accelerated assets only for double/sum)"),
+      accelerated: yes("Asset qualifies for accelerated depreciation"),
+      oneOff: yes("Use the one-off deduction (new equipment, 2024-2027)"),
+    }, ["category", "cost", "start"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -287,6 +358,14 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_tax_sanction: { path: "/v1/tax/es/sanction", method: "POST" },
   calculate_es_appeal_deadlines: { path: "/v1/tax/es/appeal-deadlines", method: "POST" },
   calculate_es_depreciation: { path: "/v1/tax/es/depreciation", method: "POST" },
+  get_cn_tax_calendar: { path: "/v1/tax/cn/calendar", method: "POST" },
+  calculate_cn_business_income_tax: { path: "/v1/tax/cn/business-income", method: "POST" },
+  calculate_cn_comprehensive_income_tax: { path: "/v1/tax/cn/comprehensive-income", method: "POST" },
+  calculate_cn_small_profit_cit: { path: "/v1/tax/cn/small-profit-cit", method: "POST" },
+  check_cn_small_scale_vat: { path: "/v1/tax/cn/small-scale-vat", method: "POST" },
+  calculate_cn_late_payment_surcharge: { path: "/v1/tax/cn/late-payment", method: "POST" },
+  calculate_cn_tax_appeal_deadlines: { path: "/v1/tax/cn/appeal-deadlines", method: "POST" },
+  calculate_cn_depreciation: { path: "/v1/tax/cn/depreciation", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS];
