@@ -1,4 +1,4 @@
-// 전문 직군 전수조사 계산 20종 도구 스키마 (2026-11-21). tools.oiyo.net #120~#128, #130 페이지와 같은 계산이에요.
+// 전문 직군 전수조사 계산 20종 + 국세청 주제 5종 도구 스키마 (2026-11-21). tools.oiyo.net #120~#128, #130 페이지와 같은 계산이에요.
 // Data and formulas: tools-oiyo src/lib/kr-corp-tax-2026.ts … kr-franchise-housing-2026.ts (vendored by scripts/sync-tools-tax.mjs).
 // Estimates and deadline checks only: no tax filing, appraisal report, customs declaration, court distribution table or legal representation.
 import { APPEAL_RULES } from "./vendor/tools-tax/kr-appeal-deadlines-2026.mjs";
@@ -314,6 +314,61 @@ export const PRO_GAP_TOOLS = [
       immigration: pick(["none", "low", "mid", "high"], "Immigration law fines in 3 years"),
       criminal: pick(["none", "low", "mid", "high"], "Criminal fines"),
     }, ["age", "degree", "korean", "income"]),
+  fn("check_kr_withholding_statement",
+    "Korean payment statement (지급명세서) filing deadline and late-filing penalty (소득세법 제164조·제164조의3·제81조의11): annual statements (interest/dividend/pension/other by end of Feb; wage/retirement/business by Mar 10), daily-worker statements and simplified statements for business/personal-service income (end of the next month), simplified wage statements (semi-annual for 2026 payments, monthly from Jan 2027 with no penalty in 2027 — 2028 for semi-annual withholding payers — if filed by the end of the month after each half). Deadlines move to the next business day. Penalty 1% (0.5% within 3 months) for annual, 0.25% (0.125% within 1 month) for daily and simplified. Estimate only; no filing.",
+    {
+      kind: pick(["annual-other", "annual-wage", "daily", "simple-business", "simple-wage"], "Statement type"),
+      year: int("Payment year", 2020, 2035),
+      month: int("Payment month 1-12 (not used for annual statements)", 1, 12),
+      amount: num("Payment amount not filed or filed late (KRW)"),
+      submitted: date("Date filed (omit if not yet filed)"),
+      semiAnnualPayer: yes("Approved to pay withholding tax semi-annually"),
+      today,
+    }, ["kind", "year", "amount"]),
+  fn("calculate_kr_student_loan_repayment",
+    "Korean income-contingent student loan (취업 후 상환 학자금) mandatory repayment: (annual income amount − repayment threshold 20,560,000 KRW, 교육부고시 제2026-12호, ≈ gross salary 30,370,000) × 20% undergraduate or 25% graduate (특별법 제18조, 시행령 제10조), monthly payroll deduction (1/12, from the month after the June notice) or a bill after the May income tax filing. Salary input is converted with the earned income deduction. The threshold changes each semester. Estimate only.",
+    {
+      incomeType: pick(["salary", "income"], "salary = gross wages only, income = total income amount (소득금액)"),
+      amount: num("Gross salary or income amount for the year (KRW)"),
+      loan: pick(["undergrad", "graduate"], "Undergraduate loans only, or graduate loans included"),
+      balance: num("Remaining loan balance (caps the repayment)"),
+      employee: yes("Wage earner (payroll deduction) — default true for salary"),
+    }, ["incomeType", "amount", "loan"]),
+  fn("compare_kr_bookkeeping_vs_estimate",
+    "Korean sole proprietor: bookkeeping vs estimated (추계) income tax filing. Decides simple-ledger vs double-entry duty (prior-year revenue 300M/150M/75M by industry group, 소득세법 시행령 제208조), simple vs standard expense ratio eligibility (60M/36M/24M; personal services 36M, 제143조), standard-ratio income capped at simple-ratio income × 3.4 (2.8 for simple-ledger filers, through tax year 2027), no-bookkeeping penalty = calculated tax × business income share × 20% (제81조의5; exempt for new businesses and prior revenue under 48M), and the bookkeeping tax credit 20% capped at 1M for simple-ledger filers using double entry (제56조의2). Uses basic rates with personal deductions only. Estimate only; no filing.",
+    {
+      group: pick(["a", "b", "c", "personal"], "a = agriculture/wholesale-retail/real estate sales, b = manufacturing/food & lodging/construction/IT/finance, c = rental/professional services/education/health/arts/personal services, personal = VAT-exempt personal services (freelancers)"),
+      prevRevenue: num("Prior-year revenue (KRW)"),
+      revenue: num("This year's revenue (KRW)"),
+      newBusiness: yes("Started this year"),
+      actualExpense: num("Actual expenses from books"),
+      simpleRate: num("Simple expense ratio % for the industry code", 0, 100),
+      simpleRateOver: num("Simple expense ratio % for revenue above 40M (자가율); default = simpleRate", 0, 100),
+      standardRate: num("Standard expense ratio % for the industry code", 0, 100),
+      majorExpense: num("Documented purchases, rent and payroll (for the standard ratio)"),
+      otherIncome: num("Other comprehensive income amount (e.g. wage income amount)"),
+      people: int("Basic deduction persons including self", 1, 20),
+    }, ["group", "prevRevenue", "revenue", "actualExpense", "simpleRate", "standardRate"]),
+  fn("check_kr_exempt_business_report",
+    "Korean VAT-exempt business status report (사업장현황신고, 소득세법 제78조): due Feb 10 of the next year (next business day if a holiday), deemed filed if VAT returns covered all revenue (mixed businesses report the exempt part), personal-service freelancers included; the 0.5% penalty on unreported revenue applies only to medical, veterinary and pharmacy businesses (제81조의3, 시행령 제147조의2). Does not say the May income tax return replaces it. Estimate only; no filing.",
+    {
+      year: int("Revenue year", 2020, 2035),
+      kind: pick(["medical", "vet", "pharmacy", "personal", "academy", "other"], "Business type"),
+      vatFiledAll: yes("All revenue already reported in VAT returns"),
+      mixed: yes("Both taxable and exempt business"),
+      unreported: num("Unreported revenue (for the 0.5% penalty)"),
+      today,
+    }, ["year", "kind"]),
+  fn("compare_kr_private_pension_tax",
+    "Korean private pension (연금저축·IRP) income tax: withholding rate by age (under 70 5%, under 80 4%, 80+ 3%, lifelong annuity 3%, lower applies; 소득세법 제129조), up to 15M KRW a year can end with withholding (separate taxation, 제14조③9호다목), above 15M choose comprehensive taxation or 15% separate taxation (제64조의4). Comprehensive side uses the pension income deduction table capped at 9M (제47조의2) with public pension and other income, basic rates and personal deductions only (tax credits left out). Estimate only.",
+    {
+      privatePension: num("Private pension received this year, excluding retirement-income annuity and unavoidable withdrawals (KRW)"),
+      age: int("Age when received", 0, 120),
+      lifelong: yes("Lifelong annuity contract that cannot be cancelled"),
+      publicPension: num("Taxable public pension (National Pension etc.)"),
+      otherIncome: num("Other comprehensive income amount"),
+      people: int("Basic deduction persons including self", 1, 20),
+    }, ["privatePension", "age"]),
 ];
 
 export const PRO_GAP_ENDPOINTS = {
@@ -337,4 +392,9 @@ export const PRO_GAP_ENDPOINTS = {
   check_kr_court_deposit: { path: "/v1/law/kr/court-deposit", method: "POST" },
   estimate_kr_self_registration_cost: { path: "/v1/realestate/kr/self-registration", method: "POST" },
   calculate_kr_f27_points: { path: "/v1/immigration/kr/f27-points", method: "POST" },
+  check_kr_withholding_statement: { path: "/v1/tax/kr/withholding-statement", method: "POST" },
+  calculate_kr_student_loan_repayment: { path: "/v1/tax/kr/student-loan-repayment", method: "POST" },
+  compare_kr_bookkeeping_vs_estimate: { path: "/v1/tax/kr/bookkeeping-vs-estimate", method: "POST" },
+  check_kr_exempt_business_report: { path: "/v1/tax/kr/exempt-business-report", method: "POST" },
+  compare_kr_private_pension_tax: { path: "/v1/tax/kr/private-pension-tax", method: "POST" },
 };

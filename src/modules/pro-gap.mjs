@@ -17,6 +17,7 @@ import { DISABILITY_AS_OF, DISABILITY_NOTE, disabilityBenefit } from "./vendor/t
 import { DEPOSIT_AS_OF, DEPOSIT_NOTE, depositCheck } from "./vendor/tools-tax/kr-court-deposit-2026.mjs";
 import { REG_AS_OF, REG_NOTE, selfRegistrationCost } from "./vendor/tools-tax/kr-self-registration-2026.mjs";
 import { F27_AS_OF, F27_NOTE, f27Points } from "./vendor/tools-tax/kr-f27-points-2026.mjs";
+import { NTS_PACK_AS_OF, NTS_PACK_NOTE, bookVsEstimate, exemptBusinessReport, pensionIncomeChoice, studentLoanRepayment, withholdingStatement } from "./vendor/tools-tax/kr-nts-pack-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -161,8 +162,28 @@ export function makeProGapHandlers(InputError) {
   function f27(i) {
     return out(F27_AS_OF, "f27-points-calculator", F27_NOTE, f27Points(i));
   }
+  function statement(i) {
+    return out(NTS_PACK_AS_OF, "withholding-statement-penalty-calculator", NTS_PACK_NOTE, withholdingStatement({ ...i, today: i.today ?? todayIso() }));
+  }
+  function studentLoan(i) {
+    return out(NTS_PACK_AS_OF, "student-loan-repayment-calculator", NTS_PACK_NOTE, studentLoanRepayment(i));
+  }
+  function bookEstimate(i) {
+    return out(NTS_PACK_AS_OF, "bookkeeping-vs-estimate-calculator", NTS_PACK_NOTE, bookVsEstimate(i));
+  }
+  function exemptReport(i) {
+    return out(NTS_PACK_AS_OF, "exempt-business-report-checker", NTS_PACK_NOTE, exemptBusinessReport({ ...i, today: i.today ?? todayIso() }));
+  }
+  function pension(i) {
+    return out(NTS_PACK_AS_OF, "private-pension-separate-tax-calculator", NTS_PACK_NOTE, pensionIncomeChoice(i));
+  }
 
   return {
+    "/v1/tax/kr/withholding-statement": statement,
+    "/v1/tax/kr/student-loan-repayment": studentLoan,
+    "/v1/tax/kr/bookkeeping-vs-estimate": bookEstimate,
+    "/v1/tax/kr/exempt-business-report": exemptReport,
+    "/v1/tax/kr/private-pension-tax": pension,
     "/v1/tax/kr/corporate-tax": corporate,
     "/v1/tax/kr/tax-penalty": penalty,
     "/v1/law/kr/appeal-deadlines": appeals,
