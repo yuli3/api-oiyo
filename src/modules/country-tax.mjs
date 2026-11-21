@@ -1,14 +1,16 @@
-// 각국 세무·회계 현지판 핸들러 (2026-11-21, 1차 일본·2차 미국·3차 프랑스). 스키마: country-tax-spec.mjs. 계산은 tools-oiyo와 같은 vendored 파일이에요.
+// 각국 세무·회계 현지판 핸들러 (2026-11-21, 1차 일본·2차 미국·3차 프랑스·4차 스페인·5차 중국·2차 영국). 스키마: country-tax-spec.mjs. 계산은 tools-oiyo와 같은 vendored 파일이에요.
 import { JP_TAX_AS_OF, JP_TAX_NOTE, jpAppealDeadlines, jpBlueReturn, jpConsumptionTax, jpDepreciation, jpPenalty, jpTaxCalendar } from "./vendor/tools-tax/jp-tax-pack-2026.mjs";
 
 import { US_TAX_AS_OF, US_TAX_NOTE, usAppealDeadlines, usDepreciation, usEstimatedTax, usPenalty, usSelfEmployment, usTaxCalendar } from "./vendor/tools-tax/us-tax-pack-2026.mjs";
 import { FR_TAX_AS_OF, FR_TAX_NOTE, frAmortissement, frClaimDeadline, frMicro, frPenalty, frTaxCalendar, frTvaFranchise } from "./vendor/tools-tax/fr-tax-pack-2026.mjs";
 import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos, esRecargo, esSancion, esTaxCalendar } from "./vendor/tools-tax/es-tax-pack-2026.mjs";
+import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { CN_TAX_AS_OF, CN_TAX_NOTE, cnAppealDeadlines, cnBusinessIncome, cnComprehensive, cnDepreciation, cnLateFee, cnSmallProfitCit, cnSmallScaleVat, cnTaxCalendar } from "./vendor/tools-tax/cn-tax-pack-2026.mjs";
 
 const FRP = "https://tools.oiyo.net/fr/";
 const ESP = "https://tools.oiyo.net/es/";
 const ZHP = "https://tools.oiyo.net/zh/";
+const ukToday = () => new Date().toISOString().slice(0, 10); // London (GMT in winter)
 const cnToday = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10); // 北京时间
 const esToday = () => new Date(Date.now() + 1 * 3_600_000).toISOString().slice(0, 10); // Madrid (hora de invierno)
 const frToday = () => new Date(Date.now() + 1 * 3_600_000).toISOString().slice(0, 10); // Paris (heure d'hiver)
@@ -23,6 +25,7 @@ export function makeCountryTaxHandlers() {
   const fr = (slug, body) => ({ asOf: FR_TAX_AS_OF, country: "FR", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${FRP}${slug}/`, note: FR_TAX_NOTE });
   const es = (slug, body) => ({ asOf: ES_TAX_AS_OF, country: "ES", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ESP}${slug}/`, note: ES_TAX_NOTE });
   const cn = (slug, body) => ({ asOf: CN_TAX_AS_OF, country: "CN", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ZHP}${slug}/`, note: CN_TAX_NOTE });
+  const uk = (slug, body) => ({ asOf: UK_TAX_AS_OF, country: "GB", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${EN}${slug}/`, note: UK_TAX_NOTE });
   return {
     "/v1/tax/jp/calendar": (i) => jp("jp-tax-calendar", jpTaxCalendar({ ...i, today: i.today ?? jpToday() })),
     "/v1/tax/jp/blue-return": (i) => jp("aoiro-shinkoku-deduction-calculator", jpBlueReturn(i)),
@@ -57,5 +60,12 @@ export function makeCountryTaxHandlers() {
     "/v1/tax/cn/late-payment": (i) => cn("china-late-payment-surcharge-appeal", cnLateFee(i)),
     "/v1/tax/cn/appeal-deadlines": (i) => cn("china-late-payment-surcharge-appeal", cnAppealDeadlines(i)),
     "/v1/tax/cn/depreciation": (i) => cn("china-depreciation-calculator", cnDepreciation(i)),
+    "/v1/tax/uk/calendar": (i) => uk("uk-self-assessment-deadlines-2026", ukTaxCalendar({ ...i, today: i.today ?? ukToday() })),
+    "/v1/tax/uk/self-employed": (i) => uk("uk-self-employed-tax-ni-calculator", ukSelfEmployed(i)),
+    "/v1/tax/uk/vat-registration": (i) => uk("uk-vat-registration-threshold-check", ukVatCheck(i)),
+    "/v1/tax/uk/penalty": (i) => uk("hmrc-late-filing-penalty-interest-calculator", ukSaPenalties(i)),
+    "/v1/tax/uk/interest": (i) => uk("hmrc-late-filing-penalty-interest-calculator", ukInterest(i.amount, i.from, i.to)),
+    "/v1/tax/uk/appeal-deadlines": (i) => uk("hmrc-late-filing-penalty-interest-calculator", ukAppealDeadlines(i)),
+    "/v1/tax/uk/capital-allowances": (i) => uk("uk-capital-allowances-aia-calculator", ukCapitalAllowances(i)),
   };
 }

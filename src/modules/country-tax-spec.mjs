@@ -332,6 +332,70 @@ export const CN_TAX_TOOLS = [
     }, ["category", "cost", "start"]),
 ];
 
+const UK = "United Kingdom, as of 2026-11-21 (gov.uk and legislation.gov.uk). Income Tax bands are for England, Wales and Northern Ireland; Scottish bands are not calculated. General information and estimates only; not personal tax advice, no agent services and no filing with HMRC.";
+export const UK_TAX_TOOLS = [
+  fn("get_uk_tax_calendar",
+    `UK deadlines for a tax year (taxYear 2025 = 2025-26): tell HMRC by 5 October if new to Self Assessment, paper return 31 October, online return and balancing payment plus first payment on account 31 January, second payment on account 31 July; Making Tax Digital quarterly updates 1 (7 August) and 2 (7 November), with 3 and 4 not confirmed; Corporation Tax payment 9 months and 1 day after the accounting period and Company Tax Return 12 months after; VAT return and payment 1 calendar month and 7 days after the period. ${UK}`,
+    {
+      taxYear: int("First calendar year of the tax year (2025 = 2025-26)", 2020, 2035),
+      newToSA: yes("First Self Assessment return (or no return last year)"),
+      mtd: yes("Signed up to Making Tax Digital for Income Tax"),
+      companyYearEnd: date("Company accounting period end date"),
+      vatPeriodEnd: date("VAT period end date"),
+      today: date("Reference date YYYY-MM-DD for days left"),
+    }, ["taxYear"]),
+  fn("calculate_uk_self_employed_tax",
+    `UK 2026-27 sole trader estimate: Income Tax with the £12,570 personal allowance (tapered £1 per £2 over £100,000), 20% to £50,270, 40% to £125,140, 45% above; Class 4 NI 6% between £12,570 and £50,270 and 2% above; Class 2 treated as paid at profits of £7,105 or more, otherwise voluntary £3.65 a week; and the Making Tax Digital start date (qualifying income over £50,000 in 2024-25 → 6 April 2026, over £30,000 in 2025-26 → 2027, over £20,000 in 2026-27 → 2028). Tax shown is the extra Income Tax caused by the profit on top of other income. ${UK}`,
+    {
+      profit: num("Taxable self-employed profit (GBP)"),
+      otherIncome: num("Other income such as salary or pension (GBP)"),
+      qi2425: num("Qualifying income 2024-25: self-employment and property turnover (GBP)"),
+      qi2526: num("Qualifying income 2025-26 (GBP)"),
+      qi2627: num("Qualifying income 2026-27 (GBP)"),
+    }, ["profit"]),
+  fn("check_uk_vat_registration",
+    `UK VAT: must register when taxable turnover in the last 12 rolling months goes over £90,000, or is expected to go over £90,000 in the next 30 days alone; can deregister under £88,000; Flat Rate Scheme can be joined with expected turnover up to £150,000 excluding VAT and must be left over £230,000 including VAT; rates 20%, 5%, 0%. ${UK}`,
+    {
+      last12: num("Taxable turnover in the last 12 months (GBP)"),
+      next30: num("Taxable turnover expected in the next 30 days alone (GBP)"),
+      next12: num("Taxable turnover expected in the next 12 months, excluding VAT (GBP)"),
+      registered: yes("Already VAT registered"),
+    }, ["last12"]),
+  fn("calculate_uk_sa_penalty",
+    `UK Self Assessment penalties for a tax year (online deadline 31 January after the year ends): late filing £100, then £10 a day after 3 months for up to 90 days, then the greater of 5% of the tax or £300 at 6 and again at 12 months; late payment 5% of unpaid tax at 30 days, 6 months and 12 months; plus late payment interest. MTD for Income Tax penalties are different and not calculated. ${UK}`,
+    {
+      tax: num("Tax due on the return (GBP)"),
+      taxYear: int("First calendar year of the tax year (2024 = 2024-25)", 2015, 2035),
+      filed: date("Date the return was filed"),
+      paid: date("Date the tax was paid"),
+    }, ["tax", "taxYear"]),
+  fn("calculate_uk_late_payment_interest",
+    `HMRC late payment interest at base rate + 4%, simple daily: 7.75% from 9 January 2026 and 8.00% from 24 November 2026. Days before 9 January 2026 are returned as unknownDays and not charged because that rate has not been checked. ${UK}`,
+    {
+      amount: num("Unpaid tax (GBP)"),
+      from: date("Date interest starts (the payment deadline)"),
+      to: date("Date paid"),
+    }, ["amount", "from", "to"]),
+  fn("calculate_uk_tax_appeal_deadlines",
+    `UK dates for disagreeing with HMRC: appeal or ask for a review usually within 30 days of the decision letter (then 30 days after a review to accept or go to the tribunal), and overpayment relief claims within 4 years after the end of the tax year (TMA 1970 Sch 1AB para 3). ${UK}`,
+    {
+      decision: date("Date of HMRC's decision letter"),
+      taxYear: int("First calendar year of the tax year for an overpayment claim", 2015, 2035),
+    }, []),
+  fn("calculate_uk_capital_allowances",
+    `UK capital allowances on plant and machinery: Annual Investment Allowance up to £1m a year; for companies from 1 April 2023 full expensing (100%, main rate) or 50% first year allowance (special rate); 40% first year allowance on main-rate assets from 1 January 2026 (leased assets allowed); writing down allowances 14% main pool (from April 2026, 18% before) and 6% special rate pool, with a reducing-balance schedule. Cars get only writing down allowances; cash-basis sole traders deduct equipment as an expense. ${UK}`,
+    {
+      cost: num("Cost (GBP)"),
+      pool: pick(["main", "special"], "Main rate or special rate pool"),
+      company: yes("Limited company"),
+      date: date("Date of expenditure"),
+      aiaUsed: num("AIA already used in the period (GBP)"),
+      car: yes("The asset is a car"),
+      cashBasis: yes("Sole trader using the cash basis"),
+      years: int("Years in the writing down schedule", 1, 20),
+    }, ["cost", "pool", "date"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -366,6 +430,13 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_cn_late_payment_surcharge: { path: "/v1/tax/cn/late-payment", method: "POST" },
   calculate_cn_tax_appeal_deadlines: { path: "/v1/tax/cn/appeal-deadlines", method: "POST" },
   calculate_cn_depreciation: { path: "/v1/tax/cn/depreciation", method: "POST" },
+  get_uk_tax_calendar: { path: "/v1/tax/uk/calendar", method: "POST" },
+  calculate_uk_self_employed_tax: { path: "/v1/tax/uk/self-employed", method: "POST" },
+  check_uk_vat_registration: { path: "/v1/tax/uk/vat-registration", method: "POST" },
+  calculate_uk_sa_penalty: { path: "/v1/tax/uk/penalty", method: "POST" },
+  calculate_uk_late_payment_interest: { path: "/v1/tax/uk/interest", method: "POST" },
+  calculate_uk_tax_appeal_deadlines: { path: "/v1/tax/uk/appeal-deadlines", method: "POST" },
+  calculate_uk_capital_allowances: { path: "/v1/tax/uk/capital-allowances", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS];
