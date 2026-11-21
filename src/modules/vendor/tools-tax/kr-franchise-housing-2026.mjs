@@ -68,7 +68,7 @@ export const DEFECT_PERIODS = [
   { years: 10, label: "내력구조부(기둥·내력벽·보·바닥·지붕틀 등)" },
 ];
 
-export function apartmentSchedule(x                , today = new Date().toISOString().slice(0, 10)) {
+export function apartmentSchedule(x                , today = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10) /* 한국 날짜 */) {
   const items         = [];
   if (x.useApproval) {
     for (const p of DEFECT_PERIODS) items.push({ id: `defect-common-${p.years}`, label: `공용부분 하자담보 ${p.years}년 끝: ${p.label}`, date: plain(x.useApproval, p.years * 12), tone: "info", cite: "공동주택관리법 제36조, 시행령 별표 4" });

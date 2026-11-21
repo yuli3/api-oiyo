@@ -37,7 +37,7 @@ const plain = (from        , months        ) => {
 };
 const span = (a        , b        ) => Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
 
-export function ipDeadlines(x         , today = new Date().toISOString().slice(0, 10))               {
+export function ipDeadlines(x         , today = new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10) /* 한국 날짜 */)               {
   const out               = [];
   const add = (id        , label        , from                    , months        , cite        , note         ) => {
     if (!from) return;

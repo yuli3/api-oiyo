@@ -48,7 +48,7 @@ import { PROFILE_PATHS, profileForPath } from "./modules/mcp-profiles.mjs";
 import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { handleAdvisory } from "./modules/kr-advisory.mjs";
 import { handleBiz } from "./modules/biz-strategy.mjs";
-import { recordUsage } from "./modules/usage.mjs";
+import { mcpPeek, recordUsage } from "./modules/usage.mjs";
 import { mcpMedium } from "./modules/source-pages.mjs";
 import {
   DOCS_HTML,
@@ -95,9 +95,11 @@ const GLAMA_JSON = JSON.stringify({ $schema: "https://glama.ai/mcp/schemas/serve
 const worker = {
   async fetch(request, env) {
     const started = Date.now();
-    const response = await route(request, env);
     const isMcp = MCP_PATHS.has(new URL(request.url).pathname);
-    recordUsage(env, request, response, Date.now() - started, isMcp ? "mcp" : "rest", isMcp ? mcpMedium(request) : "");
+    // Peek at the JSON-RPC envelope on a clone; the handler still reads the original body.
+    const peek = isMcp ? (request.method === "POST" ? mcpPeek(await request.clone().text().catch(() => "")) : { rpc: `(${request.method.toLowerCase()})`, client: "" }) : null;
+    const response = await route(request, env);
+    recordUsage(env, request, response, Date.now() - started, isMcp ? "mcp" : "rest", isMcp ? mcpMedium(request) : "", peek);
     return response;
   },
 };
