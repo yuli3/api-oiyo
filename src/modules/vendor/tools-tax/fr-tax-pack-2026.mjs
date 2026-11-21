@@ -144,7 +144,11 @@ const fullMonths = (from        , to        ) => {
 };
 
 export function frPenalty(x                                                                                                  ) {
-  const m = MAJORATIONS[x.fault];
+  let m                                                = MAJORATIONS[x.fault];
+  // Impôt sur le revenu : l'article 1758 A remplace l'article 1728 pour le dépôt tardif (10 %, 20 % après mise en demeure ;
+  // sans dépôt dans les 30 jours, c'est de nouveau le 40 % de l'article 1728). BOI-CF-INF-20-10-10 §70, §90.
+  if (x.incomeTax && x.fault === "retard") m = { rate: 0.1, cite: "CGI art. 1758 A (BOI-CF-INF-20-10-10)", label: "Déclaration de revenus déposée en retard sans mise en demeure" };
+  if (x.incomeTax && x.fault === "retard-apres-mise-en-demeure") m = { rate: 0.2, cite: "CGI art. 1758 A (BOI-CF-INF-20-10-10)", label: "Déclaration de revenus déposée dans les 30 jours d'une mise en demeure" };
   const months = x.months ?? (x.due && x.paid ? fullMonths(x.due, x.paid) : 0);
   const interest = Math.round(x.tax * INTERET_RETARD_MENSUEL * months);
   const majoration = Math.round(x.tax * m.rate);
@@ -152,14 +156,14 @@ export function frPenalty(x                                                     
     { tone: "warn", text: `${m.label} : majoration de ${Math.round(m.rate * 100)} %, soit ${eur(majoration)}.`, cite: m.cite },
     { tone: months ? "warn" : "info", text: `Intérêt de retard 0,20 % par mois${months ? ` sur ${months} mois : ${eur(interest)}` : ""}.`, cite: "CGI art. 1727 (BOFiP ACTU-2021-00178)" },
   ];
-  if (x.incomeTax && (x.fault === "retard" || x.fault === "retard-apres-mise-en-demeure" || x.fault === "defaut-apres-mise-en-demeure")) items.push({ tone: "info", text: "Pour l'impôt sur le revenu, c'est l'article 1758 A du CGI qui s'applique au dépôt tardif ; ses taux ne sont pas calculés ici.", cite: "BOI-CF-INF-10-20-10" });
+  if (x.incomeTax && (x.fault === "retard" || x.fault === "retard-apres-mise-en-demeure")) items.push({ tone: "info", text: "Pour l'impôt sur le revenu, la majoration de l'article 1758 A ne s'applique pas si vous corrigez spontanément ou dans les 30 jours d'une demande de l'administration.", cite: "BOI-CF-INF-20-10-10" });
   return { months, interest, majoration, total: interest + majoration, items };
 }
 
 /** Réclamation : 31 décembre de la 2e année suivant la mise en recouvrement, le paiement ou l'événement (impôts directs locaux : année suivante). */
 export function frClaimDeadline(x                                        ) {
   const y = x.eventYear + (x.local ? 1 : 2);
-  return [{ id: "reclamation", label: x.local ? "Réclamation contre un impôt direct local (taxe foncière, CFE…)" : "Réclamation contentieuse (impôt sur le revenu, TVA, IS…)", date: `${y}-12-31`, cite: "LPF art. R*196-1 (BOI-CTX-PREA-10-30)" }, { id: "reponse", label: "L'administration répond en principe dans les 6 mois suivant la réclamation", date: "", cite: "BOI-CTX-PREA-10-10" }];
+  return [{ id: "reclamation", label: x.local ? "Réclamation contre un impôt direct local (taxe foncière, CFE…)" : "Réclamation contentieuse (impôt sur le revenu, TVA, IS…)", date: `${y}-12-31`, cite: "LPF art. R*196-1 (BOI-CTX-PREA-10-30)" }, { id: "reponse", label: "L'administration répond en principe dans les 6 mois suivant la réclamation", date: "", cite: "BOI-CTX-PREA-10-10" }, { id: "tribunal", label: "En cas de rejet : 2 mois après réception de la décision pour saisir le tribunal administratif (ou dès 6 mois sans réponse). Un recours hiérarchique ou la saisine du conciliateur ou du médiateur n'arrête pas ce délai", date: "", cite: "LPF art. R*199-1 (BOI-CTX-ADM-10-20-20)" }];
 }
 
 // ── 5. Amortissement linéaire et dégressif ───────────────────────────
@@ -207,3 +211,13 @@ export function frAmortissement(x                                               
   items.push({ tone: "info", text: "La durée d'utilisation dépend des usages de la profession ; vérifiez-la avant de l'appliquer.", cite: "BOI-BIC-AMT-20-20-30" });
   return { method, rate: method === "degressif" ? Math.round(linRate * coef * 10_000) / 10_000 : linRate, schedule, items };
 }
+
+// ── 6. Qui peut conseiller et tenir la comptabilité ──────────────────
+export const FR_SCOPE = [
+  { title: "La comptabilité est réservée aux experts-comptables", body: "Tenir, centraliser, arrêter, surveiller ou redresser la comptabilité d'une entreprise avec laquelle on n'a pas de contrat de travail est réservé aux experts-comptables inscrits au Tableau de l'Ordre.", cite: "Ordonnance n° 45-2138, art. 2 (Ordre des experts-comptables)" },
+  { title: "Consultation juridique et fiscale", body: "Donner des consultations juridiques ou rédiger des actes pour autrui à titre habituel et rémunéré est réservé aux personnes autorisées (avocats, notaires…, et les professions réglementées comme l'expert-comptable pour ce qui se rattache à leur activité principale). La fourniture d'informations à caractère documentaire reste libre.", cite: "Loi n° 71-1130, art. 54, 56, 59, 60, 66-1 ; ordonnance 45-2138, art. 22" },
+  { title: "Ce que fait ce site", body: "Il explique les règles publiées, donne des échéances et des estimations avec les sources officielles. Il ne donne pas de consultation sur votre cas, ne tient pas votre comptabilité, n'établit ni ne dépose de déclaration ou de réclamation, et ne recommande aucun cabinet.", cite: "Loi n° 71-1130, art. 66-1" },
+  { title: "Titres protégés", body: "Utiliser sans droit le titre d'expert-comptable ou d'avocat est puni d'un an d'emprisonnement et de 15 000 € d'amende ; l'exercice illégal est aussi sanctionné. Ce site n'utilise pas ces titres.", cite: "Code pénal art. 433-17 ; loi 71-1130 art. 66-2, 72, 74" },
+  { title: "Aide gratuite : votre service des impôts", body: "Rendez-vous au centre des finances publiques ou au SIE (sur place, par téléphone ou en visio), messagerie sécurisée de l'espace impots.gouv (questions, réclamation en ligne), téléphone 0 809 401 401 (particuliers) ou 0 806 807 807 (professionnels), et les espaces France Services.", cite: "impots.gouv.fr (prise de rendez-vous, messagerie sécurisée, France Services)" },
+  { title: "Désaccord : conciliateur et médiateur", body: "Après un rejet, le conciliateur fiscal départemental puis le Médiateur des ministères économiques et financiers peuvent être saisis. Ces démarches ne suspendent ni le paiement ni les délais de recours.", cite: "impots.gouv.fr (recours amiable, conciliateur fiscal)" },
+];
