@@ -455,6 +455,93 @@ export const TW_TAX_TOOLS = [
     }, ["category", "cost", "start"]),
 ];
 
+// 3차 노동 7개국 (2026-11-21): tools-oiyo world-labor-pack-2026과 같은 계산. 법률 자문·대리·제출 없음.
+const LAB = (c) => `${c}, as of 2026-11-21. General information and estimates only: no legal advice, no representation, no filing; values that could not be verified are flagged in the result, not computed.`;
+export const LABOR_TOOLS = [
+  fn("calculate_jp_labor_exit",
+    `Japan job exit check: dismissal notice allowance (30 days' average wage less days of notice, 労働基準法 第20条), basic unemployment benefit days for self-quit (90/120/150 by insured years) and dismissal (特定受給資格者 table by age and insured years, 雇用保険法 第22条·第23条), statutory paid leave days by service (第39条), wage claim limitation date (3 years, 第115条·附則第143条) and the FY2026 (令和8年度) regional minimum wage check (Tokyo 1,280, Osaka 1,231 JPY; national weighted average 1,177). ${LAB("Japan (e-Gov, MHLW)")}`,
+    {
+      start: date("Employment start date"),
+      end: date("Last day of employment"),
+      age: int("Age on the last day", 15, 100),
+      insuredYears: num("Years insured under employment insurance", 0, 60),
+      reason: pick(["self", "dismissal"], "Self-quit or dismissal / company reasons"),
+      dailyAverageWage: num("Average daily wage (平均賃金, JPY)"),
+      noticeDays: int("Days of advance notice given", 0, 365),
+      hourlyWage: num("Hourly wage (JPY)"),
+      region: pick(["tokyo", "osaka", "other"], "Workplace region for the minimum wage check"),
+    }, ["start", "end", "age", "insuredYears", "reason"]),
+  fn("calculate_uk_labor_exit",
+    `UK statutory redundancy pay (0.5/1/1.5 weeks per year by age, weekly pay capped at 751 GBP, at most 20 years, 2 years' service needed; ERA 1996 s.162), statutory notice (1 week per year up to 12), statutory holiday (5.6 weeks capped at 28 days), National Minimum Wage check (12.71 GBP at 21+, 10.85 at 18-20, 8.00 under 18, April 2026), SSP (lower of 123.25 GBP a week or 80% of average weekly earnings), and the employment tribunal claim deadline (3 months, 6 months for incidents from 2026-10-01 under the Employment Rights Act 2025). ${LAB("United Kingdom (gov.uk)")}`,
+    {
+      start: date("Employment start date"),
+      end: date("Last day of employment"),
+      age: int("Age on the last day", 15, 100),
+      weeklyPay: num("Gross weekly pay (GBP)"),
+      daysPerWeek: num("Days worked per week", 0, 7),
+      hourlyPay: num("Hourly pay (GBP)"),
+      incident: date("Date of the incident or dismissal for the tribunal deadline"),
+      averageWeeklyEarnings: num("Average weekly earnings for Statutory Sick Pay (GBP)"),
+    }, ["start", "end", "age", "weeklyPay"]),
+  fn("check_us_labor_rights",
+    `US wage and layoff check: federal (7.25 USD) and state minimum wage (CA 16.90, NY outside NYC 16.00, NYC 17.00, TX 7.25), FLSA overtime at 1.5x over 40 hours, WARN Act 60-day notice (100+ employees, 50+ laid off at a site), California final pay on the last day, EEOC charge deadline (180 days, 300 with a state agency) and FLSA back-wage limitation (2 years, 3 if willful). NY and TX final pay are not verified. ${LAB("United States (DOL, eCFR, EEOC, CA DIR)")}`,
+    {
+      state: pick(["federal", "CA", "NY-NYC", "NY", "TX"], "Minimum wage jurisdiction"),
+      hourlyWage: num("Hourly wage (USD)"),
+      weeklyHours: num("Hours worked in a week", 0, 168),
+      incident: date("Date of the discriminatory act or wage violation"),
+      stateAgency: yes("A state or local fair employment agency covers the claim (300 days)"),
+      employees: int("Employer's employees", 0, 10000000),
+      layoffAtSite: int("Employees laid off at one site", 0, 10000000),
+      end: date("Last day of employment"),
+      fired: yes("Discharged by the employer (CA final pay due immediately)"),
+    }, []),
+  fn("calculate_fr_labor_exit",
+    `France indemnité légale de licenciement (8 months' service needed; 1/4 month per year up to 10 years, 1/3 beyond; Code du travail R1234-2), SMIC check (12.31 EUR an hour, 1,867.02 EUR a month from 2026-01-01), rupture conventionnelle 15-day retraction date, deadlines to contest the dismissal (12 months) and to claim wages (3 years). Préavis length and post-April 2025 ARE rules are not verified. ${LAB("France (service-public.gouv.fr, Légifrance)")}`,
+    {
+      start: date("Employment start date"),
+      end: date("End of the contract (end of notice)"),
+      monthlyReference: num("Reference monthly gross salary (EUR)"),
+      hourlyGross: num("Hourly gross pay (EUR)"),
+      mode: pick(["licenciement", "rupture"], "Dismissal or rupture conventionnelle"),
+      signed: date("Rupture conventionnelle signing date"),
+      notified: date("Date the dismissal was notified"),
+    }, ["start", "end", "monthlyReference"]),
+  fn("calculate_es_labor_exit",
+    `Spain severance: despido improcedente 33 days' salary per year (max 24 months) or objetivo 20 days per year (max 12 months) (Estatuto de los Trabajadores art. 53, 56), daily salary as annual / 365, unemployment benefit duration from days contributed (LGSS art. 269), SMI check (1,221 EUR a month in 14 payments, 40.70 a day, 2026), and the 20 business-day deadline to challenge the dismissal (Saturdays and Sundays skipped only). Service before 2012-02-12 uses a transition rule that is not computed. ${LAB("Spain (BOE)")}`,
+    {
+      start: date("Employment start date"),
+      end: date("Dismissal date"),
+      annualSalary: num("Gross annual salary including extra payments (EUR)"),
+      type: pick(["improcedente", "objetivo"], "Unfair dismissal or objective dismissal"),
+      contributedDays: int("Days contributed to unemployment in the last 6 years", 0, 2190),
+      monthlySalary: num("Monthly salary for the SMI check (EUR, 14 payments)"),
+      notified: date("Date the dismissal was notified"),
+    }, ["start", "end", "annualSalary", "type"]),
+  fn("calculate_cn_labor_exit",
+    `China economic compensation N (1 month per year; 6 months or more counts as a year, under 6 months as half; 劳动合同法 第47条), the cap at 3x the local average monthly wage which also limits N to 12 years, 2N for unlawful termination (第87条), one month in lieu of notice (第40条), and unemployment benefit duration 12/18/24 months by insured years (失业保险条例 第17条). Annual leave, arbitration limitation and 2026 local minimum wages are not verified. ${LAB("China mainland (flk.npc.gov.cn)")}`,
+    {
+      start: date("Employment start date"),
+      end: date("Last day of employment"),
+      monthlyWage: num("Average monthly wage over the last 12 months (CNY)"),
+      localAverageMonthly: num("Local average monthly wage published by the city (CNY)"),
+      unlawful: yes("Unlawful termination (2N)"),
+      noNotice: yes("Terminated under article 40 without 30 days' notice"),
+      insuredYears: num("Years paying unemployment insurance", 0, 60),
+    }, ["start", "end", "monthlyWage"]),
+  fn("calculate_tw_labor_exit",
+    `Taiwan termination: notice period 10/20/30 days by service (勞動基準法 第16條), severance under the new pension system 0.5 month per year up to 6 months (勞工退休金條例 第12條) or the old system 1 month per year (勞基法 第17條), special leave days by service up to 30 (第38條), unemployment benefit at 60% of insured wage for 6 months, or 9 months at 45+ or with a disability (就業保險法 第16條), and the dates for paying severance (within 30 days) and the 5-year wage claim limitation (民法 第126條). The 2026 minimum wage amount is not verified. ${LAB("Taiwan (law.moj.gov.tw)")}`,
+    {
+      start: date("Employment start date"),
+      end: date("Last day of employment"),
+      averageMonthlyWage: num("Average monthly wage over the last 6 months (TWD)"),
+      system: pick(["new", "old"], "New (勞退新制) or old pension system for severance"),
+      age: int("Age on the last day", 15, 100),
+      disabled: yes("Has a disability"),
+      insuredMonthlyWage: num("Average insured monthly wage for employment insurance (TWD)"),
+    }, ["start", "end", "averageMonthlyWage", "system"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -502,6 +589,13 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_tw_late_fee: { path: "/v1/tax/tw/late-fee", method: "POST" },
   calculate_tw_tax_appeal_deadlines: { path: "/v1/tax/tw/appeal-deadlines", method: "POST" },
   calculate_tw_depreciation: { path: "/v1/tax/tw/depreciation", method: "POST" },
+  calculate_jp_labor_exit: { path: "/v1/labor/jp", method: "POST" },
+  calculate_uk_labor_exit: { path: "/v1/labor/uk", method: "POST" },
+  check_us_labor_rights: { path: "/v1/labor/us", method: "POST" },
+  calculate_fr_labor_exit: { path: "/v1/labor/fr", method: "POST" },
+  calculate_es_labor_exit: { path: "/v1/labor/es", method: "POST" },
+  calculate_cn_labor_exit: { path: "/v1/labor/cn", method: "POST" },
+  calculate_tw_labor_exit: { path: "/v1/labor/tw", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS];
