@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/worker.mjs";
-import { clientKind, usagePoint } from "../src/modules/usage.mjs";
+import { clientKind, mcpPeek, uaProduct, usagePoint } from "../src/modules/usage.mjs";
 
 test("usage point keeps the route, never the query string", () => {
   const request = new Request("https://api.oiyo.net/v1/labor/kr/net-salary?annualSalary=52000000", { headers: { "user-agent": "python-requests/2.32" } });
@@ -42,4 +42,22 @@ test("MCP transport points carry the registry or client medium, never inputs", a
   await worker.fetch(new Request("https://api.oiyo.net/mcp?ref=smithery", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } } }) }), env);
   const transport = points.find(p => p.blobs[2] === "mcp");
   assert.equal(transport.blobs[6], "smithery");
+  assert.equal(transport.blobs[7], "initialize");
+  assert.equal(transport.blobs[8], "t");
+});
+
+test("MCP peek: methods and client name only, never tool arguments", () => {
+  const call = mcpPeek(JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "net_salary", arguments: { annualSalary: 52000000 } } }));
+  assert.deepEqual(call, { rpc: "tools/call", client: "" });
+  assert.ok(!JSON.stringify(call).includes("52000000"));
+  const init = mcpPeek(JSON.stringify([{ method: "initialize", params: { clientInfo: { name: "Claude Desktop <x>" } } }, { method: "notifications/initialized" }]));
+  assert.deepEqual(init, { rpc: "initialize+notifications/initialized", client: "claude-desktop-x" });
+  assert.equal(mcpPeek("not json").rpc, "(unparsed)");
+  assert.equal(uaProduct("python-httpx/0.27 extra"), "python-httpx");
+  assert.equal(uaProduct(""), "");
+});
+
+test("REST points keep the original 7 blobs", () => {
+  const point = usagePoint(new Request("https://api.oiyo.net/health"), new Response("", { status: 200 }), 1);
+  assert.equal(point.blobs.length, 7);
 });
