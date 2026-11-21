@@ -131,6 +131,12 @@ const fixtures = {
   calculate_jp_penalty_tax: { kind: "none", stage: "audit", tax: 1000000 },
   calculate_jp_appeal_deadlines: { noticed: "2026-11-30" },
   calculate_jp_depreciation: { cost: 1200000, life: 4, acquired: "2026-10-15" },
+  get_us_tax_calendar: { taxYear: 2026, selfEmployed: true, today: "2027-03-01" },
+  calculate_us_self_employment_tax: { net: 80000, filing: "single" },
+  calculate_us_estimated_tax: { priorTax: 10000, priorAgi: 100000, currentTax: 20000 },
+  calculate_us_irs_penalty: { tax: 2000, due: "2027-04-15", filed: "2027-07-01", paid: "2027-07-01" },
+  calculate_us_tax_appeal_deadlines: { notice: "2027-05-03" },
+  calculate_us_depreciation: { cost: 10000, life: 5, placed: "2026-05-01", bonus: false },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
@@ -235,6 +241,7 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
     assert.ok(/^\/(ko|ja|en|fr|es|zh)\//.test(url.pathname) && url.pathname.endsWith("/"));
     if (/_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
+    if (/_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
     assert.equal(url.searchParams.get("utm_source"), "mcp");
     assert.equal(url.searchParams.get("utm_medium"), "smithery");
     assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");
