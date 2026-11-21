@@ -396,6 +396,65 @@ export const UK_TAX_TOOLS = [
     }, ["cost", "pool", "date"]),
 ];
 
+const TW = "Taiwan, as of 2026-11-21 (law.moj.gov.tw and Ministry of Finance). General information and estimates only; no individual tax advice, agency or filing. The 2025 tax year is 114年度, filed in May 2026; national-holiday deadline shifts are not computed, only weekends.";
+export const TW_TAX_TOOLS = [
+  fn("get_tw_tax_calendar",
+    `Taiwan deadlines: annual individual and business income tax return 5/1-5/31 (Income Tax Act art. 71; 2026 extended to 6/1), business tax every two months by the 15th of odd months or monthly for zero-rate applicants (Business Tax Act art. 35; 2026 3/16 and 11/16 computed from weekend shifts, not from a published notice), business income tax prepayment 9/1-9/30 (art. 67); Saturday moves to Monday and Sunday to the next day (Administrative Procedure Act art. 48). ${TW}`,
+    {
+      year: int("Calendar year", 2024, 2035),
+      businessTax: pick(["bimonthly", "monthly", "none"], "Business tax filing period"),
+      company: yes("Company or business (include business income tax and prepayment)"),
+      today: date("Reference date YYYY-MM-DD for days left"),
+    }, ["year"]),
+  fn("calculate_tw_income_tax",
+    `Taiwan individual income tax estimate for income year 2025 (114年度: brackets 590k/1.33M/2.66M/4.98M, exemption 97,000 or 145,500 at 70+, standard deduction 131,000/262,000, salary deduction 218,000, basic living cost 213,000 per person) or 2026 (115年度: 610k/1.38M/2.77M/5.19M, 101,000, 136,000/272,000, 227,000; basic living cost not yet published), rates 5/12/20/30/40% (Income Tax Act art. 5, 17; MOF notice 2025-11-27). Itemized and other special deductions are not included. ${TW}`,
+    {
+      year: int("Income year: 2025 (114年度) or 2026 (115年度)", 2025, 2026),
+      salary: num("Taxpayer's salary income (TWD)"),
+      spouseSalary: num("Spouse's salary income (TWD)"),
+      otherIncome: num("Other net income (TWD)"),
+      persons: int("People on the return (taxpayer, spouse, dependants)", 1, 30),
+      elderly: int("Of whom aged 70 or over", 0, 30),
+      married: yes("Joint return with spouse"),
+      disabled: int("Of whom with a disability", 0, 30),
+    }, ["year"]),
+  fn("check_tw_business_tax",
+    `Taiwan business tax: small-scale businesses under the monthly threshold are exempt (from 2025-01-01: 100,000 TWD for trading, manufacturing and ordinary food service; 50,000 TWD for renovation, advertising, repair, lodging, leasing, technical and design services; mixed businesses taxed when the ratios add up to 100%); small-scale businesses at or above it are assessed at 1% (Business Tax Act art. 13, 23); invoice-issuing businesses pay 5% output minus input tax (art. 10). The sales level for switching to uniform invoices is not verified. ${TW}`,
+    {
+      goodsSales: num("Monthly (or, with invoices, this period's) sales in the 100,000 TWD threshold group (TWD)"),
+      serviceSales: num("Sales in the 50,000 TWD threshold group (TWD)"),
+      invoice: yes("Issues uniform invoices (5%)"),
+      purchases: num("Purchases and expenses excluding tax this period (TWD)"),
+    }, []),
+  fn("calculate_tw_late_fee",
+    `Taiwan late payment surcharge: 1% of the tax for every 3 days late, transferred to enforcement after 30 days (Tax Collection Act art. 20), plus fine caps: income tax under-reporting up to 2x, not filing up to 3x (Income Tax Act art. 110); business tax evasion up to 5x (Business Tax Act art. 51). ${TW}`,
+    {
+      tax: num("Tax due (TWD)"),
+      due: date("Payment deadline"),
+      paid: date("Payment date"),
+      kind: pick(["income", "business"], "Income tax or business tax"),
+    }, ["tax", "due", "paid"]),
+  fn("calculate_tw_tax_appeal_deadlines",
+    `Taiwan tax dispute dates: 復查 within 30 days from the day after the payment period ends (or after the assessment notice is served) (Tax Collection Act art. 35), 訴願 within 30 days of service of the review decision (Administrative Appeal Act art. 14), administrative lawsuit within 2 months of the appeal decision (Administrative Litigation Act art. 106), overpaid tax refund within 10 years of payment or 15 years when the government is at fault (Tax Collection Act art. 28). Weekend shifts only. ${TW}`,
+    {
+      paymentPeriodEnd: date("Last day of the payment period on the tax bill"),
+      noticeDelivered: date("Date the assessment notice was served (if no tax bill)"),
+      reviewDecision: date("Date the review decision was served"),
+      petitionDecision: date("Date the appeal decision was served"),
+      paid: date("Date the overpaid tax was paid"),
+      govFault: yes("Overpayment caused by the government"),
+    }, []),
+  fn("calculate_tw_depreciation",
+    `Taiwan straight-line depreciation using the MOF fixed asset useful-life table (RC/steel buildings 50, reinforced brick 35, brick 25, clad metal 20, metal 15, wood 10, computers 3, tools and fixtures 5, transport-business vehicles 4, other vehicles 5, molds 2 years; lives cannot be shorter, Income Tax Act art. 51), first year prorated by months used, residual value deducted first (Audit Guidelines art. 95), and the expensing rule for items under 2 years or up to 80,000 TWD (art. 77-1). ${TW}`,
+    {
+      category: pick(["rc-building", "brick-reinforced", "brick", "metal-clad", "metal", "wood", "computer", "tools", "vehicle-transport", "vehicle-other", "mold"], "Asset category"),
+      cost: num("Cost (TWD)"),
+      start: date("Date put into use"),
+      residual: num("Estimated residual value (TWD)"),
+      years: int("Useful life in years (not below the table)", 1, 100),
+    }, ["category", "cost", "start"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -437,6 +496,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_uk_late_payment_interest: { path: "/v1/tax/uk/interest", method: "POST" },
   calculate_uk_tax_appeal_deadlines: { path: "/v1/tax/uk/appeal-deadlines", method: "POST" },
   calculate_uk_capital_allowances: { path: "/v1/tax/uk/capital-allowances", method: "POST" },
+  get_tw_tax_calendar: { path: "/v1/tax/tw/calendar", method: "POST" },
+  calculate_tw_income_tax: { path: "/v1/tax/tw/income-tax", method: "POST" },
+  check_tw_business_tax: { path: "/v1/tax/tw/business-tax", method: "POST" },
+  calculate_tw_late_fee: { path: "/v1/tax/tw/late-fee", method: "POST" },
+  calculate_tw_tax_appeal_deadlines: { path: "/v1/tax/tw/appeal-deadlines", method: "POST" },
+  calculate_tw_depreciation: { path: "/v1/tax/tw/depreciation", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS];
