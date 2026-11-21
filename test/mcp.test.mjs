@@ -125,6 +125,12 @@ const fixtures = {
   calculate_kr_accident_report_deadline: { date: "2026-11-10", lostDays3: true, today: "2026-11-21" },
   calculate_kr_safety_education_hours: { job: "other", hire: "regular", workers: 10, supervisors: 1 },
   check_kr_safety_staffing: { sector: "mfg-heavy", headcount: 120 },
+  get_jp_tax_calendar: { year: 2027, prepaid: true, today: "2027-03-01" },
+  calculate_jp_blue_return_deduction: { income: 5000000, otherDeductions: 600000 },
+  check_jp_consumption_tax: { year: 2027, baseSales: 8000000, invoice: true, wasExempt: true, sales: 8000000, type: 5 },
+  calculate_jp_penalty_tax: { kind: "none", stage: "audit", tax: 1000000 },
+  calculate_jp_appeal_deadlines: { noticed: "2026-11-30" },
+  calculate_jp_depreciation: { cost: 1200000, life: 4, acquired: "2026-10-15" },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
@@ -226,7 +232,9 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
   for (const name of Object.keys(TOOL_ENDPOINTS)) {
     const url = new URL(sourcePageUrl(name, "smithery"));
     assert.match(url.origin, /^https:\/\/(tools\.)?oiyo\.net$/);
-    assert.ok(url.pathname.startsWith("/ko/") && url.pathname.endsWith("/"));
+    // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
+    assert.ok(/^\/(ko|ja|en|fr|es|zh)\//.test(url.pathname) && url.pathname.endsWith("/"));
+    if (/_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
     assert.equal(url.searchParams.get("utm_source"), "mcp");
     assert.equal(url.searchParams.get("utm_medium"), "smithery");
     assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");

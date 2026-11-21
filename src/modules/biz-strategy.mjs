@@ -26,6 +26,7 @@ import { DISCLAIMER as LAW_DISCLAIMER, LAW_GUIDE_AS_OF, PROFESSIONS, SCOPE_MATRI
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
 import { makePracticeHandlers } from "./practice.mjs";
 import { makeProGapHandlers } from "./pro-gap.mjs";
+import { makeCountryTaxHandlers } from "./country-tax.mjs";
 
 export const BIZ_DISCLAIMER =
   "Decision support from the numbers you gave, not investment, legal or tax advice. Probabilities and estimates are yours; check filing dates with 홈택스 and statutes on law.go.kr.";
@@ -725,6 +726,8 @@ const HANDLERS = {
   ...makePracticeHandlers(InputError),
   // 2026-11-21: 전문 직군 전수조사 계산 14종(pro-gap.mjs)
   ...makeProGapHandlers(InputError),
+  // 2026-11-21: 각국 세무·회계 현지판(country-tax.mjs, 1차 일본)
+  ...makeCountryTaxHandlers(),
 };
 
 export function calculateBiz(path, raw, coerce = false) {
