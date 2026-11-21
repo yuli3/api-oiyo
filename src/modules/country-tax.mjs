@@ -4,9 +4,12 @@ import { JP_TAX_AS_OF, JP_TAX_NOTE, jpAppealDeadlines, jpBlueReturn, jpConsumpti
 import { US_TAX_AS_OF, US_TAX_NOTE, usAppealDeadlines, usDepreciation, usEstimatedTax, usPenalty, usSelfEmployment, usTaxCalendar } from "./vendor/tools-tax/us-tax-pack-2026.mjs";
 import { FR_TAX_AS_OF, FR_TAX_NOTE, frAmortissement, frClaimDeadline, frMicro, frPenalty, frTaxCalendar, frTvaFranchise } from "./vendor/tools-tax/fr-tax-pack-2026.mjs";
 import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos, esRecargo, esSancion, esTaxCalendar } from "./vendor/tools-tax/es-tax-pack-2026.mjs";
+import { CN_TAX_AS_OF, CN_TAX_NOTE, cnAppealDeadlines, cnBusinessIncome, cnComprehensive, cnDepreciation, cnLateFee, cnSmallProfitCit, cnSmallScaleVat, cnTaxCalendar } from "./vendor/tools-tax/cn-tax-pack-2026.mjs";
 
 const FRP = "https://tools.oiyo.net/fr/";
 const ESP = "https://tools.oiyo.net/es/";
+const ZHP = "https://tools.oiyo.net/zh/";
+const cnToday = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10); // 北京时间
 const esToday = () => new Date(Date.now() + 1 * 3_600_000).toISOString().slice(0, 10); // Madrid (hora de invierno)
 const frToday = () => new Date(Date.now() + 1 * 3_600_000).toISOString().slice(0, 10); // Paris (heure d'hiver)
 const EN = "https://tools.oiyo.net/en/";
@@ -19,6 +22,7 @@ export function makeCountryTaxHandlers() {
   const us = (slug, body) => ({ asOf: US_TAX_AS_OF, country: "US", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${EN}${slug}/`, note: US_TAX_NOTE });
   const fr = (slug, body) => ({ asOf: FR_TAX_AS_OF, country: "FR", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${FRP}${slug}/`, note: FR_TAX_NOTE });
   const es = (slug, body) => ({ asOf: ES_TAX_AS_OF, country: "ES", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ESP}${slug}/`, note: ES_TAX_NOTE });
+  const cn = (slug, body) => ({ asOf: CN_TAX_AS_OF, country: "CN", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ZHP}${slug}/`, note: CN_TAX_NOTE });
   return {
     "/v1/tax/jp/calendar": (i) => jp("jp-tax-calendar", jpTaxCalendar({ ...i, today: i.today ?? jpToday() })),
     "/v1/tax/jp/blue-return": (i) => jp("aoiro-shinkoku-deduction-calculator", jpBlueReturn(i)),
@@ -45,5 +49,13 @@ export function makeCountryTaxHandlers() {
     "/v1/tax/es/sanction": (i) => es("recargo-extemporaneo-sanciones-plazos", esSancion(i)),
     "/v1/tax/es/appeal-deadlines": (i) => es("recargo-extemporaneo-sanciones-plazos", esPlazos(i)),
     "/v1/tax/es/depreciation": (i) => es("amortizacion-tablas-oficiales", esAmortizacion(i)),
+    "/v1/tax/cn/calendar": (i) => cn("china-tax-filing-calendar-2026", cnTaxCalendar({ ...i, today: i.today ?? cnToday() })),
+    "/v1/tax/cn/business-income": (i) => cn("china-business-income-tax-calculator", cnBusinessIncome(i)),
+    "/v1/tax/cn/comprehensive-income": (i) => cn("china-business-income-tax-calculator", cnComprehensive(i)),
+    "/v1/tax/cn/small-profit-cit": (i) => cn("china-business-income-tax-calculator", cnSmallProfitCit(i)),
+    "/v1/tax/cn/small-scale-vat": (i) => cn("china-small-scale-vat-threshold", cnSmallScaleVat(i)),
+    "/v1/tax/cn/late-payment": (i) => cn("china-late-payment-surcharge-appeal", cnLateFee(i)),
+    "/v1/tax/cn/appeal-deadlines": (i) => cn("china-late-payment-surcharge-appeal", cnAppealDeadlines(i)),
+    "/v1/tax/cn/depreciation": (i) => cn("china-depreciation-calculator", cnDepreciation(i)),
   };
 }

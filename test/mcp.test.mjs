@@ -150,6 +150,14 @@ const fixtures = {
   calculate_es_tax_sanction: { base: 10000, gravedad: "grave", acuerdo: "conformidad" },
   calculate_es_appeal_deadlines: { notificacion: "2026-01-31", finPlazoVoluntario: "2026-06-30" },
   calculate_es_depreciation: { elemento: "equipos-informaticos", coste: 2000, inicio: "2026-07-02" },
+  get_cn_tax_calendar: { year: 2026, vat: "quarter", business: "month", today: "2026-11-21" },
+  calculate_cn_business_income_tax: { taxable: 100000 },
+  calculate_cn_comprehensive_income_tax: { income: 96000 },
+  calculate_cn_small_profit_cit: { taxable: 1000000, employees: 20, assets: 3000000 },
+  check_cn_small_scale_vat: { sales: 310000, period: "quarter" },
+  calculate_cn_late_payment_surcharge: { tax: 10000, due: "2026-05-22", paid: "2026-06-21" },
+  calculate_cn_tax_appeal_deadlines: { known: "2026-03-02", kind: "penalty" },
+  calculate_cn_depreciation: { category: "electronics", cost: 30000, start: "2026-03-10" },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
@@ -257,6 +265,7 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     if (/_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
     if (/_(fr)_/.test(name)) assert.ok(url.pathname.startsWith("/fr/"), name);
     if (/_(es)_/.test(name)) assert.ok(url.pathname.startsWith("/es/"), name);
+    if (/_(cn)_/.test(name)) assert.ok(url.pathname.startsWith("/zh/"), name);
     assert.equal(url.searchParams.get("utm_source"), "mcp");
     assert.equal(url.searchParams.get("utm_medium"), "smithery");
     assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");
