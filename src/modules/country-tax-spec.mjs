@@ -9,7 +9,7 @@ const yes = (description) => ({ type: "boolean", description });
 const pick = (values, description) => ({ type: "string", enum: values, description });
 const JP = "Japan, as of 2026-11-21 (e-Gov current law and NTA Tax Answer). General information and estimates only; individual tax advice and return preparation are reserved to 税理士 (税理士法 第52条).";
 
-export const COUNTRY_TAX_TOOLS = [
+export const JP_TAX_TOOLS = [
   fn("get_jp_tax_calendar",
     `Japanese sole proprietor tax deadlines for a year: income tax return and payment for the previous year (3/15, filing from 2/16, NTA No.2020), consumption tax for individuals (3/31, No.6601), prepaid income tax (予定納税) 7/31 and 11/30 when the base amount is 150,000 JPY or more (No.2040), and the blue return application (3/15, or within 2 months of opening a business on or after 1/16, No.2070). Weekend deadlines move to the next weekday (国税通則法 第10条②). ${JP}`,
     {
@@ -69,6 +69,75 @@ export const COUNTRY_TAX_TOOLS = [
     }, ["cost", "life", "acquired"]),
 ];
 
+
+const US = "United States federal, tax year 2026, as of 2026-11-21 (IRS publications, Rev. Proc. 2025-32, eCFR). General information and estimates only; no individual advice, return preparation or IRS representation (31 CFR Part 10).";
+const filing = pick(["single", "mfj"], "single or married filing jointly");
+
+export const US_TAX_TOOLS = [
+  fn("get_us_tax_calendar",
+    `US federal tax deadlines for a tax year: Form 1040 (April 15 of the next year), Form 4868 extension (October 15), 1040-ES estimated tax (April 15, June 15, September 15, January 15), Form 1099-NEC (January 31), Forms 1065/1120-S (March 15) and 1120 (April 15), moved to the next business day for weekends, New Year's Day, MLK Day and DC Emancipation Day (IRS Pub 509). ${US}`,
+    {
+      taxYear: int("Tax year", 2024, 2035),
+      selfEmployed: yes("Has self-employment income (estimated tax)"),
+      pays1099: yes("Paid contractors (Form 1099-NEC)"),
+      extension: yes("Will file Form 4868"),
+      entity: pick(["none", "partnership", "scorp", "ccorp"], "Business entity return"),
+      today: date("Reference date YYYY-MM-DD for days left"),
+    }, ["taxYear"]),
+  fn("calculate_us_self_employment_tax",
+    `US 2026 self-employment tax (15.3% on 92.35% of net earnings, Social Security part capped at the $184,500 wage base after W-2 wages), Additional Medicare 0.9% above $200,000/$250,000, half-SE deduction, QBI deduction 20% with the $400 minimum (only below the $201,750/$403,500 threshold), and 2026 federal income tax with the standard deduction ($16,100/$32,200). ${US}`,
+    {
+      net: num("Net self-employment profit (Schedule C, USD)", -1e9, 1e10),
+      filing,
+      wages: num("W-2 wages (USD)"),
+      otherIncome: num("Other taxable income (USD)"),
+    }, ["net"]),
+  fn("calculate_us_estimated_tax",
+    `US estimated tax safe harbor (2026 Form 1040-ES): required when tax after withholding is $1,000+; pay the smaller of 90% of this year's tax and 100% of last year's (110% if last year's AGI was over $150,000, $75,000 married filing separately), split over the four due dates. ${US}`,
+    {
+      priorTax: num("Last year's total tax (USD)"),
+      priorAgi: num("Last year's AGI (USD)"),
+      mfs: yes("Married filing separately"),
+      priorFullYear: yes("Last year's return covered 12 months (default true)"),
+      currentTax: num("Expected total tax this year (USD)"),
+      withholding: num("Expected withholding this year (USD)"),
+      taxYear: int("Tax year (default 2026)", 2024, 2035),
+    }, ["priorTax", "priorAgi", "currentTax"]),
+  fn("calculate_us_irs_penalty",
+    `US failure-to-file (5% per month or part, max 25%, reduced by failure-to-pay in the same month; minimum $535 or 100% of tax for returns filed in 2027 over 60 days late) and failure-to-pay (0.5% per month, 0.25% on an approved plan, max 25%) penalties, plus interest compounded daily at the underpayment rate (2026 quarters 7/6/7/7%; later quarters reuse 7% until published). ${US}`,
+    {
+      tax: num("Tax unpaid on the original due date (USD)"),
+      due: date("Original due date"),
+      filed: date("Date filed"),
+      paid: date("Date paid"),
+      extension: yes("Valid extension filed (filing due October 15)"),
+      installment: yes("On an approved installment agreement"),
+    }, ["tax", "due"]),
+  fn("calculate_us_tax_appeal_deadlines",
+    `US tax dispute deadlines: Tax Court petition 90 days after a notice of deficiency (150 if addressed outside the US, Pub 556), Collection Due Process hearing request 30 days (Form 12153), and refund claims within 3 years of filing or 2 years of payment, whichever is later (Topic 308). ${US}`,
+    {
+      notice: date("Date on the IRS notice"),
+      kind: pick(["deficiency", "cdp"], "Notice of deficiency or collection due process notice"),
+      abroad: yes("Notice addressed outside the United States"),
+      filed: date("Date the return was filed (refund claims)"),
+      returnDue: date("Original return due date (early returns count as filed on it)"),
+      paid: date("Date the tax was paid"),
+    }),
+  fn("calculate_us_depreciation",
+    `US business asset write-off for 2026: de minimis safe harbor $2,500 per item ($5,000 with an applicable financial statement, 26 CFR 1.263(a)-1(f)), Section 179 up to $2,560,000 reduced above $4,090,000 (Rev. Proc. 2025-32), 100% bonus for property acquired after 2025-01-19 (Pub 946), and MACRS 5- or 7-year half-year schedules (Table A-1). Passenger car caps for 2026 are not published and not applied. ${US}`,
+    {
+      cost: num("Business-use cost (USD)"),
+      life: int("MACRS class: 5 (computers, vehicles) or 7 (furniture, equipment)", 5, 7),
+      placed: date("Date placed in service"),
+      acquired: date("Date acquired, if different"),
+      afs: yes("Has an applicable (audited) financial statement"),
+      sec179: num("Section 179 amount to elect (USD)"),
+      totalPlaced: num("Total Section 179 property placed in service this year (USD)"),
+      bonus: yes("Take bonus depreciation (default true)"),
+      businessIncome: num("Business taxable income limit for Section 179 (USD)", -1e10, 1e10),
+    }, ["cost", "life", "placed"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -76,4 +145,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_jp_penalty_tax: { path: "/v1/tax/jp/penalty", method: "POST" },
   calculate_jp_appeal_deadlines: { path: "/v1/tax/jp/appeal-deadlines", method: "POST" },
   calculate_jp_depreciation: { path: "/v1/tax/jp/depreciation", method: "POST" },
+  get_us_tax_calendar: { path: "/v1/tax/us/calendar", method: "POST" },
+  calculate_us_self_employment_tax: { path: "/v1/tax/us/self-employment", method: "POST" },
+  calculate_us_estimated_tax: { path: "/v1/tax/us/estimated-tax", method: "POST" },
+  calculate_us_irs_penalty: { path: "/v1/tax/us/penalty", method: "POST" },
+  calculate_us_tax_appeal_deadlines: { path: "/v1/tax/us/appeal-deadlines", method: "POST" },
+  calculate_us_depreciation: { path: "/v1/tax/us/depreciation", method: "POST" },
 };
+
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS];
