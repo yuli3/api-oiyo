@@ -7,6 +7,7 @@ import { WELFARE_ENDPOINTS, WELFARE_TOOLS } from "./welfare-tools-spec.mjs";
 import { LAW_GUIDE_ENDPOINTS, LAW_GUIDE_TOOLS } from "./law-guide-spec.mjs";
 import { PRACTICE_ENDPOINTS, PRACTICE_TOOLS } from "./practice-spec.mjs";
 import { PRO_GAP_ENDPOINTS, PRO_GAP_TOOLS } from "./pro-gap-spec.mjs";
+import { COUNTRY_TAX_ENDPOINTS, COUNTRY_TAX_TOOLS } from "./country-tax-spec.mjs";
 
 const str = (description, maxLength = 120) => ({ type: "string", maxLength, description });
 const num = (description, minimum, maximum) => ({ type: "number", description, ...(minimum !== undefined && { minimum }), ...(maximum !== undefined && { maximum }) });
@@ -276,6 +277,8 @@ export const BIZ_TOOLS = [
   // 2026-11-17: 전문 실무 계산·길잡이 8종
   ...PRACTICE_TOOLS,
   ...PRO_GAP_TOOLS,
+  // 2026-11-21: 각국 세무·회계 현지판(1차 일본)
+  ...COUNTRY_TAX_TOOLS,
 ];
 
 export const BIZ_ENDPOINTS = {
@@ -300,4 +303,5 @@ export const BIZ_ENDPOINTS = {
   ...LAW_GUIDE_ENDPOINTS,
   ...PRACTICE_ENDPOINTS,
   ...PRO_GAP_ENDPOINTS,
+  ...COUNTRY_TAX_ENDPOINTS,
 };
