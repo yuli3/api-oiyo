@@ -17,10 +17,11 @@ import { DISABILITY_AS_OF, DISABILITY_NOTE, disabilityBenefit } from "./vendor/t
 import { DEPOSIT_AS_OF, DEPOSIT_NOTE, depositCheck } from "./vendor/tools-tax/kr-court-deposit-2026.mjs";
 import { REG_AS_OF, REG_NOTE, selfRegistrationCost } from "./vendor/tools-tax/kr-self-registration-2026.mjs";
 import { F27_AS_OF, F27_NOTE, f27Points } from "./vendor/tools-tax/kr-f27-points-2026.mjs";
+import { SAFETY_AS_OF, SAFETY_NOTE, accidentReport, safetyEducation, safetyStaffing, seriousAccident } from "./vendor/tools-tax/kr-industrial-safety-2026.mjs";
 import { NTS_PACK_AS_OF, NTS_PACK_NOTE, bookVsEstimate, exemptBusinessReport, pensionIncomeChoice, studentLoanRepayment, withholdingStatement } from "./vendor/tools-tax/kr-nts-pack-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10); // 한국 날짜
 
 /** biz-strategy.mjs의 InputError를 받아 핸들러를 만들어요(순환 import를 피하려고). */
 export function makeProGapHandlers(InputError) {
@@ -178,7 +179,24 @@ export function makeProGapHandlers(InputError) {
     return out(NTS_PACK_AS_OF, "private-pension-separate-tax-calculator", NTS_PACK_NOTE, pensionIncomeChoice(i));
   }
 
+  function serious(i) {
+    return out(SAFETY_AS_OF, "serious-accident-checker", SAFETY_NOTE, seriousAccident(i));
+  }
+  function report(i) {
+    return out(SAFETY_AS_OF, "industrial-accident-report-deadline", SAFETY_NOTE, accidentReport({ ...i, today: i.today ?? todayIso() }));
+  }
+  function education(i) {
+    return out(SAFETY_AS_OF, "safety-education-hours-calculator", SAFETY_NOTE, safetyEducation(i));
+  }
+  function staffing(i) {
+    return out(SAFETY_AS_OF, "safety-manager-staffing-checker", SAFETY_NOTE, safetyStaffing(i));
+  }
+
   return {
+    "/v1/labor/kr/serious-accident": serious,
+    "/v1/labor/kr/accident-report": report,
+    "/v1/labor/kr/safety-education": education,
+    "/v1/labor/kr/safety-staffing": staffing,
     "/v1/tax/kr/withholding-statement": statement,
     "/v1/tax/kr/student-loan-repayment": studentLoan,
     "/v1/tax/kr/bookkeeping-vs-estimate": bookEstimate,
