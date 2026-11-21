@@ -3,8 +3,11 @@ import { JP_TAX_AS_OF, JP_TAX_NOTE, jpAppealDeadlines, jpBlueReturn, jpConsumpti
 
 import { US_TAX_AS_OF, US_TAX_NOTE, usAppealDeadlines, usDepreciation, usEstimatedTax, usPenalty, usSelfEmployment, usTaxCalendar } from "./vendor/tools-tax/us-tax-pack-2026.mjs";
 import { FR_TAX_AS_OF, FR_TAX_NOTE, frAmortissement, frClaimDeadline, frMicro, frPenalty, frTaxCalendar, frTvaFranchise } from "./vendor/tools-tax/fr-tax-pack-2026.mjs";
+import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos, esRecargo, esSancion, esTaxCalendar } from "./vendor/tools-tax/es-tax-pack-2026.mjs";
 
 const FRP = "https://tools.oiyo.net/fr/";
+const ESP = "https://tools.oiyo.net/es/";
+const esToday = () => new Date(Date.now() + 1 * 3_600_000).toISOString().slice(0, 10); // Madrid (hora de invierno)
 const frToday = () => new Date(Date.now() + 1 * 3_600_000).toISOString().slice(0, 10); // Paris (heure d'hiver)
 const EN = "https://tools.oiyo.net/en/";
 const usToday = () => new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 10); // US Eastern (standard time) date
@@ -15,6 +18,7 @@ export function makeCountryTaxHandlers() {
   const jp = (slug, body) => ({ asOf: JP_TAX_AS_OF, country: "JP", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${JA}${slug}/`, note: JP_TAX_NOTE });
   const us = (slug, body) => ({ asOf: US_TAX_AS_OF, country: "US", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${EN}${slug}/`, note: US_TAX_NOTE });
   const fr = (slug, body) => ({ asOf: FR_TAX_AS_OF, country: "FR", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${FRP}${slug}/`, note: FR_TAX_NOTE });
+  const es = (slug, body) => ({ asOf: ES_TAX_AS_OF, country: "ES", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ESP}${slug}/`, note: ES_TAX_NOTE });
   return {
     "/v1/tax/jp/calendar": (i) => jp("jp-tax-calendar", jpTaxCalendar({ ...i, today: i.today ?? jpToday() })),
     "/v1/tax/jp/blue-return": (i) => jp("aoiro-shinkoku-deduction-calculator", jpBlueReturn(i)),
@@ -34,5 +38,12 @@ export function makeCountryTaxHandlers() {
     "/v1/tax/fr/penalty": (i) => fr("interet-de-retard-majoration", frPenalty(i)),
     "/v1/tax/fr/claim-deadline": (i) => fr("interet-de-retard-majoration", frClaimDeadline(i)),
     "/v1/tax/fr/depreciation": (i) => fr("amortissement-lineaire-degressif", frAmortissement(i)),
+    "/v1/tax/es/calendar": (i) => es("calendario-fiscal-autonomos-2026", esTaxCalendar({ ...i, today: i.today ?? esToday() })),
+    "/v1/tax/es/autonomo": (i) => es("cuota-autonomos-tramos-irpf", esAutonomo(i)),
+    "/v1/tax/es/vat": (i) => es("iva-tipos-recargo-equivalencia", esIva(i)),
+    "/v1/tax/es/late-filing": (i) => es("recargo-extemporaneo-sanciones-plazos", esRecargo(i)),
+    "/v1/tax/es/sanction": (i) => es("recargo-extemporaneo-sanciones-plazos", esSancion(i)),
+    "/v1/tax/es/appeal-deadlines": (i) => es("recargo-extemporaneo-sanciones-plazos", esPlazos(i)),
+    "/v1/tax/es/depreciation": (i) => es("amortizacion-tablas-oficiales", esAmortizacion(i)),
   };
 }

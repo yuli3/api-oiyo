@@ -196,6 +196,71 @@ export const FR_TAX_TOOLS = [
     }, ["cost", "life", "start"]),
 ];
 
+const ES = "Spain, as of 2026-11-21 (BOE consolidated texts, AEAT and Seguridad Social). General information and estimates only; no personalised advice, representation or filing. Unverified 2026 values (reduced autónomo quota, 7% hard-to-justify expenses, 2026 late-payment interest rate, regional scales, 2027 calendar) are flagged, not assumed.";
+
+export const ES_TAX_TOOLS = [
+  fn("get_es_tax_calendar",
+    `Spanish tax dates from the AEAT 2026 taxpayer calendar: quarterly VAT (303), IRPF instalments (130/131) and withholdings (111/115) on 20 April, 20 July and 20 October 2026 (Q4 2025 and annual 390 on 30 January; 111/115 on 20 January), Renta 2025 online 8 April-30 June 2026 (25 June with direct debit), corporate tax 200 by 27 July 2026 (LIS art. 124) and 202 instalments 20 April, 20 October, 21 December 2026 (LIS art. 40). Other years return months only. ${ES}`,
+    {
+      year: int("Year (exact dates only for 2026)", 2024, 2035),
+      iva: yes("Files quarterly VAT (303)"),
+      pago: pick(["130", "131", "none"], "IRPF instalment model"),
+      retenciones: yes("Files withholdings 111/115"),
+      sociedad: yes("Company under corporate tax, calendar-year"),
+      renta: yes("Include the Renta campaign (default true)"),
+      today: date("Reference date YYYY-MM-DD for days left"),
+    }, ["year"]),
+  fn("calculate_es_autonomo_quota",
+    `Spanish self-employed (autónomo) 2026: contribution bracket by monthly net income (15 brackets, min/max base, Orden PJC/297/2026 art. 18), quota at 31.50% (own calculation, not an official table); optional IRPF estimate for simplified direct estimation with 5% hard-to-justify expenses capped at 2,000 EUR (RIRPF 30.2), state scale + Madrid 2025 regional scale as an example, personal allowance 5,550 EUR, and 15% / 7% (new activity) withholding (RIRPF 95.1). ${ES}`,
+    {
+      netMonthly: num("Expected monthly net income for Social Security (EUR)"),
+      ingresos: num("Annual income excl. VAT (EUR)"),
+      gastos: num("Annual deductible expenses incl. own quota (EUR)"),
+      nuevo: yes("New activity (first registration or none in 2 years)"),
+      retenido: num("IRPF already withheld (EUR)"),
+    }, ["netMonthly"]),
+  fn("calculate_es_vat",
+    `Spanish VAT on an invoice: 21% / 10% / 4% (LIVA art. 90, 91) and equivalence surcharge 5.2% / 1.4% / 0.5% (tobacco 1.75%, LIVA art. 161). Notes that Spain has no domestic small-business VAT franchise (LIVA art. 120, as of 2026-11-21). ${ES}`,
+    {
+      base: num("Taxable base (EUR)"),
+      tipo: { type: "integer", enum: [21, 10, 4], description: "VAT rate %" },
+      recargo: yes("Customer is a retailer under the equivalence surcharge"),
+    }, ["base", "tipo"]),
+  fn("calculate_es_late_filing_surcharge",
+    `Spanish surcharge for filing late without a prior request (LGT art. 27): 1% plus 1% per full month late; after 12 months 15% plus late-payment interest (rate supplied by the caller, the 2026 rate is not verified); 25% reduction if paid on time. ${ES}`,
+    {
+      cuota: num("Tax due (EUR)"),
+      due: date("End of the filing period"),
+      filed: date("Filing date"),
+      interesAnual: num("Late-payment interest rate % per year (only after 12 months)", 0, 20),
+      pagoEnPlazo: yes("Will pay the surcharge on time (25% reduction)"),
+    }, ["cuota", "due", "filed"]),
+  fn("calculate_es_tax_sanction",
+    `Spanish tax penalty for unpaid tax (LGT art. 191): minor 50%, serious 50-100%, very serious 100-150% of the base, with reductions of 65% (agreement) or 30% (conformity) and a further 40% for paying without appeal (LGT art. 188). ${ES}`,
+    {
+      base: num("Penalty base: unpaid tax (EUR)"),
+      gravedad: pick(["leve", "grave", "muy-grave"], "Classification"),
+      acuerdo: pick(["acuerdo", "conformidad", "ninguno"], "Reduction for agreement or conformity"),
+      pronto: yes("Pays in the voluntary period without appealing"),
+    }, ["base", "gravedad"]),
+  fn("calculate_es_appeal_deadlines",
+    `Spanish tax appeal dates from a notification: reposición 1 month (LGT 223.1), economic-administrative claim 1 month (LGT 235.1), contentious-administrative appeal 2 months (LJCA 46.1); and the 4-year limitation from the end of the voluntary filing period (LGT 66, 67). Months counted date to date, weekends moved to Monday, holidays not included. ${ES}`,
+    {
+      notificacion: date("Notification date"),
+      finPlazoVoluntario: date("End of the voluntary filing period"),
+    }, []),
+  fn("calculate_es_depreciation",
+    `Spanish depreciation with the official table (LIS art. 12.1.a): maximum straight-line rate and maximum years per asset (IT equipment 25%/8, software 33%/6, transport 16%/14, furniture 10%/20, industrial buildings 3%/68...), any rate between 1/max-years and the maximum, first year pro rata by days; new items up to 300 EUR each freely depreciated up to 25,000 EUR per period (LIS 12.3.e). ${ES}`,
+    {
+      elemento: pick(["equipos-informaticos", "software", "equipos-electronicos", "transporte", "autocamiones", "mobiliario", "utiles", "maquinaria", "instalaciones", "edificios-industriales", "edificios-comerciales"], "Asset type"),
+      coste: num("Cost excl. VAT (EUR)"),
+      inicio: date("Date put into use"),
+      coef: num("Chosen rate as a fraction (default: maximum)", 0, 1),
+      nuevo: yes("New asset"),
+      usadoLibertad: num("Amount already freely depreciated this period under the 300 EUR rule (EUR)"),
+    }, ["elemento", "coste", "inicio"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -215,6 +280,13 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_fr_tax_penalty: { path: "/v1/tax/fr/penalty", method: "POST" },
   calculate_fr_claim_deadline: { path: "/v1/tax/fr/claim-deadline", method: "POST" },
   calculate_fr_depreciation: { path: "/v1/tax/fr/depreciation", method: "POST" },
+  get_es_tax_calendar: { path: "/v1/tax/es/calendar", method: "POST" },
+  calculate_es_autonomo_quota: { path: "/v1/tax/es/autonomo", method: "POST" },
+  calculate_es_vat: { path: "/v1/tax/es/vat", method: "POST" },
+  calculate_es_late_filing_surcharge: { path: "/v1/tax/es/late-filing", method: "POST" },
+  calculate_es_tax_sanction: { path: "/v1/tax/es/sanction", method: "POST" },
+  calculate_es_appeal_deadlines: { path: "/v1/tax/es/appeal-deadlines", method: "POST" },
+  calculate_es_depreciation: { path: "/v1/tax/es/depreciation", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS];
