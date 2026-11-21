@@ -6,6 +6,7 @@ import { FR_TAX_AS_OF, FR_TAX_NOTE, frAmortissement, frClaimDeadline, frMicro, f
 import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos, esRecargo, esSancion, esTaxCalendar } from "./vendor/tools-tax/es-tax-pack-2026.mjs";
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
+import { LABOR_AS_OF, cnLaborExit, esLaborExit, frLaborExit, jpLaborExit, twLaborExit, ukLaborExit, usLaborExit } from "./vendor/tools-tax/world-labor-pack-2026.mjs";
 import { CN_TAX_AS_OF, CN_TAX_NOTE, cnAppealDeadlines, cnBusinessIncome, cnComprehensive, cnDepreciation, cnLateFee, cnSmallProfitCit, cnSmallScaleVat, cnTaxCalendar } from "./vendor/tools-tax/cn-tax-pack-2026.mjs";
 
 const FRP = "https://tools.oiyo.net/fr/";
@@ -29,7 +30,16 @@ export function makeCountryTaxHandlers() {
   const cn = (slug, body) => ({ asOf: CN_TAX_AS_OF, country: "CN", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ZHP}${slug}/`, note: CN_TAX_NOTE });
   const uk = (slug, body) => ({ asOf: UK_TAX_AS_OF, country: "GB", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${EN}${slug}/`, note: UK_TAX_NOTE });
   const tw = (slug, body) => ({ asOf: TW_TAX_AS_OF, country: "TW", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${ZHP}${slug}/`, note: TW_TAX_NOTE });
+  const LABOR_NOTE = "General information and estimates only: no legal advice, no representation, no filing. Values that could not be verified are flagged in items, not computed. Check with the local labour office or a qualified professional.";
+  const lab = (base, slug, body) => ({ asOf: LABOR_AS_OF, ...body, page: `${base}${slug}/`, note: LABOR_NOTE });
   return {
+    "/v1/labor/jp": (i) => lab(JA, "japan-dismissal-unemployment-checker", jpLaborExit(i)),
+    "/v1/labor/uk": (i) => lab(EN, "uk-redundancy-notice-tribunal-calculator", ukLaborExit(i)),
+    "/v1/labor/us": (i) => lab(EN, "us-wage-layoff-deadline-checker", usLaborExit(i)),
+    "/v1/labor/fr": (i) => lab(FRP, "indemnite-licenciement-delais-prudhommes", frLaborExit(i)),
+    "/v1/labor/es": (i) => lab(ESP, "indemnizacion-despido-paro-plazos", esLaborExit(i)),
+    "/v1/labor/cn": (i) => lab(ZHP, "china-severance-compensation-calculator", cnLaborExit(i)),
+    "/v1/labor/tw": (i) => lab(ZHP, "taiwan-severance-notice-calculator", twLaborExit(i)),
     "/v1/tax/jp/calendar": (i) => jp("jp-tax-calendar", jpTaxCalendar({ ...i, today: i.today ?? jpToday() })),
     "/v1/tax/jp/blue-return": (i) => jp("aoiro-shinkoku-deduction-calculator", jpBlueReturn(i)),
     "/v1/tax/jp/consumption-tax": (i) => jp("consumption-tax-invoice-check", jpConsumptionTax(i)),
