@@ -573,6 +573,26 @@ export const DE_SG_TOOLS = [
 // 개인 세법상 거주자 판정 6곳 (2026-11-22): tools-oiyo world-tax-residency-2026과 같은 계산.
 const RES = (c) => `${c}, as of 2026-11-22. General information only: not tax advice; tax treaties can override the result. Verdict is resident, nonresident or depends.`;
 const days = (d) => num(d, 0, 366);
+// 근로자 실수령액 5곳 (2026-11-22, 일반인 축 A1): tools-oiyo world-take-home-2026과 같은 계산.
+const TH = (c) => `${c}, as of 2026-11-22. General estimate for one year: not tax advice, not the payroll withholding.`;
+export const TAKE_HOME_TOOLS = [
+  fn("calculate_uk_take_home",
+    `UK employee take-home pay for 2026-27: Income Tax (England, Wales and Northern Ireland, or Scottish bands), employee Class 1 National Insurance (8% from £12,570 to £50,270, 2% above) and student loan (Plans 1, 2, 4, 5 at 9%, postgraduate 6%). Pension, salary sacrifice and other tax codes are not included. ${TH("UK (gov.uk Rates and thresholds for employers 2026 to 2027)")}`,
+    { annual: num("Annual salary before tax (GBP)"), scotland: yes("Pays Scottish Income Tax"), loans: { type: "array", items: { type: "string", enum: ["plan1", "plan2", "plan4", "plan5", "pg"] }, description: "Student loan plans being repaid" } }, ["annual"]),
+  fn("calculate_us_take_home",
+    `US employee take-home pay for 2026: federal income tax with the standard deduction (single or married filing jointly) and employee FICA (Social Security 6.2% to $184,500, Medicare 1.45%, 0.9% Additional Medicare withheld over $200,000). State and local tax, pre-tax deductions and credits are not included. ${TH("US (IRS Topic 751, IR-2025-103)")}`,
+    { annual: num("Annual wages before tax (USD)"), filing: pick(["single", "mfj"], "Filing status") }, ["annual"]),
+  fn("calculate_jp_take_home",
+    `日本の給与の手取り（令和8年分の概算）：健康保険（協会けんぽ東京 9.85%、変更可）、厚生年金、雇用保険、子ども・子育て支援金、介護保険（40歳以上）、所得税（復興特別所得税込み）、住民税。賞与・扶養は含みません。 ${TH("Japan")}`,
+    { annual: num("年収（円）"), age40: yes("40歳以上65歳未満（介護保険）"), healthRate: num("健康保険料率（労使合計、例 0.0985）", 0, 0.2) }, ["annual"]),
+  fn("calculate_fr_take_home",
+    `Salaire net après impôt en France (2026) : cotisations salariales simplifiées (PASS 48 060 €), CSG/CRDS et impôt sur le revenu au barème LF 2026 avec quotient familial. Mutuelle, prévoyance et taux personnalisé non pris en compte. ${TH("France")}`,
+    { annual: num("Salaire brut annuel (EUR)"), parts: num("Nombre de parts de quotient familial", 1, 20) }, ["annual"]),
+  fn("calculate_es_take_home",
+    `Salario neto en España (2026): cotizaciones del trabajador (base máxima 5.101,20 €/mes, MEI, solidaridad) e IRPF con escala estatal y autonómica supletoria; neto por paga en 12 o 14 pagas. ${TH("Spain")}`,
+    { annual: num("Salario bruto anual (EUR)"), children: int("Hijos", 0, 20), pagas: pick([12, 14].map(String), "Número de pagas") }, ["annual"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -914,6 +934,11 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_sg_cpf: { path: "/v1/sg/cpf", method: "POST" },
   calculate_sg_notice_period: { path: "/v1/sg/notice", method: "POST" },
   calculate_sg_income_tax: { path: "/v1/sg/income-tax", method: "POST" },
+  calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
+  calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
+  calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
+  calculate_fr_take_home: { path: "/v1/take-home/fr", method: "POST" },
+  calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WORLD_INTAKE_TOOLS];
