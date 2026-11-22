@@ -226,6 +226,12 @@ const fixtures = {
   check_de_minimum_wage: { date: "2026-11-22", hourly: 13 },
   check_de_einvoicing: { turnover2026: 500000 },
   calculate_sg_cpf: { monthlyWage: 5000, age: 30 },
+  check_jp_withholding: { type: "royalty", amount: 1000 },
+  check_us_withholding: { type: "royalty", amount: 1000 },
+  check_fr_withholding: { type: "royalty", amount: 1000 },
+  check_es_withholding: { type: "royalty", amount: 1000 },
+  check_tw_withholding: { type: "royalty", amount: 1000 },
+  check_de_withholding: { type: "royalty", amount: 1000 },
   calculate_uk_take_home: { annual: 35000 },
   calculate_us_take_home: { annual: 60000 },
   calculate_jp_take_home: { annual: 5000000 },
@@ -336,14 +342,17 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     assert.match(url.origin, /^https:\/\/(tools\.)?oiyo\.net$/);
     // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
     assert.ok(/^\/(ko|ja|en|fr|es|zh|de)\//.test(url.pathname) && url.pathname.endsWith("/"));
-    if (/_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
-    if (/_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
-    if (/_(fr)_/.test(name)) assert.ok(url.pathname.startsWith("/fr/"), name);
-    if (/_(es)_/.test(name)) assert.ok(url.pathname.startsWith("/es/"), name);
-    if (/_(cn|tw)_/.test(name)) assert.ok(url.pathname.startsWith("/zh/"), name);
-    if (/_(uk)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
-    if (/_(de)_/.test(name)) assert.ok(url.pathname.startsWith("/de/"), name);
-    if (/_(sg)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
+    // 2026-11-22: 비거주자 원천징수(*_withholding)는 6개국 공용 /en/ 페이지 하나로 보내요.
+    const shared = /_withholding$/.test(name);
+    if (shared) assert.ok(url.pathname.startsWith("/en/"), name);
+    if (!shared && /_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
+    if (!shared && /_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
+    if (!shared && /_(fr)_/.test(name)) assert.ok(url.pathname.startsWith("/fr/"), name);
+    if (!shared && /_(es)_/.test(name)) assert.ok(url.pathname.startsWith("/es/"), name);
+    if (!shared && /_(cn|tw)_/.test(name)) assert.ok(url.pathname.startsWith("/zh/"), name);
+    if (!shared && /_(uk)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
+    if (!shared && /_(de)_/.test(name)) assert.ok(url.pathname.startsWith("/de/"), name);
+    if (!shared && /_(sg)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
     assert.equal(url.searchParams.get("utm_source"), "mcp");
     assert.equal(url.searchParams.get("utm_medium"), "smithery");
     assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");

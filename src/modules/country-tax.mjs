@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { withholding } from "./vendor/tools-tax/world-withholding-2026.mjs";
 import { ukTakeHome, usTakeHome, jpTakeHome, frTakeHome, esTakeHome } from "./vendor/tools-tax/world-take-home-2026.mjs";
 import { deEInvoice, deIncomeTax, deMinimumWage, deNoticePeriod, sgCpf, sgIncomeTax, sgNotice } from "./vendor/tools-tax/world-de-sg-pack-2026.mjs";
 import { esResidency, frResidency, jpResidency, twResidency, ukStatutoryResidence, usSubstantialPresence } from "./vendor/tools-tax/world-tax-residency-2026.mjs";
@@ -55,6 +56,7 @@ export function makeCountryTaxHandlers() {
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
   const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
   const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
+  const WHT_NOTE = "General information only: domestic rate before any tax treaty, not tax advice, no filing.";
   const TH_NOTE = "General estimate for one year: not tax advice and not the payroll withholding. Items listed as not included were not verified and are not added.";
   const DSG_NOTE = "General information only: not tax or legal advice.";
   const DEP = "https://tools.oiyo.net/de/";
@@ -64,6 +66,12 @@ export function makeCountryTaxHandlers() {
   const EIN_NOTE = "General information only: not tax advice, no filing, no software certification.";
   const ein = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EIN_NOTE });
   return {
+    "/v1/withholding/jp": (i) => ({ ...withholding({ ...i, country: "JP" }), page: `${EN}withholding-tax-non-resident-payments/`, note: WHT_NOTE }),
+    "/v1/withholding/us": (i) => ({ ...withholding({ ...i, country: "US" }), page: `${EN}withholding-tax-non-resident-payments/`, note: WHT_NOTE }),
+    "/v1/withholding/fr": (i) => ({ ...withholding({ ...i, country: "FR" }), page: `${EN}withholding-tax-non-resident-payments/`, note: WHT_NOTE }),
+    "/v1/withholding/es": (i) => ({ ...withholding({ ...i, country: "ES" }), page: `${EN}withholding-tax-non-resident-payments/`, note: WHT_NOTE }),
+    "/v1/withholding/tw": (i) => ({ ...withholding({ ...i, country: "TW" }), page: `${EN}withholding-tax-non-resident-payments/`, note: WHT_NOTE }),
+    "/v1/withholding/de": (i) => ({ ...withholding({ ...i, country: "DE" }), page: `${EN}withholding-tax-non-resident-payments/`, note: WHT_NOTE }),
     "/v1/take-home/uk": (i) => ({ ...ukTakeHome(i), page: `${EN}uk-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/us": (i) => ({ ...usTakeHome(i), page: `${EN}us-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/jp": (i) => ({ ...jpTakeHome(i), page: `${JA}japan-salary-calculator/`, note: TH_NOTE }),

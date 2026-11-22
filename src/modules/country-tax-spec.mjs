@@ -593,6 +593,28 @@ export const TAKE_HOME_TOOLS = [
     { annual: num("Salario bruto anual (EUR)"), children: int("Hijos", 0, 20), pagas: pick([12, 14].map(String), "Número de pagas") }, ["annual"]),
 ];
 
+// 비거주자 지급 원천징수 국내 세율 6곳 (2026-11-22, 실무자 축 P1): tools-oiyo world-withholding-2026과 같은 계산.
+export const WITHHOLDING_TOOLS = [
+  fn("check_jp_withholding",
+    "Domestic withholding tax on a payment to a non-resident from Japan (NTA No.2884; rates include the reconstruction surtax): rate and amount for royalties, services, interest, dividends, salary, director's fees or rent. Treaty rates are not applied; a rate not stated on the official page is returned as not covered. General information only: not tax advice, as of 2026-11-22.",
+    { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
+  fn("check_us_withholding",
+    "Domestic withholding tax on a payment to a non-resident from United States (IRS NRA withholding, 30% on FDAP income not effectively connected): rate and amount for royalties, services, interest, dividends, salary, director's fees or rent. Treaty rates are not applied; a rate not stated on the official page is returned as not covered. General information only: not tax advice, as of 2026-11-22.",
+    { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
+  fn("check_fr_withholding",
+    "Domestic withholding tax on a payment to a non-resident from France (BOFiP, art. 182 B CGI; 75% for non-cooperative states): rate and amount for royalties, services, interest, dividends, salary, director's fees or rent. Treaty rates are not applied; a rate not stated on the official page is returned as not covered. General information only: not tax advice, as of 2026-11-22.",
+    { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
+  fn("check_es_withholding",
+    "Domestic withholding tax on a payment to a non-resident from Spain (AEAT IRNR; 19% for EU, Iceland and Norway residents): rate and amount for royalties, services, interest, dividends, salary, director's fees or rent. Treaty rates are not applied; a rate not stated on the official page is returned as not covered. General information only: not tax advice, as of 2026-11-22.",
+    { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
+  fn("check_tw_withholding",
+    "Domestic withholding tax on a payment to a non-resident from Taiwan (MOF, non-resident individuals): rate and amount for royalties, services, interest, dividends, salary, director's fees or rent. Treaty rates are not applied; a rate not stated on the official page is returned as not covered. General information only: not tax advice, as of 2026-11-22.",
+    { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
+  fn("check_de_withholding",
+    "Domestic withholding tax on a payment to a non-resident from Germany (§ 50a EStG): rate and amount for royalties, services, interest, dividends, salary, director's fees or rent. Treaty rates are not applied; a rate not stated on the official page is returned as not covered. General information only: not tax advice, as of 2026-11-22.",
+    { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -934,6 +956,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_sg_cpf: { path: "/v1/sg/cpf", method: "POST" },
   calculate_sg_notice_period: { path: "/v1/sg/notice", method: "POST" },
   calculate_sg_income_tax: { path: "/v1/sg/income-tax", method: "POST" },
+  check_jp_withholding: { path: "/v1/withholding/jp", method: "POST" },
+  check_us_withholding: { path: "/v1/withholding/us", method: "POST" },
+  check_fr_withholding: { path: "/v1/withholding/fr", method: "POST" },
+  check_es_withholding: { path: "/v1/withholding/es", method: "POST" },
+  check_tw_withholding: { path: "/v1/withholding/tw", method: "POST" },
+  check_de_withholding: { path: "/v1/withholding/de", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -941,4 +969,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...WORLD_INTAKE_TOOLS];
