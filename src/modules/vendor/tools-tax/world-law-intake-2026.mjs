@@ -20,7 +20,7 @@ export const INTAKE_AS_OF = "2026-11-22";
  *  pro: running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing). */
                                         
                                                                                                                                             
-const PRO = /corporate_tax|gst_registration|kleinunternehmer|withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
+const PRO = /corporate_tax|overtime_cap|irregular_hours|gst_registration|kleinunternehmer|withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
 export const audienceOf = (mcp        )           => (PRO.test(mcp) ? "pro" : "person");
 
 const T = "https://tools.oiyo.net/";
@@ -130,6 +130,8 @@ export const WORLD_TOOLS               = [
   t("US", "labor", "calculate_us_take_home", "en/us-take-home-pay-calculator-2026", "Take-home pay 2026 (federal tax and FICA)", ["take home", "take-home", "net pay", "paycheck", "after tax", "fica", "salary after tax"]),
   t("FR", "labor", "calculate_fr_take_home", "fr/france-salary-calculator", "Salaire net après impôt (brut en net)", ["brut en net", "salaire net", "net après impôt", "fiche de paie", "salaire brut", "combien je touche"]),
   t("ES", "labor", "calculate_es_take_home", "es/spain-salary-calculator", "Salario neto (bruto a neto, IRPF y cotizaciones)", ["salario neto", "bruto a neto", "nómina", "cuánto cobro", "sueldo neto", "neto"]),
+  t("JP", "labor", "calculate_jp_overtime_cap_check", "en/overtime-cap-holiday-accrual-check", "時間外労働の上限 (36協定)", ["36協定", "サブロク", "特別条項", "時間外労働の上限", "上限規制", "月45時間", "80時間", "100時間", "過労死ライン"]),
+  t("UK", "labor", "calculate_uk_irregular_hours_holiday", "en/overtime-cap-holiday-accrual-check", "Holiday accrual for irregular-hours and part-year workers (12.07%)", ["irregular hours", "part-year", "12.07", "zero hours", "zero-hours", "holiday accrual", "accrue holiday", "rolled-up holiday"]),
   t("UK", "labor", "calculate_uk_maternity_pay", "en/parental-pay-calculator-2026", "Statutory Maternity Pay", ["maternity pay", "statutory maternity pay", "smp", "maternity leave pay", "pregnant", "baby"]),
   t("UK", "labor", "calculate_uk_child_benefit", "en/parental-pay-calculator-2026", "Child Benefit and the High Income Child Benefit Charge", ["child benefit", "high income child benefit charge", "hicbc", "child benefit tax charge"]),
   t("JP", "labor", "calculate_jp_childcare_leave_benefit", "en/parental-pay-calculator-2026", "育児休業給付金", ["育児休業給付", "育休手当", "育休給付", "育児休業", "出生後休業支援", "産休", "育休 いくら"]),

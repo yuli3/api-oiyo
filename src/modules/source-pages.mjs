@@ -259,6 +259,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_de_elterngeld: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_de_kleinunternehmer_vat: "https://tools.oiyo.net/en/small-business-vat-registration-check/",
   calculate_sg_gst_registration: "https://tools.oiyo.net/en/small-business-vat-registration-check/",
+  calculate_jp_overtime_cap_check: "https://tools.oiyo.net/en/overtime-cap-holiday-accrual-check/",
+  calculate_uk_irregular_hours_holiday: "https://tools.oiyo.net/en/overtime-cap-holiday-accrual-check/",
   calculate_uk_take_home: "https://tools.oiyo.net/en/uk-take-home-pay-calculator-2026/",
   calculate_us_take_home: "https://tools.oiyo.net/en/us-take-home-pay-calculator-2026/",
   calculate_jp_take_home: "https://tools.oiyo.net/ja/japan-salary-calculator/",
