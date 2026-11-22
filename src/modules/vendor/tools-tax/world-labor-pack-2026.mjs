@@ -199,11 +199,14 @@ export function cnLaborExit(x                                                   
     const m = x.insuredYears >= 10 ? 24 : x.insuredYears >= 5 ? 18 : x.insuredYears >= 1 ? 12 : 0;
     items.push(m ? { tone: "info", text: `失业保险金最长领取${m}个月（累计缴费${x.insuredYears}年）。金额由省级政府确定。`, cite: "失业保险条例第17条" } : { tone: "warn", text: "累计缴费不满1年，不符合领取失业保险金的期限规定。", cite: "失业保险条例第17条" });
   }
-  items.push({ tone: "info", text: "带薪年休假天数、劳动仲裁时效和2026年各地最低工资标准未核实，本工具不计算，请向当地人社部门确认。", cite: "—" });
+  items.push({ tone: "info", text: "最低工资（人社部公布，截至2026年10月1日，月／小时）：北京2,540元／27.7元，上海2,740元／25元，广东一至三档2,680／2,300／2,040元，深圳2,700元／25.4元。各地施行日期不同，请以当地公告为准。", cite: "人社部全国各地最低工资标准情况（截至2026年10月1日）" });
+  items.push({ tone: "info", text: "带薪年休假天数和劳动仲裁时效未核实，本工具不计算，请向当地人社部门确认。", cite: "—" });
   return { country: "CN", service: s, months: n, compensation: comp, total: r2(total), dates: []           , items };
 }
 
 // ── Taiwan ───────────────────────────────────────────────────────────
+export const TW_MIN_WAGE_2026 = { monthly: 29500, hourly: 196 };
+export const TW_MIN_WAGE_2027 = { monthly: 30900, hourly: 205 };
 export function twLaborExit(x                                                                                                                                                  ) {
   const items          = [];
   const s = service(x.start, x.end);
@@ -216,7 +219,9 @@ export function twLaborExit(x                                                   
   items.push({ tone: "info", text: `特別休假：年資${s.years}年${s.months}個月為${leave}日，未休日數應發給工資。`, cite: "勞動基準法第38條" });
   let unemployment = 0, months = 0;
   if (x.insuredMonthlyWage != null) { months = (x.age ?? 0) >= 45 || x.disabled ? 9 : 6; unemployment = Math.round(x.insuredMonthlyWage * 0.6); items.push({ tone: "info", text: `失業給付：平均月投保薪資60% = 每月約${unemployment.toLocaleString("zh-TW")}元，最長${months}個月。`, cite: "就業保險法第16條" }); }
-  items.push({ tone: "info", text: "工資請求權時效依民法第126條為5年。2026年最低工資金額與勞資爭議調解窗口未核實，請洽勞動部或地方勞工局。", cite: "民法第126條、最低工資法" });
+  items.push({ tone: "info", text: `最低工資：${TW_MIN_WAGE_2026.monthly.toLocaleString("zh-TW")}元／月、${TW_MIN_WAGE_2026.hourly}元／小時（115年1月1日起）；116年1月1日起調為${TW_MIN_WAGE_2027.monthly.toLocaleString("zh-TW")}元／月、${TW_MIN_WAGE_2027.hourly}元／小時。`, cite: "最低工資法第4條、勞動部歷年最低工資調整" });
+  if (x.averageMonthlyWage > 0 && x.averageMonthlyWage < TW_MIN_WAGE_2026.monthly) items.push({ tone: "warn", text: `輸入的平均月工資低於2026年月最低工資${TW_MIN_WAGE_2026.monthly.toLocaleString("zh-TW")}元。部分工時請以時薪${TW_MIN_WAGE_2026.hourly}元核對。`, cite: "最低工資法第4條" });
+  items.push({ tone: "info", text: "工資請求權時效依民法第126條為5年。勞資爭議調解窗口未核實，請洽地方勞工局。", cite: "民法第126條" });
   const dates          = [{ id: "severance", label: "資遣費發給期限：終止契約後30日內", date: addDays(x.end, 30), cite: "勞工退休金條例第12條" }, { id: "wage-claim", label: "工資請求權時效（5年）", date: addMonths(x.end, 60), cite: "民法第126條" }];
   return { country: "TW", service: s, noticeDays: notice, severance: pay, specialLeaveDays: leave, unemploymentMonthly: unemployment, unemploymentMonths: months, dates, items };
 }

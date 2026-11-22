@@ -519,7 +519,7 @@ export const LABOR_TOOLS = [
       notified: date("Date the dismissal was notified"),
     }, ["start", "end", "annualSalary", "type"]),
   fn("calculate_cn_labor_exit",
-    `China economic compensation N (1 month per year; 6 months or more counts as a year, under 6 months as half; 劳动合同法 第47条), the cap at 3x the local average monthly wage which also limits N to 12 years, 2N for unlawful termination (第87条), one month in lieu of notice (第40条), and unemployment benefit duration 12/18/24 months by insured years (失业保险条例 第17条). Annual leave, arbitration limitation and 2026 local minimum wages are not verified. ${LAB("China mainland (flk.npc.gov.cn)")}`,
+    `China economic compensation N (1 month per year; 6 months or more counts as a year, under 6 months as half; 劳动合同法 第47条), the cap at 3x the local average monthly wage which also limits N to 12 years, 2N for unlawful termination (第87条), one month in lieu of notice (第40条), and unemployment benefit duration 12/18/24 months by insured years (失业保险条例 第17条). Items also list the MOHRSS minimum wages as of 2026-10-01 (Beijing 2,540, Shanghai 2,740, Guangdong tiers 2,680/2,300/2,040, Shenzhen 2,700 CNY a month). Annual leave and arbitration limitation are not verified. ${LAB("China mainland (flk.npc.gov.cn)")}`,
     {
       start: date("Employment start date"),
       end: date("Last day of employment"),
@@ -530,7 +530,7 @@ export const LABOR_TOOLS = [
       insuredYears: num("Years paying unemployment insurance", 0, 60),
     }, ["start", "end", "monthlyWage"]),
   fn("calculate_tw_labor_exit",
-    `Taiwan termination: notice period 10/20/30 days by service (勞動基準法 第16條), severance under the new pension system 0.5 month per year up to 6 months (勞工退休金條例 第12條) or the old system 1 month per year (勞基法 第17條), special leave days by service up to 30 (第38條), unemployment benefit at 60% of insured wage for 6 months, or 9 months at 45+ or with a disability (就業保險法 第16條), and the dates for paying severance (within 30 days) and the 5-year wage claim limitation (民法 第126條). The 2026 minimum wage amount is not verified. ${LAB("Taiwan (law.moj.gov.tw)")}`,
+    `Taiwan termination: notice period 10/20/30 days by service (勞動基準法 第16條), severance under the new pension system 0.5 month per year up to 6 months (勞工退休金條例 第12條) or the old system 1 month per year (勞基法 第17條), special leave days by service up to 30 (第38條), unemployment benefit at 60% of insured wage for 6 months, or 9 months at 45+ or with a disability (就業保險法 第16條), and the dates for paying severance (within 30 days) and the 5-year wage claim limitation (民法 第126條). Items also show the minimum wage (29,500 TWD a month / 196 an hour in 2026; 30,900 / 205 from 2027-01-01) and warn when the average monthly wage is below it. ${LAB("Taiwan (law.moj.gov.tw)")}`,
     {
       start: date("Employment start date"),
       end: date("Last day of employment"),
@@ -540,6 +540,93 @@ export const LABOR_TOOLS = [
       disabled: yes("Has a disability"),
       insuredMonthlyWage: num("Average insured monthly wage for employment insurance (TWD)"),
     }, ["start", "end", "averageMonthlyWage", "system"]),
+];
+
+// 임대차 7곳 (2026-11-22): tools-oiyo world-tenancy-pack-2026과 같은 계산. 법률 자문·대리·제출 없음.
+const TEN = (c) => `${c}, as of 2026-11-21. General information and estimates only: no legal advice, no representation, no filing; values that could not be verified are flagged in the result, not computed.`;
+export const TENANCY_TOOLS = [
+  fn("check_jp_rental_deposit_notice",
+    `Japan residential lease check: deposit (敷金) in months of rent and its return on handover (民法 第622条の2), tenant notice end date (3 months, 民法 第617条) and landlord notice end date (6 months with just cause, 借地借家法 第27条・第28条), fixed-term lease 1-month early exit (第38条), and 10% a year interest on a rent-increase shortfall paid later (第32条). ${TEN("Japan (e-Gov)")}`,
+    {
+      rent: num("Monthly rent (JPY)"),
+      deposit: num("Deposit 敷金 (JPY)"),
+      lease: pick(["ordinary", "fixed"], "Ordinary lease (普通借家) or fixed-term lease (定期借家)"),
+      noticeDate: date("Date notice was given"),
+      handover: date("Date the home was handed back"),
+      shortfallPerMonth: num("Monthly shortfall after a disputed rent increase (JPY)"),
+      shortfallMonths: int("Months of shortfall", 0, 600),
+    }, ["rent", "deposit", "lease"]),
+  fn("check_uk_tenancy_deposit_notice",
+    `England tenancy check: deposit cap of 5 weeks' rent (6 weeks if annual rent is 50,000 GBP or more, Tenant Fees Act 2019), 30-day protection deadline and the 1-3x penalty (Housing Act 2004 s.213-214), 10-day refund after agreement, 2-month tenant notice and the once-a-year rent increase under the Renters' Rights Act 2025. Deposit scheme names are not listed. ${TEN("England (legislation.gov.uk, gov.uk)")}`,
+    {
+      monthlyRent: num("Monthly rent (GBP)"),
+      deposit: num("Deposit (GBP)"),
+      received: date("Date the landlord received the deposit"),
+      start: date("Tenancy start date"),
+      agreed: date("Date the deposit deductions were agreed"),
+      noticeDate: date("Date the tenant gave notice"),
+    }, ["monthlyRent", "deposit"]),
+  fn("check_us_security_deposit_notice",
+    `California and New York residential lease check: security deposit cap of 1 month's rent (CA Civ. Code §1950.5 as amended by AB 12, small-landlord exception; NY GOL §7-108), return deadline (CA 21 days, NY 14 days), landlord notice for non-renewal or rent increase (CA 30/60/90 days, NY RPL §226-c 30/60/90 days), the CA AB 1482 rent cap for Aug 2026 - Jul 2027 by region (8.1-8.8%) and NYC rent-stabilized renewals. AB 1482 sunset and NY Good Cause CPI after May 2026 are not computed. ${TEN("California and New York (CA OAG, courts self-help, nysenate.gov, NYC RGB)")}`,
+    {
+      state: pick(["CA", "NY"], "State"),
+      rent: num("Monthly rent (USD)"),
+      deposit: num("Security deposit (USD)"),
+      monthsLived: int("Months the tenant has lived there", 0, 1200),
+      moveOut: date("Move-out date"),
+      noticeDate: date("Date notice was given"),
+      smallLandlord: yes("CA: natural-person landlord with no more than 2 properties and 4 units"),
+      assistance: yes("CA: tenant receives rental assistance (90-day notice)"),
+      region: pick(["la", "riverside", "sandiego", "bay", "other"], "CA region for the AB 1482 cap"),
+      leaseMonths: int("NY: lease term in months", 0, 1200),
+      nycStabilized: yes("NY: NYC rent-stabilized apartment"),
+      leaseStart: date("NY: renewal lease start date"),
+      twoYear: yes("NY: two-year renewal"),
+    }, ["state", "rent", "deposit", "monthsLived"]),
+  fn("check_fr_deposit_notice_irl",
+    `France residential lease check: dépôt de garantie cap (1 month rent excluding charges unfurnished, 2 months furnished; Loi 89-462 art. 22 and 25-6), refund due 1 month after keys are returned when the inventory matches or 2 months otherwise, and the 10%-of-rent-per-month late penalty, tenant notice (3 months, or 1 month furnished or in reduced cases), landlord notice (6 months, 3 furnished), and the yearly rent revision capped by the INSEE IRL (T3 2026: +1.57%), with no revision for F/G energy-rated homes. Encadrement des loyers after 2026-11-24 is not computed. ${TEN("France (service-public.gouv.fr, Légifrance, INSEE)")}`,
+    {
+      lease: pick(["vide", "meuble"], "Unfurnished (vide) or furnished (meublé)"),
+      rentHC: num("Monthly rent excluding charges (EUR)"),
+      deposit: num("Deposit (EUR)"),
+      sameInventory: yes("Exit inventory matches the entry inventory"),
+      keysReturned: date("Date the keys were returned"),
+      refundedOn: date("Date the deposit was refunded"),
+      noticeDate: date("Date the tenant gave notice"),
+      reducedNotice: yes("Tenant qualifies for the 1-month reduced notice"),
+      leaseEnd: date("Lease end date for the landlord notice"),
+      quarter: pick(["T3 2026", "T2 2026", "T1 2026"], "IRL quarter named in the lease"),
+      revisionClause: yes("The lease has a rent revision clause"),
+      dpeFG: yes("Home is rated F or G on the DPE"),
+    }, ["lease", "rentHC", "deposit", "sameInventory"]),
+  fn("check_es_fianza_preaviso",
+    `Spain residential lease check (Ley de Arrendamientos Urbanos): fianza of 1 month's rent and extra guarantee of up to 2 months (art. 36), deposit return 1 month after keys are handed back, mandatory extension to 5 years (7 if the landlord is a company, art. 9), tenant exit after 6 months with 30 days' notice (art. 11), and the yearly update capped by the INE IRAV (2.54% for September 2026) or the 2% of RDL 29/2026. Regional fianza lodging, the interés legal rate and the exact RDL 29/2026 scope are not computed. ${TEN("Spain (BOE, INE)")}`,
+    {
+      rent: num("Monthly rent (EUR)"),
+      fianza: num("Fianza (EUR)"),
+      extraGuarantee: num("Additional guarantee (EUR)"),
+      company: yes("Landlord is a company (7-year extension)"),
+      start: date("Lease start date"),
+      keysReturned: date("Date the keys were handed back"),
+      noticeDate: date("Date the tenant gave notice"),
+    }, ["rent", "fianza", "extraGuarantee", "company"]),
+  fn("check_cn_rental_contract_deposit",
+    `China mainland residential lease check: lease term over 20 years is void beyond 20 (民法典 第705条), leases of 6 months or more need a written contract (第707条), the deposit amount and return time must be written in the contract (住房租赁条例 第10条・第12条, in force 2025-09-15), and notice rules for ending an open-term lease (第730条). City-level rules are not computed. ${TEN("China mainland (gov.cn, 民法典)")}`,
+    {
+      termMonths: int("Lease term in months", 0, 1200),
+      written: yes("There is a written contract"),
+      deposit: num("Deposit (CNY)"),
+      rent: num("Monthly rent (CNY)"),
+      returnDays: int("Days for returning the deposit written in the contract", 0, 3650),
+    }, ["termMonths", "written", "deposit", "rent"]),
+  fn("check_tw_rental_deposit_termination",
+    `Taiwan residential lease check (租賃住宅市場發展及管理條例): deposit cap of 2 months' rent (第7條) returned when the home is handed back, 30 days' written notice for early termination on statutory grounds (第10條・第11條) and 3 months for landlord rebuilding. Current standard contract terms are not computed. ${TEN("Taiwan (law.moj.gov.tw)")}`,
+    {
+      rent: num("Monthly rent (TWD)"),
+      deposit: num("Deposit (TWD)"),
+      noticeDate: date("Date written notice was given"),
+      rebuild: yes("Landlord ends the lease to rebuild (3 months' notice)"),
+    }, ["rent", "deposit"]),
 ];
 
 export const COUNTRY_TAX_ENDPOINTS = {
@@ -596,6 +683,13 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_labor_exit: { path: "/v1/labor/es", method: "POST" },
   calculate_cn_labor_exit: { path: "/v1/labor/cn", method: "POST" },
   calculate_tw_labor_exit: { path: "/v1/labor/tw", method: "POST" },
+  check_jp_rental_deposit_notice: { path: "/v1/tenancy/jp", method: "POST" },
+  check_uk_tenancy_deposit_notice: { path: "/v1/tenancy/uk", method: "POST" },
+  check_us_security_deposit_notice: { path: "/v1/tenancy/us", method: "POST" },
+  check_fr_deposit_notice_irl: { path: "/v1/tenancy/fr", method: "POST" },
+  check_es_fianza_preaviso: { path: "/v1/tenancy/es", method: "POST" },
+  check_cn_rental_contract_deposit: { path: "/v1/tenancy/cn", method: "POST" },
+  check_tw_rental_deposit_termination: { path: "/v1/tenancy/tw", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS];
