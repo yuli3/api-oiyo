@@ -83,6 +83,8 @@ export const WORLD_TOOLS               = [
   t("ES", "labor", "calculate_es_labor_exit", "es/indemnizacion-despido-paro-plazos", "Indemnización por despido, paro y plazos", ["despido", "despedid", "me echan", "indemnización", "improcedente", "objetivo", "paro", "finiquito", "smi", "conciliación"]),
   t("ES", "labor", "calculate_es_employer_cost", "es/coste-empresa-seguridad-social-2026", "Coste de empresa en Seguridad Social", ["coste empresa", "cuota empresa", "seguridad social empresa", "contratar", "cotización empresa", "coste de un trabajador"]),
   t("ES", "tenancy", "check_es_fianza_preaviso", "es/fianza-alquiler-preaviso-actualizacion", "Fianza, preaviso y actualización del alquiler", ["fianza", "alquiler", "arrendador", "inquilino", "casero", "preaviso", "prórroga", "irav", "subida del alquiler"]),
+  t("ES", "claims", "check_es_second_chance", "es/segunda-oportunidad-plazo-sucesiones", "Ley de Segunda Oportunidad", ["segunda oportunidad", "exoneración", "pasivo insatisfecho", "cancelar deudas", "no puedo pagar", "concurso de acreedores", "deudas"]),
+  t("ES", "tax", "get_es_inheritance_deadline", "es/segunda-oportunidad-plazo-sucesiones", "Plazo del Impuesto sobre Sucesiones", ["sucesiones", "herencia", "impuesto de sucesiones", "modelo 650", "fallecimiento", "heredar"]),
   t("ES", "consumer", "check_es_desistimiento", "es/plazo-desistimiento-compra-online", "Plazo de desistimiento de 14 días", ["desistimiento", "devolución", "devolver", "compra online", "reembolso", "pedido"]),
 
   t("CN", "tax", "get_cn_tax_calendar", "zh/china-tax-filing-calendar-2026", "2026年申报纳税期限", ["申报", "期限", "征期", "什么时候", "汇算"]),
@@ -123,6 +125,7 @@ export const WORLD_TOOLS               = [
   t("TW", "tax", "calculate_tw_depreciation", "zh/taiwan-depreciation-calculator", "固定資產折舊", ["折舊", "耐用年數", "8萬"]),
   t("TW", "labor", "calculate_tw_labor_exit", "zh/taiwan-severance-notice-calculator", "資遣費·預告期間·特休·失業給付", ["資遣", "資遣費", "解僱", "離職", "預告", "特休", "失業給付", "最低工資", "勞退"]),
   t("TW", "tenancy", "check_tw_rental_deposit_termination", "zh/taiwan-rental-deposit-termination", "租屋押金與提前終止", ["租屋", "押金", "房東", "房客", "租約", "提前終止", "退租"]),
+  t("TW", "claims", "check_tw_debt_clearance", "zh/taiwan-debt-clearance-checker", "消債條例 更生・清算", ["更生", "清算", "消債", "債務清理", "前置協商", "還不出", "卡債", "免責"]),
   t("TW", "claims", "check_tw_limitation_small_claims", "zh/taiwan-statute-limitation-small-claims", "消滅時效與小額訴訟", ["時效", "消滅時效", "小額訴訟", "欠錢", "欠款", "起訴", "打官司"]),
   t("TW", "consumer", "check_tw_7day_cancellation", "zh/taiwan-7-day-cancellation", "七日解約權", ["七日鑑賞期", "鑑賞期", "七天", "退貨", "網購", "解約", "退款"]),
   t("JP", "labor", "calculate_jp_take_home", "ja/japan-salary-calculator", "給与の手取り（社会保険料・所得税・住民税）", ["手取り", "給料", "給与", "月給", "年収", "天引き", "take home", "net pay"]),
