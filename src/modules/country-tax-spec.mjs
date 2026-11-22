@@ -544,6 +544,20 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 전자세금계산서·인보이스 일정 3곳 (2026-11-22): tools-oiyo world-einvoice-pack-2026과 같은 계산.
+const EIN = (c) => `${c}, as of 2026-11-22. General information only: not tax advice, no filing, no software certification.`;
+export const EINVOICE_TOOLS = [
+  fn("check_fr_einvoicing",
+    `France e-invoicing reform by company size: every business must be able to receive e-invoices from 1 September 2026; issuing and e-reporting from 1 September 2026 for grandes entreprises and ETI, by 1 September 2027 for PME and micro-entreprises. Scope: B2B between VAT-registered businesses established in France. Size thresholds and penalties are not computed. ${EIN("France (service-public, impots.gouv FAQ)")}`,
+    { size: pick(["ge", "eti", "pme", "micro"], "Company size category"), today: date("Date to check") }, ["size"]),
+  fn("calculate_jp_invoice_transition",
+    `Japan インボイス 経過措置 for purchases from 免税事業者 without a qualified invoice: deductible share by purchase date (R5.10.1–R8.9.30 80%, R8.10.1–R10.9.30 70%, R10.10.1–R12.9.30 50%, R12.10.1–R13.9.30 30%, then 0) and the deductible amount. 少額特例 and record-keeping conditions are not checked. ${EIN("Japan (国税庁 Q&A 問113-3)")}`,
+    { purchaseDate: date("Purchase date (delivery for goods, completion for services)"), taxAmount: num("Consumption tax portion of the purchase (JPY)") }, ["purchaseDate"]),
+  fn("check_es_verifactu",
+    `Spain VERI*FACTU deadline for invoicing software: Impuesto sobre Sociedades taxpayers before 1 January 2027, others (autónomos) before 1 July 2027; SII users and businesses without invoicing software are not affected; País Vasco and Navarra follow foral rules. ${EIN("Spain (AEAT)")}`,
+    { sociedades: yes("Pays Impuesto sobre Sociedades"), sii: yes("Already in the SII"), usesSoftware: yes("Issues invoices with software"), today: date("Date to check") }, ["sociedades"]),
+];
+
 // 회사 연간 일정 4곳 (2026-11-22): tools-oiyo world-company-calendar-2026과 같은 계산. 신고 대행 없음.
 const CAL = (c) => `${c}, as of 2026-11-22. General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.`;
 export const COMPANY_CALENDAR_TOOLS = [
@@ -833,6 +847,9 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_uk_company_calendar: { path: "/v1/company-calendar/uk", method: "POST" },
   check_us_company_calendar: { path: "/v1/company-calendar/us", method: "POST" },
   check_fr_company_calendar: { path: "/v1/company-calendar/fr", method: "POST" },
+  check_fr_einvoicing: { path: "/v1/einvoice/fr", method: "POST" },
+  calculate_jp_invoice_transition: { path: "/v1/einvoice/jp", method: "POST" },
+  check_es_verifactu: { path: "/v1/einvoice/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...WORLD_INTAKE_TOOLS];

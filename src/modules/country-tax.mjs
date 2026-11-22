@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { esVerifactu, frEInvoice, jpInvoiceTransition } from "./vendor/tools-tax/world-einvoice-pack-2026.mjs";
 import { frCompanyCalendar, jpCompanyCalendar, ukCompanyCalendar, usCompanyCalendar } from "./vendor/tools-tax/world-company-calendar-2026.mjs";
 import { esEmployerCost, jpEmployerCost, ukEmployerCost, usEmployerCost } from "./vendor/tools-tax/world-employer-cost-pack-2026.mjs";
 import { caLimitation, cnSmallClaims, frLimitation, jpLimitation, twLimitation, ukLimitation } from "./vendor/tools-tax/world-limitation-pack-2026.mjs";
@@ -51,7 +52,12 @@ export function makeCountryTaxHandlers() {
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
   const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
   const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
+  const EIN_NOTE = "General information only: not tax advice, no filing, no software certification.";
+  const ein = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EIN_NOTE });
   return {
+    "/v1/einvoice/fr": (i) => ein(FRP, "facturation-electronique-calendrier-entreprise", frEInvoice(i)),
+    "/v1/einvoice/jp": (i) => ein(JA, "japan-invoice-keika-sochi-70", jpInvoiceTransition(i)),
+    "/v1/einvoice/es": (i) => ein(ESP, "verifactu-plazo-obligatorio-2027", esVerifactu(i)),
     "/v1/company-calendar/jp": (i) => cal(JA, "japan-hojin-shinkoku-kigen-calendar", jpCompanyCalendar(i)),
     "/v1/company-calendar/uk": (i) => cal(EN, "uk-company-accounts-ct600-deadlines", ukCompanyCalendar(i)),
     "/v1/company-calendar/us": (i) => cal(EN, "us-business-tax-return-due-dates", usCompanyCalendar(i)),

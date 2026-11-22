@@ -22,6 +22,7 @@ const t = (country         , area      , mcp        , path        , title       
 
 export const WORLD_TOOLS               = [
   t("JP", "tax", "get_jp_tax_calendar", "ja/jp-tax-calendar", "個人事業主の申告・納付期限", ["期限", "いつまで", "確定申告", "予定納税", "納付", "calendar", "deadline"]),
+  t("JP", "tax", "calculate_jp_invoice_transition", "ja/japan-invoice-keika-sochi-70", "インボイス経過措置（80%・70%・50%）", ["インボイス", "経過措置", "免税事業者", "仕入税額控除", "適格請求書", "8割", "7割"]),
   t("JP", "tax", "check_jp_company_calendar", "ja/japan-hojin-shinkoku-kigen-calendar", "法人税・消費税の申告期限カレンダー", ["法人税", "決算", "申告期限", "中間申告", "法人の消費税", "決算日"]),
   t("JP", "tax", "calculate_jp_blue_return_deduction", "ja/aoiro-shinkoku-deduction-calculator", "青色申告特別控除", ["青色", "65万", "55万", "10万", "白色", "e-tax", "blue return"]),
   t("JP", "tax", "check_jp_consumption_tax", "ja/consumption-tax-invoice-check", "消費税の納税義務・インボイス2割特例", ["消費税", "インボイス", "2割", "3割", "免税事業者", "1000万", "consumption tax", "invoice"]),
@@ -50,6 +51,7 @@ export const WORLD_TOOLS               = [
   t("US", "tax", "check_us_estate_gift_exclusion", "en/us-estate-gift-tax-exclusion-2026", "Estate and gift tax exclusions and due dates", ["estate tax", "gift tax", "inheritance", "form 706", "form 709", "annual exclusion", "estate"]),
 
   t("FR", "tax", "get_fr_tax_calendar", "fr/calendrier-fiscal-entreprise", "Calendrier fiscal 2026", ["calendrier", "échéance", "date limite", "déclaration", "cfe", "tva"]),
+  t("FR", "tax", "check_fr_einvoicing", "fr/facturation-electronique-calendrier-entreprise", "Calendrier de la facturation électronique", ["facturation électronique", "facture électronique", "e-reporting", "plateforme agréée", "e-invoicing"]),
   t("FR", "tax", "check_fr_company_calendar", "fr/delai-approbation-depot-comptes-annuels", "Approbation et dépôt des comptes annuels", ["comptes annuels", "approbation des comptes", "greffe", "dépôt des comptes", "clôture", "assemblée"]),
   t("FR", "tax", "calculate_fr_micro_entrepreneur", "fr/micro-entrepreneur-cotisations-impot", "Micro-entrepreneur : cotisations et impôt", ["micro-entrepreneur", "auto-entrepreneur", "cotisations", "urssaf", "versement libératoire", "chiffre d'affaires"]),
   t("FR", "tax", "check_fr_vat_franchise", "fr/franchise-tva-seuils", "Franchise en base de TVA", ["franchise", "tva", "seuil", "facturer la tva"]),
@@ -63,6 +65,7 @@ export const WORLD_TOOLS               = [
   t("FR", "tax", "calculate_fr_droits_succession", "fr/droits-succession-abattement-delai", "Droits de succession : abattement et délai", ["succession", "héritage", "heritage", "hériter", "abattement", "notaire", "décès"]),
 
   t("ES", "tax", "get_es_tax_calendar", "es/calendario-fiscal-autonomos-2026", "Calendario fiscal de autónomos 2026", ["calendario", "plazo", "modelo 303", "modelo 130", "renta", "cuándo"]),
+  t("ES", "tax", "check_es_verifactu", "es/verifactu-plazo-obligatorio-2027", "Plazo VERI*FACTU", ["verifactu", "veri*factu", "programa de facturación", "software de facturación", "factura electrónica", "sii"]),
   t("ES", "tax", "calculate_es_autonomo_quota", "es/cuota-autonomos-tramos-irpf", "Cuota de autónomos por tramos", ["cuota", "autónomo", "tramos", "seguridad social", "reta", "tarifa plana"]),
   t("ES", "tax", "calculate_es_vat", "es/iva-tipos-recargo-equivalencia", "IVA y recargo de equivalencia", ["iva", "recargo de equivalencia", "21%", "10%", "4%"]),
   t("ES", "tax", "calculate_es_late_filing_surcharge", "es/recargo-extemporaneo-sanciones-plazos", "Recargo por presentación fuera de plazo", ["recargo", "fuera de plazo", "extemporáneo", "tarde"]),
