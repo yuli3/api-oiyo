@@ -548,7 +548,7 @@ export const LABOR_TOOLS = [
 const DSG = (c) => `${c}, as of 2026-11-22. General information only: not tax or legal advice.`;
 export const DE_SG_TOOLS = [
   fn("calculate_de_income_tax",
-    `Germany Einkommensteuer 2026 from zu versteuerndes Einkommen under § 32a EStG (Grundfreibetrag 12,348 EUR, 42% from 69,879 EUR, 45% from 277,826 EUR), Grund- or Splittingtabelle, with average and marginal rate. Solidaritätszuschlag, Kirchensteuer and Kinderfreibetrag are not computed. ${DSG("Germany (§ 32a EStG)")}`,
+    `Germany Einkommensteuer 2026 from zu versteuerndes Einkommen under § 32a EStG (Grundfreibetrag 12,348 EUR, 42% from 69,879 EUR, 45% from 277,826 EUR), Grund- or Splittingtabelle, with average and marginal rate and Solidaritätszuschlag (5.5%, capped at 11.9% above the 20,350 / 40,700 EUR Freigrenze). Kirchensteuer and Kinderfreibetrag are not computed. ${DSG("Germany (§ 32a EStG)")}`,
     { zvE: num("Zu versteuerndes Einkommen for the year (EUR)"), joint: yes("Joint assessment (Splitting)") }, ["zvE"]),
   fn("calculate_de_notice_period",
     `Germany Kündigungsfrist under § 622 BGB: 4 weeks to the 15th or month end; employer notice 1 to 7 months to month end after 2 to 20 years; 2 weeks in a probation period of up to 6 months. Gives the last day of employment. Kündigungsschutzgesetz and collective agreements are not checked. ${DSG("Germany (§ 622 BGB)")}`,

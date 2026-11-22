@@ -3,7 +3,7 @@
 // DE: Einkommensteuertarif 2026 (§32a EStG), Kündigungsfristen (§622 BGB), Mindestlohn and Minijob, E-Rechnung timeline.
 // SG: CPF contributions from 1 January 2026, statutory notice period (Employment Act, MOM).
 // General information only: not tax or legal advice. Facts: /mnt/project-files/notes/de-sg-facts-2026-11-22.md
-// Not computed because not verified: DE Solidaritätszuschlag, Kirchensteuer, Kinderfreibetrag, Kündigungsschutzgesetz;
+// Not computed because not verified: DE Kirchensteuer, Kinderfreibetrag, Kündigungsschutzgesetz;
 // SG income tax rates (IRAS page unreadable), CPF for wages of $750 or less, CPF rounding rules.
 
 export const DESG_AS_OF = "2026-11-22";
@@ -36,17 +36,26 @@ export function deTarif(zvE        ) {
   else t = 0.45 * x - 19_470.38;
   return Math.floor(t);
 }
+/** Solidaritätszuschlag (§§ 3, 4 SolZG; Freigrenze § 3 Abs. 3, ab VZ 2026 per § 6 Abs. 27): 5.5%, capped at 11.9% of the excess over the Freigrenze. */
+export const DE_SOLI_FREIGRENZE = { single: 20_350, joint: 40_700 }         ;
+export function deSoli(incomeTax        , joint = false) {
+  const base = pos(incomeTax), fg = joint ? DE_SOLI_FREIGRENZE.joint : DE_SOLI_FREIGRENZE.single;
+  if (base <= fg) return 0;
+  return Math.floor(Math.min(base * 0.055, (base - fg) * 0.119) * 100) / 100;
+}
 export function deIncomeTax(x                                  ) {
   const zvE = Math.floor(pos(x.zvE));
   const tax = x.joint ? 2 * deTarif(Math.floor(zvE / 2)) : deTarif(zvE);
   const per = x.joint ? Math.floor(zvE / 2) : zvE;
   const marginal = per <= 12_348 ? 0 : per <= 17_799 ? (2 * 914.51 * ((per - 12_348) / 10_000) + 1_400) / 100 : per <= 69_878 ? (2 * 173.1 * ((per - 17_799) / 10_000) + 2_397) / 100 : per <= 277_825 ? 42 : 45;
+  const soli = deSoli(tax, !!x.joint);
   const items          = [
+    { tone: "info", text: soli ? `Solidaritätszuschlag: ${soli.toFixed(2).replace(".", ",")} € (5,5 %, gemildert bis 11,9 % des Betrags über der Freigrenze von ${x.joint ? "40.700" : "20.350"} € Einkommensteuer).` : `Kein Solidaritätszuschlag: die Einkommensteuer liegt nicht über der Freigrenze von ${x.joint ? "40.700" : "20.350"} €.`, cite: "§§ 3, 4 SolZG" },
     { tone: "info", text: `Tarif ab 2026: bis 12.348 € (Grundfreibetrag) keine Steuer, danach steigender Satz bis 42 % ab 69.879 € und 45 % ab 277.826 €${x.joint ? "; Splitting: doppelte Steuer auf die Hälfte des gemeinsamen Einkommens" : ""}.`, cite: "§ 32a EStG" },
     { tone: "info", text: "Eingabe ist das zu versteuernde Einkommen (nach Werbungskosten, Sonderausgaben und Freibeträgen), nicht das Bruttogehalt.", cite: "§ 32a EStG" },
-    { tone: "warn", text: "Solidaritätszuschlag, Kirchensteuer, Kinderfreibetrag und Progressionsvorbehalt sind hier nicht berechnet.", cite: "—" },
+    { tone: "warn", text: "Kirchensteuer, Kinderfreibetrag (auch seine Wirkung auf den Solidaritätszuschlag), Abgeltungsteuer und Progressionsvorbehalt sind hier nicht berechnet.", cite: "—" },
   ];
-  return { asOf: DESG_AS_OF, zvE, joint: !!x.joint, tax, average: zvE ? r2((tax / zvE) * 100) : 0, marginal: r2(marginal), items };
+  return { asOf: DESG_AS_OF, zvE, joint: !!x.joint, tax, soli, total: Math.round((tax + soli) * 100) / 100, average: zvE ? r2((tax / zvE) * 100) : 0, marginal: r2(marginal), items };
 }
 
 // ── Germany: Kündigungsfrist ────────────────────────────────────────
