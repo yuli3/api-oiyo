@@ -1,10 +1,10 @@
 // GENERATED from tools-oiyo src/lib/world-de-sg-pack-2026.ts by scripts/sync-tools-tax.mjs. Do not edit here.
 // New countries: Germany and Singapore, first pack (2026-11-22, world pro-gap #9).
 // DE: Einkommensteuertarif 2026 (§32a EStG), Kündigungsfristen (§622 BGB), Mindestlohn and Minijob, E-Rechnung timeline.
-// SG: CPF contributions from 1 January 2026, statutory notice period (Employment Act, MOM).
+// SG: income tax (IRAS, YA 2024 onwards), CPF contributions from 1 January 2026, statutory notice period (Employment Act, MOM).
 // General information only: not tax or legal advice. Facts: /mnt/project-files/notes/de-sg-facts-2026-11-22.md
 // Not computed because not verified: DE Kirchensteuer, Kinderfreibetrag, Kündigungsschutzgesetz;
-// SG income tax rates (IRAS page unreadable), CPF for wages of $750 or less, CPF rounding rules.
+// SG YA 2026 rebate, CPF for wages of $750 or less, CPF rounding rules.
 
 export const DESG_AS_OF = "2026-11-22";
                                             
@@ -118,6 +118,35 @@ export function deEInvoice(x                                           ) {
     { tone: "warn", text: "Kleinunternehmer müssen keine E-Rechnungen ausstellen, aber empfangen können. Formate und Sanktionen werden hier nicht geprüft.", cite: "IHK Stuttgart" },
   ];
   return { asOf: DESG_AS_OF, issueFrom: issue, issuing: ok(x.today) ? x.today  >= issue : null, dates, items };
+}
+
+// ── Singapore: income tax (IRAS, YA 2024 onwards) ──────────────────
+/** [upper bound of band, rate %]. */
+export const SG_RESIDENT_BANDS                                 = [[20_000, 0], [30_000, 2], [40_000, 3.5], [80_000, 7], [120_000, 11.5], [160_000, 15], [200_000, 18], [240_000, 19], [280_000, 19.5], [320_000, 20], [500_000, 22], [1_000_000, 23], [Infinity, 24]];
+export const SG_REBATE                                             = { 2024: [50, 200], 2025: [60, 200] };
+export const sgResidentTax = (chargeable        ) => { const c = pos(chargeable); let t = 0, lo = 0; for (const [hi, r] of SG_RESIDENT_BANDS) { if (c > lo) t += (Math.min(c, hi) - lo) * r / 100; lo = hi; } return r2(t); };
+export function sgIncomeTax(x                                                                                                               ) {
+  const ya = Math.floor(Number(x.ya) || 2026);
+  const items          = [];
+  let tax        , marginal        ;
+  if (x.resident) {
+    const c = pos(x.chargeableIncome);
+    tax = sgResidentTax(c);
+    marginal = SG_RESIDENT_BANDS.find(([hi]) => c <= hi) [1];
+    items.push({ tone: "info", text: `Resident rates from YA 2024: 0% on the first $20,000, rising to 24% above $1,000,000. Marginal rate here: ${marginal}%.`, cite: "IRAS individual income tax rates" });
+  } else {
+    const emp = pos(x.employmentIncome ?? x.chargeableIncome), other = pos(x.otherIncome);
+    const flat = r2(emp * 0.15), prog = sgResidentTax(emp);
+    const empTax = Math.max(flat, prog);
+    tax = r2(empTax + other * 0.24);
+    marginal = other > 0 ? 24 : flat >= prog ? 15 : SG_RESIDENT_BANDS.find(([hi]) => emp <= hi) [1];
+    items.push({ tone: "info", text: "Non-resident: employment income is taxed at 15% or at resident rates, whichever gives more tax; other income such as director's fees at 24%.", cite: "IRAS individual income tax rates" });
+  }
+  const reb = x.resident ? SG_REBATE[ya] : undefined;
+  const rebate = reb ? Math.min(r2(tax * reb[0] / 100), reb[1]) : 0;
+  if (x.resident) items.push(reb ? { tone: "good", text: `YA ${ya} personal income tax rebate: ${reb[0]}% of tax, capped at $${reb[1]}.`, cite: "IRAS" } : { tone: "warn", text: `A rebate for YA ${ya} is not on the IRAS page we checked, so none is applied.`, cite: "—" });
+  items.push({ tone: "warn", text: "Enter chargeable income (after expenses, donations and reliefs). Tax residence and reliefs are not worked out here.", cite: "—" });
+  return { asOf: DESG_AS_OF, ya, resident: x.resident, tax, rebate, payable: r2(tax - rebate), marginal, items };
 }
 
 // ── Singapore: CPF contributions from 1 January 2026 ───────────────

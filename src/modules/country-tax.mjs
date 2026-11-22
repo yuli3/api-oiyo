@@ -7,7 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
-import { deEInvoice, deIncomeTax, deMinimumWage, deNoticePeriod, sgCpf, sgNotice } from "./vendor/tools-tax/world-de-sg-pack-2026.mjs";
+import { deEInvoice, deIncomeTax, deMinimumWage, deNoticePeriod, sgCpf, sgIncomeTax, sgNotice } from "./vendor/tools-tax/world-de-sg-pack-2026.mjs";
 import { esResidency, frResidency, jpResidency, twResidency, ukStatutoryResidence, usSubstantialPresence } from "./vendor/tools-tax/world-tax-residency-2026.mjs";
 import { esVerifactu, frEInvoice, jpInvoiceTransition } from "./vendor/tools-tax/world-einvoice-pack-2026.mjs";
 import { frCompanyCalendar, jpCompanyCalendar, ukCompanyCalendar, usCompanyCalendar } from "./vendor/tools-tax/world-company-calendar-2026.mjs";
@@ -67,6 +67,7 @@ export function makeCountryTaxHandlers() {
     "/v1/de/minimum-wage": (i) => dsg(`${DEP}kuendigungsfrist-rechner/`, deMinimumWage(i)),
     "/v1/de/einvoice": (i) => dsg(`${DEP}e-rechnung-pflicht-ab-wann/`, deEInvoice(i)),
     "/v1/sg/cpf": (i) => dsg(`${EN}singapore-cpf-contribution-calculator-2026/`, sgCpf(i)),
+    "/v1/sg/income-tax": (i) => dsg(`${EN}singapore-income-tax-calculator/`, sgIncomeTax(i)),
     "/v1/sg/notice": (i) => dsg(`${EN}singapore-notice-period-calculator/`, sgNotice(i)),
     "/v1/residency/us": (i) => res(`${EN}us-substantial-presence-test-calculator/`, usSubstantialPresence(i)),
     "/v1/residency/uk": (i) => res(`${EN}uk-statutory-residence-test-calculator/`, ukStatutoryResidence(i)),

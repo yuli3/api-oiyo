@@ -226,6 +226,7 @@ const fixtures = {
   check_de_minimum_wage: { date: "2026-11-22", hourly: 13 },
   check_de_einvoicing: { turnover2026: 500000 },
   calculate_sg_cpf: { monthlyWage: 5000, age: 30 },
+  calculate_sg_income_tax: { chargeableIncome: 80000, resident: true, ya: 2025 },
   calculate_sg_notice_period: { startDate: "2020-01-01", noticeDate: "2026-11-02" },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
