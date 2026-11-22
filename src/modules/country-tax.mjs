@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { frSuccession, jpGift, jpInheritance, twEstate, ukInheritance, usEstateGift } from "./vendor/tools-tax/world-inheritance-pack-2026.mjs";
 import { cnCoolingOff, esCoolingOff, frCoolingOff, jpCoolingOff, twCoolingOff, ukCoolingOff, usCoolingOff } from "./vendor/tools-tax/world-consumer-pack-2026.mjs";
 import { TENANCY_AS_OF, cnTenancy, esTenancy, frTenancy, jpTenancy, twTenancy, ukTenancy, usTenancy } from "./vendor/tools-tax/world-tenancy-pack-2026.mjs";
 import { LABOR_AS_OF, cnLaborExit, esLaborExit, frLaborExit, jpLaborExit, twLaborExit, ukLaborExit, usLaborExit } from "./vendor/tools-tax/world-labor-pack-2026.mjs";
@@ -39,7 +40,14 @@ export function makeCountryTaxHandlers() {
   const ten = (base, slug, body) => ({ asOf: TENANCY_AS_OF, ...body, page: `${base}${slug}/`, note: TENANCY_NOTE });
   const CONSUMER_NOTE = "General information only: no legal advice, no representation, no notices sent. Holiday calendars and unverified rules are flagged in items, not computed. Send the notice early and keep proof; check with a free local consumer advice service.";
   const con = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CONSUMER_NOTE });
+  const INHERITANCE_NOTE = "General information and estimates only: no tax advice, no representation, no filing. Values that could not be verified are flagged in items, not computed. Check with the tax office or a qualified professional.";
+  const inh = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: INHERITANCE_NOTE });
   return {
+    "/v1/inheritance/jp": (i) => inh(JA, "japan-inheritance-gift-tax-deadline", i.kind === "gift" ? jpGift(i) : jpInheritance(i)),
+    "/v1/inheritance/uk": (i) => inh(EN, "uk-inheritance-tax-threshold-deadline", ukInheritance(i)),
+    "/v1/inheritance/us": (i) => inh(EN, "us-estate-gift-tax-exclusion-2026", usEstateGift(i)),
+    "/v1/inheritance/fr": (i) => inh(FRP, "droits-succession-abattement-delai", frSuccession(i)),
+    "/v1/inheritance/tw": (i) => inh(ZHP, "taiwan-estate-tax-filing-deadline", twEstate(i)),
     "/v1/consumer/jp": (i) => con(JA, "japan-cooling-off-deadline", jpCoolingOff(i)),
     "/v1/consumer/uk": (i) => con(EN, "uk-consumer-cancellation-period", ukCoolingOff(i)),
     "/v1/consumer/fr": (i) => con(FRP, "delai-retractation-achat-distance", frCoolingOff(i)),

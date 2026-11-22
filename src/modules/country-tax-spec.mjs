@@ -544,6 +544,26 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 상속·증여 5곳 (2026-11-22): tools-oiyo world-inheritance-pack-2026과 같은 계산. 세무 자문·대리·신고 없음.
+const INH = (c) => `${c}, as of 2026-11-22. General information and estimates only: no tax advice, no representation, no filing; values that could not be verified are flagged in the result, not computed.`;
+export const INHERITANCE_TOOLS = [
+  fn("calculate_jp_inheritance_gift_tax",
+    `Japan 相続税 or 贈与税 (暦年課税): basic deduction 3,000万円 + 600万円 × 法定相続人, 相続税の総額 from the NTA 速算表 by statutory shares (before 配偶者の税額軽減 and credits), filing deadline 10 months after death; or gift tax after the 110万円 deduction with 一般/特例税率 and the 3月15日 deadline. ${INH("Japan (NTA タックスアンサー)")}`,
+    { kind: pick(["inheritance", "gift"], "相続税 or 贈与税"), estate: num("課税価格の合計 (JPY), inheritance"), heirs: int("法定相続人の数", 0, 50), death: date("Date of death (or date death became known)"), amount: num("Gifts received in the year (JPY), gift"), special: yes("18歳以上 and from a lineal ascendant (特例税率)"), year: int("Gift year", 2000, 2100) }, ["kind"]),
+  fn("calculate_uk_inheritance_tax",
+    `UK Inheritance Tax: nil rate band £325,000 plus residence nil rate band up to £175,000 when a home goes to direct descendants, 40% (36% with 10%+ to charity), pay by the end of the sixth month after death. RNRB taper above £2m is not applied. ${INH("UK (gov.uk)")}`,
+    { estate: num("Estate value after spouse and charity exemptions (GBP)"), homeToDescendants: yes("Home left to children or grandchildren"), homeValue: num("Value of that home (GBP)"), charity10: yes("10% or more of the net value left to charity"), death: date("Date of death") }, ["estate"]),
+  fn("check_us_estate_gift_exclusion",
+    `US federal estate and gift tax 2026: amount above the $15,000,000 basic exclusion, gifts to one person above the $19,000 annual exclusion, Form 706 due 9 months after death (+6 months with Form 4768), Form 709 due April 15. Rates and state taxes are not computed. ${INH("United States (irs.gov)")}`,
+    { estate: num("Gross estate (USD)"), death: date("Date of death"), giftToOnePerson: num("Gifts to one person in the year (USD)"), giftYear: int("Gift year", 2000, 2100) }),
+  fn("calculate_fr_droits_succession",
+    `France droits de succession: abattement by relationship (conjoint exonéré, enfant 100 000 €, frère/sœur 15 932 €, neveu 7 967 €, autres 1 594 €, handicap +159 325 €), barème (ligne directe 5-45 %, frère/sœur 35/45 %, 55 %, 60 %), déclaration within 6 months (12 if death abroad), no declaration under 50 000 € actif brut in direct line. ${INH("France (service-public.gouv.fr, impots.gouv.fr)")}`,
+    { part: num("Net share received (EUR)"), relation: pick(["conjoint", "enfant", "frereSoeur", "neveu", "parent4", "nonParent"], "Relationship to the deceased"), handicap: yes("Heir has a disability"), frereSoeurExonere: yes("Sibling meets the three exemption conditions"), death: date("Date of death"), abroad: yes("Death outside France"), actifBrut: num("Gross estate (EUR)") }, ["part", "relation"]),
+  fn("check_tw_estate_tax_deadline",
+    `Taiwan 遺產稅 filing deadline after the 115-09-11 amendment: six months counted from the day after death (第23條), extension up to three months (第26條); summary of the amendment. 115年 免稅額, 扣除額 and 級距 are not computed. ${INH("Taiwan (全國法規資料庫)")}`,
+    { death: date("Date of death"), extended: yes("Extension requested") }),
+];
+
 // 청약철회 7곳 (2026-11-22): tools-oiyo world-consumer-pack-2026과 같은 계산. 법률 자문·대리·통지 대행 없음.
 const CON = (c) => `${c}, as of 2026-11-22. General information only: no legal advice, no representation, no notices sent; holiday calendars and unverified rules are flagged in the result, not computed.`;
 export const CONSUMER_TOOLS = [
@@ -737,6 +757,11 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_cn_7day_return: { path: "/v1/consumer/cn", method: "POST" },
   check_tw_7day_cancellation: { path: "/v1/consumer/tw", method: "POST" },
   check_us_cooling_off: { path: "/v1/consumer/us", method: "POST" },
+  calculate_jp_inheritance_gift_tax: { path: "/v1/inheritance/jp", method: "POST" },
+  calculate_uk_inheritance_tax: { path: "/v1/inheritance/uk", method: "POST" },
+  check_us_estate_gift_exclusion: { path: "/v1/inheritance/us", method: "POST" },
+  calculate_fr_droits_succession: { path: "/v1/inheritance/fr", method: "POST" },
+  check_tw_estate_tax_deadline: { path: "/v1/inheritance/tw", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...WORLD_INTAKE_TOOLS];
