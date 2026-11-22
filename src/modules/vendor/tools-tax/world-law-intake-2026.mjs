@@ -22,6 +22,7 @@ const t = (country         , area      , mcp        , path        , title       
 
 export const WORLD_TOOLS               = [
   t("JP", "tax", "get_jp_tax_calendar", "ja/jp-tax-calendar", "個人事業主の申告・納付期限", ["期限", "いつまで", "確定申告", "予定納税", "納付", "calendar", "deadline"]),
+  t("JP", "tax", "check_jp_company_calendar", "ja/japan-hojin-shinkoku-kigen-calendar", "法人税・消費税の申告期限カレンダー", ["法人税", "決算", "申告期限", "中間申告", "法人の消費税", "決算日"]),
   t("JP", "tax", "calculate_jp_blue_return_deduction", "ja/aoiro-shinkoku-deduction-calculator", "青色申告特別控除", ["青色", "65万", "55万", "10万", "白色", "e-tax", "blue return"]),
   t("JP", "tax", "check_jp_consumption_tax", "ja/consumption-tax-invoice-check", "消費税の納税義務・インボイス2割特例", ["消費税", "インボイス", "2割", "3割", "免税事業者", "1000万", "consumption tax", "invoice"]),
   t("JP", "tax", "calculate_jp_penalty_tax", "ja/kasanzei-entaizei-calculator", "加算税・延滞税", ["加算税", "延滞税", "無申告", "過少", "期限後", "penalty"]),
@@ -35,6 +36,7 @@ export const WORLD_TOOLS               = [
   t("JP", "tax", "calculate_jp_inheritance_gift_tax", "ja/japan-inheritance-gift-tax-deadline", "相続税・贈与税の基礎控除と期限", ["相続税", "相続", "遺産", "贈与税", "贈与", "生前贈与", "基礎控除"]),
 
   t("US", "tax", "get_us_tax_calendar", "en/us-tax-deadline-calendar", "US federal tax deadlines", ["deadline", "due date", "1040", "april 15", "extension", "calendar", "when"]),
+  t("US", "tax", "check_us_company_calendar", "en/us-business-tax-return-due-dates", "Business return due dates (1120, 1120-S, 1065)", ["1120", "1120-s", "1065", "corporate return", "fiscal year", "form 7004"]),
   t("US", "tax", "calculate_us_self_employment_tax", "en/self-employment-tax-qbi-calculator", "Self-employment tax and QBI", ["self-employment", "self employed", "1099", "schedule c", "qbi", "freelance", "se tax"]),
   t("US", "tax", "calculate_us_estimated_tax", "en/estimated-tax-safe-harbor-calculator", "Estimated tax and safe harbor", ["estimated", "quarterly", "1040-es", "safe harbor", "underpayment"]),
   t("US", "tax", "calculate_us_irs_penalty", "en/irs-penalty-interest-calculator", "IRS penalties and interest", ["penalty", "late filing", "late payment", "interest", "irs"]),
@@ -48,6 +50,7 @@ export const WORLD_TOOLS               = [
   t("US", "tax", "check_us_estate_gift_exclusion", "en/us-estate-gift-tax-exclusion-2026", "Estate and gift tax exclusions and due dates", ["estate tax", "gift tax", "inheritance", "form 706", "form 709", "annual exclusion", "estate"]),
 
   t("FR", "tax", "get_fr_tax_calendar", "fr/calendrier-fiscal-entreprise", "Calendrier fiscal 2026", ["calendrier", "échéance", "date limite", "déclaration", "cfe", "tva"]),
+  t("FR", "tax", "check_fr_company_calendar", "fr/delai-approbation-depot-comptes-annuels", "Approbation et dépôt des comptes annuels", ["comptes annuels", "approbation des comptes", "greffe", "dépôt des comptes", "clôture", "assemblée"]),
   t("FR", "tax", "calculate_fr_micro_entrepreneur", "fr/micro-entrepreneur-cotisations-impot", "Micro-entrepreneur : cotisations et impôt", ["micro-entrepreneur", "auto-entrepreneur", "cotisations", "urssaf", "versement libératoire", "chiffre d'affaires"]),
   t("FR", "tax", "check_fr_vat_franchise", "fr/franchise-tva-seuils", "Franchise en base de TVA", ["franchise", "tva", "seuil", "facturer la tva"]),
   t("FR", "tax", "calculate_fr_tax_penalty", "fr/interet-de-retard-majoration", "Intérêt de retard et majorations", ["intérêt de retard", "majoration", "pénalité", "retard"]),
@@ -85,6 +88,7 @@ export const WORLD_TOOLS               = [
   t("CN", "consumer", "check_cn_7day_return", "zh/china-7-day-return-deadline", "七日无理由退货", ["七天无理由", "七日无理由", "退货", "网购", "退款", "签收"]),
 
   t("UK", "tax", "get_uk_tax_calendar", "en/uk-self-assessment-deadlines-2026", "Self Assessment and MTD deadlines", ["self assessment", "31 january", "deadline", "mtd", "payment on account", "tax return"]),
+  t("UK", "tax", "check_uk_company_calendar", "en/uk-company-accounts-ct600-deadlines", "Company accounts, Corporation Tax and CT600 deadlines", ["companies house", "annual accounts", "ct600", "corporation tax", "company tax return", "year end"]),
   t("UK", "tax", "calculate_uk_self_employed_tax", "en/uk-self-employed-tax-ni-calculator", "Self-employed Income Tax and NI", ["self-employed", "sole trader", "class 4", "class 2", "national insurance", "profit"]),
   t("UK", "tax", "check_uk_vat_registration", "en/uk-vat-registration-threshold-check", "VAT registration threshold and Flat Rate Scheme", ["vat", "90,000", "90k", "register for vat", "flat rate"]),
   t("UK", "tax", "calculate_uk_sa_penalty", "en/hmrc-late-filing-penalty-interest-calculator", "HMRC late filing penalties", ["late filing", "penalty", "£100", "hmrc"]),
@@ -154,6 +158,6 @@ export function intake(x                                                        
     ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
     help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer", "claims"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
-    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filings, tax residency.",
+    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filing calendars in Spain, Taiwan and mainland China, tax residency.",
   };
 }
