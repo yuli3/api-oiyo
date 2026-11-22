@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { esResidency, frResidency, jpResidency, twResidency, ukStatutoryResidence, usSubstantialPresence } from "./vendor/tools-tax/world-tax-residency-2026.mjs";
 import { esVerifactu, frEInvoice, jpInvoiceTransition } from "./vendor/tools-tax/world-einvoice-pack-2026.mjs";
 import { frCompanyCalendar, jpCompanyCalendar, ukCompanyCalendar, usCompanyCalendar } from "./vendor/tools-tax/world-company-calendar-2026.mjs";
 import { esEmployerCost, jpEmployerCost, ukEmployerCost, usEmployerCost } from "./vendor/tools-tax/world-employer-cost-pack-2026.mjs";
@@ -52,9 +53,17 @@ export function makeCountryTaxHandlers() {
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
   const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
   const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
+  const RES_NOTE = "General information only: not tax advice; tax treaties can override the result.";
+  const res = (url, body) => ({ ...body, page: url, note: RES_NOTE });
   const EIN_NOTE = "General information only: not tax advice, no filing, no software certification.";
   const ein = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EIN_NOTE });
   return {
+    "/v1/residency/us": (i) => res(`${EN}us-substantial-presence-test-calculator/`, usSubstantialPresence(i)),
+    "/v1/residency/uk": (i) => res(`${EN}uk-statutory-residence-test-calculator/`, ukStatutoryResidence(i)),
+    "/v1/residency/es": (i) => res(`${ESP}residencia-fiscal-espana-183-dias/`, esResidency(i)),
+    "/v1/residency/tw": (i) => res(`${ZHP}taiwan-tax-resident-183-31-days/`, twResidency(i)),
+    "/v1/residency/jp": (i) => res(`${JA}zeirishi-law-scope/`, jpResidency(i)),
+    "/v1/residency/fr": (i) => res(`${FRP}conseil-fiscal-qui-peut/`, frResidency(i)),
     "/v1/einvoice/fr": (i) => ein(FRP, "facturation-electronique-calendrier-entreprise", frEInvoice(i)),
     "/v1/einvoice/jp": (i) => ein(JA, "japan-invoice-keika-sochi-70", jpInvoiceTransition(i)),
     "/v1/einvoice/es": (i) => ein(ESP, "verifactu-plazo-obligatorio-2027", esVerifactu(i)),

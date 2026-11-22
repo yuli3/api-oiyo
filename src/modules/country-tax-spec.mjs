@@ -544,6 +544,30 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 개인 세법상 거주자 판정 6곳 (2026-11-22): tools-oiyo world-tax-residency-2026과 같은 계산.
+const RES = (c) => `${c}, as of 2026-11-22. General information only: not tax advice; tax treaties can override the result. Verdict is resident, nonresident or depends.`;
+const days = (d) => num(d, 0, 366);
+export const RESIDENCY_TOOLS = [
+  fn("check_us_residency",
+    `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
+    { current: days("Days in the US this year"), prior1: days("Days in the US last year"), prior2: days("Days in the US the year before"), exemptDays: days("Days this year as an exempt individual etc. (not counted)") }, ["current"]),
+  fn("check_uk_residency",
+    `UK statutory residence test for one tax year (6 April to 5 April): automatic overseas tests (under 16 or 46 days, or full-time work abroad), automatic UK tests (183 days, only home, full-time UK work), then the sufficient ties tables. Deeming rule and split year are not applied. ${RES("UK (gov.uk, HMRC RDR3)")}`,
+    { days: days("Days in the UK in the tax year"), residentInPrior3: yes("UK resident in at least one of the 3 previous tax years"), ties: num("Number of UK ties (family, accommodation, work, 90-day, country)", 0, 5), fullTimeAbroad: yes("Works full time abroad"), ukWorkDays: days("Days working more than 3 hours in the UK"), onlyHomeInUk: yes("Meets the only-home-in-the-UK test"), fullTimeUkWork: yes("Meets the full-time-work-in-the-UK test") }, ["days", "residentInPrior3"]),
+  fn("check_es_residency",
+    `Spain tax residence: more than 183 days in the calendar year (sporadic absences count unless tax residence elsewhere is proven) or the main centre of economic activities or interests in Spain; presumption if the non-separated spouse and dependent minor children reside in Spain. ${RES("Spain (AEAT)")}`,
+    { days: days("Days in Spain in the calendar year"), economicCentre: yes("Main economic interests in Spain"), familyInSpain: yes("Spouse and dependent minor children reside in Spain"), residentElsewhereCertificate: yes("Has a tax residence certificate from another country") }, ["days"]),
+  fn("check_tw_residency",
+    `Taiwan 居住者 under 所得稅法第7條: with 戶籍 (domicile) 31 days or more in the tax year, or 1 to 30 days with the centre of life and economic interests in Taiwan; without domicile 183 days or more. ${RES("Taiwan (財政部)")}`,
+    { days: days("Days in Taiwan in the tax year"), householdRegistration: yes("Has household registration (戶籍) in Taiwan"), lifeCentre: yes("Centre of life and economic interests is in Taiwan") }, ["days", "householdRegistration"]),
+  fn("check_jp_residency",
+    `Japan 居住者 criteria (no day count): 国内に住所 (生活の本拠, judged by objective facts) or a 居所 continuously for 1 year or more. Spending 183 days abroad does not by itself make someone a non-resident. 非永住者 is not determined. ${RES("Japan (国税庁 タックスアンサー 2875, 2012)")}`,
+    { domicileInJapan: yes("Has a 住所 (centre of life) in Japan"), residedOneYear: yes("Has had a 居所 in Japan continuously for 1 year or more") }),
+  fn("check_fr_residency",
+    `France domicile fiscal criteria (no day count): any one of foyer or main place of stay in France, main professional activity in France, or centre of economic interests in France. Treaties prevail. ${RES("France (impots.gouv.fr, art. 4 B CGI)")}`,
+    { foyerInFrance: yes("Foyer or main place of stay in France"), mainActivityInFrance: yes("Main professional activity in France"), economicCentreInFrance: yes("Centre of economic interests in France") }),
+];
+
 // 전자세금계산서·인보이스 일정 3곳 (2026-11-22): tools-oiyo world-einvoice-pack-2026과 같은 계산.
 const EIN = (c) => `${c}, as of 2026-11-22. General information only: not tax advice, no filing, no software certification.`;
 export const EINVOICE_TOOLS = [
@@ -850,6 +874,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_fr_einvoicing: { path: "/v1/einvoice/fr", method: "POST" },
   calculate_jp_invoice_transition: { path: "/v1/einvoice/jp", method: "POST" },
   check_es_verifactu: { path: "/v1/einvoice/es", method: "POST" },
+  check_us_residency: { path: "/v1/residency/us", method: "POST" },
+  check_uk_residency: { path: "/v1/residency/uk", method: "POST" },
+  check_es_residency: { path: "/v1/residency/es", method: "POST" },
+  check_tw_residency: { path: "/v1/residency/tw", method: "POST" },
+  check_jp_residency: { path: "/v1/residency/jp", method: "POST" },
+  check_fr_residency: { path: "/v1/residency/fr", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...WORLD_INTAKE_TOOLS];
