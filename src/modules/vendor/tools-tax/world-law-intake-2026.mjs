@@ -37,6 +37,7 @@ export const WORLD_TOOLS               = [
   t("JP", "tax", "calculate_jp_inheritance_gift_tax", "ja/japan-inheritance-gift-tax-deadline", "相続税・贈与税の基礎控除と期限", ["相続税", "相続", "遺産", "贈与税", "贈与", "生前贈与", "基礎控除"]),
 
   t("US", "tax", "get_us_tax_calendar", "en/us-tax-deadline-calendar", "US federal tax deadlines", ["deadline", "due date", "1040", "april 15", "extension", "calendar", "when"]),
+  t("US", "tax", "check_us_residency", "en/us-substantial-presence-test-calculator", "Substantial presence test (US tax residency)", ["substantial presence", "tax resident", "resident alien", "nonresident alien", "183 days", "days in the us", "form 8843"]),
   t("US", "tax", "check_us_company_calendar", "en/us-business-tax-return-due-dates", "Business return due dates (1120, 1120-S, 1065)", ["1120", "1120-s", "1065", "corporate return", "fiscal year", "form 7004"]),
   t("US", "tax", "calculate_us_self_employment_tax", "en/self-employment-tax-qbi-calculator", "Self-employment tax and QBI", ["self-employment", "self employed", "1099", "schedule c", "qbi", "freelance", "se tax"]),
   t("US", "tax", "calculate_us_estimated_tax", "en/estimated-tax-safe-harbor-calculator", "Estimated tax and safe harbor", ["estimated", "quarterly", "1040-es", "safe harbor", "underpayment"]),
@@ -65,6 +66,7 @@ export const WORLD_TOOLS               = [
   t("FR", "tax", "calculate_fr_droits_succession", "fr/droits-succession-abattement-delai", "Droits de succession : abattement et délai", ["succession", "héritage", "heritage", "hériter", "abattement", "notaire", "décès"]),
 
   t("ES", "tax", "get_es_tax_calendar", "es/calendario-fiscal-autonomos-2026", "Calendario fiscal de autónomos 2026", ["calendario", "plazo", "modelo 303", "modelo 130", "renta", "cuándo"]),
+  t("ES", "tax", "check_es_residency", "es/residencia-fiscal-espana-183-dias", "Residencia fiscal en España", ["residencia fiscal", "residente fiscal", "183 días", "no residente", "centro de intereses"]),
   t("ES", "tax", "check_es_verifactu", "es/verifactu-plazo-obligatorio-2027", "Plazo VERI*FACTU", ["verifactu", "veri*factu", "programa de facturación", "software de facturación", "factura electrónica", "sii"]),
   t("ES", "tax", "calculate_es_autonomo_quota", "es/cuota-autonomos-tramos-irpf", "Cuota de autónomos por tramos", ["cuota", "autónomo", "tramos", "seguridad social", "reta", "tarifa plana"]),
   t("ES", "tax", "calculate_es_vat", "es/iva-tipos-recargo-equivalencia", "IVA y recargo de equivalencia", ["iva", "recargo de equivalencia", "21%", "10%", "4%"]),
@@ -91,6 +93,7 @@ export const WORLD_TOOLS               = [
   t("CN", "consumer", "check_cn_7day_return", "zh/china-7-day-return-deadline", "七日无理由退货", ["七天无理由", "七日无理由", "退货", "网购", "退款", "签收"]),
 
   t("UK", "tax", "get_uk_tax_calendar", "en/uk-self-assessment-deadlines-2026", "Self Assessment and MTD deadlines", ["self assessment", "31 january", "deadline", "mtd", "payment on account", "tax return"]),
+  t("UK", "tax", "check_uk_residency", "en/uk-statutory-residence-test-calculator", "Statutory residence test (UK)", ["statutory residence", "srt", "uk resident", "non-resident", "uk ties", "days in the uk", "residence test"]),
   t("UK", "tax", "check_uk_company_calendar", "en/uk-company-accounts-ct600-deadlines", "Company accounts, Corporation Tax and CT600 deadlines", ["companies house", "annual accounts", "ct600", "corporation tax", "company tax return", "year end"]),
   t("UK", "tax", "calculate_uk_self_employed_tax", "en/uk-self-employed-tax-ni-calculator", "Self-employed Income Tax and NI", ["self-employed", "sole trader", "class 4", "class 2", "national insurance", "profit"]),
   t("UK", "tax", "check_uk_vat_registration", "en/uk-vat-registration-threshold-check", "VAT registration threshold and Flat Rate Scheme", ["vat", "90,000", "90k", "register for vat", "flat rate"]),
@@ -106,6 +109,7 @@ export const WORLD_TOOLS               = [
   t("UK", "tax", "calculate_uk_inheritance_tax", "en/uk-inheritance-tax-threshold-deadline", "Inheritance Tax threshold and payment date", ["inheritance tax", "inheritance", "estate", "nil rate band", "iht", "probate", "gifts before death"]),
 
   t("TW", "tax", "get_tw_tax_calendar", "zh/taiwan-tax-filing-calendar-2026", "綜所稅與營所稅申報期限", ["申報", "期限", "五月", "綜所稅", "營所稅", "什麼時候"]),
+  t("TW", "tax", "check_tw_residency", "zh/taiwan-tax-resident-183-31-days", "稅務居住者判定（31天／183天）", ["居住者", "非居住者", "183天", "31天", "稅務居民", "戶籍"]),
   t("TW", "tax", "calculate_tw_income_tax", "zh/taiwan-income-tax-calculator", "綜合所得稅試算", ["綜合所得稅", "所得稅", "免稅額", "扣除額", "級距"]),
   t("TW", "tax", "check_tw_business_tax", "zh/taiwan-business-tax-threshold", "營業稅起徵點與小規模營業人", ["營業稅", "起徵點", "小規模", "統一發票", "1%"]),
   t("TW", "tax", "calculate_tw_late_fee", "zh/taiwan-late-tax-penalty-appeal", "滯納金", ["滯納金", "逾期", "遲繳"]),
@@ -161,6 +165,6 @@ export function intake(x                                                        
     ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
     help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer", "claims"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
-    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filing calendars in Spain, Taiwan and mainland China, tax residency.",
+    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filing calendars in Spain, Taiwan and mainland China, tax residency in mainland China.",
   };
 }
