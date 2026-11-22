@@ -252,6 +252,10 @@ const fixtures = {
   calculate_fr_late_payment_b2b: { amount: 10000, due: "2026-08-01", paid: "2026-08-31" },
   calculate_es_late_payment_b2b: { amount: 10000, due: "2026-08-01", paid: "2026-08-31" },
   calculate_uk_late_payment_b2b: { amount: 10000, due: "2026-08-01", paid: "2026-08-31", baseRate: 3.75 },
+  calculate_uk_maternity_pay: { weeklyEarnings: 600 },
+  calculate_uk_child_benefit: { children: 2, adjustedNetIncome: 70000 },
+  calculate_jp_childcare_leave_benefit: { monthlyWage: 300000, months: 12 },
+  calculate_de_elterngeld: { netBefore: 2000 },
   calculate_uk_take_home: { annual: 35000 },
   calculate_us_take_home: { annual: 60000 },
   calculate_jp_take_home: { annual: 5000000 },
@@ -363,7 +367,7 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
     assert.ok(/^\/(ko|ja|en|fr|es|zh|de)\//.test(url.pathname) && url.pathname.endsWith("/"));
     // 2026-11-22: 비거주자 원천징수(*_withholding)는 6개국 공용 /en/ 페이지 하나로 보내요.
-    const shared = /_withholding$|_late_payment_b2b$|^calculate_(jp|uk|us|fr|es|de)_corporate_tax$/.test(name);
+    const shared = /_withholding$|^calculate_jp_childcare_leave_benefit$|^calculate_de_elterngeld$|_late_payment_b2b$|^calculate_(jp|uk|us|fr|es|de)_corporate_tax$/.test(name);
     if (shared) assert.ok(url.pathname.startsWith("/en/"), name);
     if (!shared && /_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
     if (!shared && /_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);

@@ -691,6 +691,14 @@ export const LATE_PAYMENT_TOOLS = [
     { amount: num("Invoice amount"), due: date("Date payment was due (YYYY-MM-DD)"), paid: date("Date paid, or today (YYYY-MM-DD)"), consumerDebtor: yes("DE: the debtor is a consumer"), baseRate: num("UK: Bank of England reference rate in %", 0, 20) }, ["amount", "due", "paid"]),
 ];
 
+// 육아휴직 급여·아동수당 3곳 (2026-11-22, 일반인 축 A3): tools-oiyo world-parental-pay-2026과 같은 계산.
+export const PARENTAL_TOOLS = [
+  fn("calculate_uk_maternity_pay", "UK Statutory Maternity Pay 2026-27: 39 weeks, 6 at 90% of average weekly earnings, 33 at £194.32 or 90% if lower. General information only, as of 2026-11-22; eligibility is not checked.", { weeklyEarnings: num("Average weekly earnings before tax (GBP)") }, ["weeklyEarnings"]),
+  fn("calculate_uk_child_benefit", "UK Child Benefit (£27.05 eldest, £17.90 others a week) and the High Income Child Benefit Charge (1% per £200 of adjusted net income over £60,000). General information only, as of 2026-11-22; eligibility is not checked.", { children: int("Number of children", 0, 20), adjustedNetIncome: num("Higher adjusted net income in the household (GBP)") }, ["children"]),
+  fn("calculate_jp_childcare_leave_benefit", "Japan 育児休業給付金: 67% for 180 days then 50% of 休業開始時賃金月額, with the caps from 2026-08-01 (332,454 / 248,100 yen), and optional 出生後休業支援給付金 (13%, 28 days). General information only, as of 2026-11-22; eligibility is not checked.", { monthlyWage: num("休業開始時賃金月額 (yen)"), months: num("Months of leave", 0, 24), support: yes("Include 出生後休業支援給付金") }, ["monthlyWage"]),
+  fn("calculate_de_elterngeld", "Germany Elterngeld under § 2 BEEG (67%, 65-100% sliding, 300-1,800 EUR), ElterngeldPlus, the 175,000 EUR income limit and Kindergeld (259 EUR per child). General information only, as of 2026-11-22; eligibility is not checked.", { netBefore: num("Monthly net income before birth (EUR)"), netAfter: num("Monthly net income after birth (EUR)"), taxableIncome: num("Parents' taxable income per year (EUR)"), children: int("Children for Kindergeld", 0, 20) }, ["netBefore"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1058,6 +1066,10 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_fr_late_payment_b2b: { path: "/v1/late-payment/fr", method: "POST" },
   calculate_es_late_payment_b2b: { path: "/v1/late-payment/es", method: "POST" },
   calculate_uk_late_payment_b2b: { path: "/v1/late-payment/uk", method: "POST" },
+  calculate_uk_maternity_pay: { path: "/v1/parental/uk-maternity-pay", method: "POST" },
+  calculate_uk_child_benefit: { path: "/v1/parental/uk-child-benefit", method: "POST" },
+  calculate_jp_childcare_leave_benefit: { path: "/v1/parental/jp-childcare-leave", method: "POST" },
+  calculate_de_elterngeld: { path: "/v1/parental/de-elterngeld", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1065,4 +1077,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...WORLD_INTAKE_TOOLS];
