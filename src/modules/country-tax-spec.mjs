@@ -705,6 +705,12 @@ export const SMALL_VAT_TOOLS = [
   fn("calculate_sg_gst_registration", "Singapore GST registration test: over S$1 million on the retrospective (calendar year) or prospective (next 12 months) view; for forecasts from 2025-07-01 apply within 30 days and registration starts 2 months from the forecast date. GST 9%. General information only, not tax advice, as of 2026-11-22; does not register anyone.", { calendarYearTurnover: num("Turnover last calendar year (SGD)"), forecastNext12: num("Expected turnover next 12 months (SGD)"), forecastDate: date("Date of the forecast (YYYY-MM-DD)") }, []),
 ];
 
+// 노무 실무 2종 (2026-11-22, 실무자 축 P5): tools-oiyo world-labor-practice-2026과 같은 계산.
+export const LABOR_PRACTICE_TOOLS = [
+  fn("calculate_jp_overtime_cap_check", "Japan 36協定 overtime caps: 45h/360h (42/320 variable), special clause 720h, overtime+holiday under 100h a month and <= 80h on every 2-6 month average, >45h at most 6 months; driver 960h, construction disaster, doctors 960/1,860h. General information only, not legal advice, as of 2026-11-22.", { months: { type: "array", maxItems: 12, description: "Up to 12 months, oldest first", items: { type: "object", properties: { overtime: num("Overtime hours (not holiday work)"), holiday: num("Holiday work hours") }, required: ["overtime"] } }, special: yes("Special clause (特別条項) in the 36協定"), henkei: yes("One-year variable working-hours system"), sector: pick(["general", "driver", "construction_disaster", "doctor_a", "doctor_bc"], "Sector") }, ["months"]),
+  fn("calculate_uk_irregular_hours_holiday", "UK irregular-hours and part-year workers: holiday accrues at 12.07% of hours worked in each pay period (leave years from 1 April 2024). Rounding and rolled-up pay not applied. General information only, not legal advice, as of 2026-11-22.", { hours: { type: "array", maxItems: 60, description: "Hours worked in each pay period", items: num("Hours") } }, ["hours"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1078,6 +1084,8 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_de_elterngeld: { path: "/v1/parental/de-elterngeld", method: "POST" },
   calculate_de_kleinunternehmer_vat: { path: "/v1/small-business-vat/de", method: "POST" },
   calculate_sg_gst_registration: { path: "/v1/small-business-vat/sg", method: "POST" },
+  calculate_jp_overtime_cap_check: { path: "/v1/labor-practice/jp-overtime", method: "POST" },
+  calculate_uk_irregular_hours_holiday: { path: "/v1/labor-practice/uk-holiday", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1085,4 +1093,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...WORLD_INTAKE_TOOLS];
