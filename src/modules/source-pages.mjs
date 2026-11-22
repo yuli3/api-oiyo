@@ -227,6 +227,7 @@ export const SOURCE_PAGES = Object.freeze({
   check_de_minimum_wage: "https://tools.oiyo.net/de/kuendigungsfrist-rechner/",
   check_de_einvoicing: "https://tools.oiyo.net/de/e-rechnung-pflicht-ab-wann/",
   calculate_sg_cpf: "https://tools.oiyo.net/en/singapore-cpf-contribution-calculator-2026/",
+  calculate_sg_income_tax: "https://tools.oiyo.net/en/singapore-income-tax-calculator/",
   calculate_sg_notice_period: "https://tools.oiyo.net/en/singapore-notice-period-calculator/",
   compare_kr_bookkeeping_vs_estimate: `${TOOLS}bookkeeping-vs-estimate-calculator/`,
   check_kr_exempt_business_report: `${TOOLS}exempt-business-report-checker/`,

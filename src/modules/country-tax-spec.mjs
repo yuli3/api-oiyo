@@ -562,6 +562,9 @@ export const DE_SG_TOOLS = [
   fn("calculate_sg_cpf",
     `Singapore CPF contributions from 1 January 2026 for monthly wages above $750: employer and employee rates by age (55 and below 17% + 20%, above 55 to 60 16% + 18%, above 60 to 65 12.5% + 12.5%, above 65 to 70 9% + 7.5%, above 70 7.5% + 5%), Ordinary Wage ceiling $8,000. Not rounded; bonuses and low-wage rates are not computed. ${DSG("Singapore (CPF Board)")}`,
     { monthlyWage: num("Monthly ordinary wage (SGD)"), age: num("Age", 0, 120) }, ["monthlyWage", "age"]),
+  fn("calculate_sg_income_tax",
+    `Singapore income tax from the IRAS rates (YA 2024 onwards): residents 0% on the first $20,000 rising to 24% above $1,000,000, with the YA 2024 (50%) and YA 2025 (60%) rebate capped at $200; no YA 2026 rebate is applied because it is not on the IRAS page. Non-residents: employment income at 15% or resident rates, whichever is higher, plus 24% on other income such as director's fees. Enter chargeable income after reliefs; tax residence is not decided. ${DSG("Singapore (IRAS)")}`,
+    { chargeableIncome: num("Chargeable income for the year (SGD), for residents"), resident: yes("Tax resident"), ya: num("Year of Assessment", 2024, 2030), employmentIncome: num("Employment income (SGD), for non-residents"), otherIncome: num("Other income such as director's fees (SGD), for non-residents") }, ["chargeableIncome", "resident"]),
   fn("calculate_sg_notice_period",
     `Singapore notice period when the contract is silent (Employment Act): 1 day under 26 weeks, 1 week to under 2 years, 2 weeks to under 5 years, 4 weeks from 5 years; the period includes the day notice is given. Gives the last day. ${DSG("Singapore (MOM)")}`,
     { startDate: date("Start of employment"), noticeDate: date("Day notice is given"), contractDays: num("Notice period in the contract (days), if any", 0, 365) }, ["startDate", "noticeDate"]),
@@ -909,6 +912,7 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_de_einvoicing: { path: "/v1/de/einvoice", method: "POST" },
   calculate_sg_cpf: { path: "/v1/sg/cpf", method: "POST" },
   calculate_sg_notice_period: { path: "/v1/sg/notice", method: "POST" },
+  calculate_sg_income_tax: { path: "/v1/sg/income-tax", method: "POST" },
 };
 
 export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...WORLD_INTAKE_TOOLS];
