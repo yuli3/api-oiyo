@@ -699,6 +699,12 @@ export const PARENTAL_TOOLS = [
   fn("calculate_de_elterngeld", "Germany Elterngeld under § 2 BEEG (67%, 65-100% sliding, 300-1,800 EUR), ElterngeldPlus, the 175,000 EUR income limit and Kindergeld (259 EUR per child). General information only, as of 2026-11-22; eligibility is not checked.", { netBefore: num("Monthly net income before birth (EUR)"), netAfter: num("Monthly net income after birth (EUR)"), taxableIncome: num("Parents' taxable income per year (EUR)"), children: int("Children for Kindergeld", 0, 20) }, ["netBefore"]),
 ];
 
+// 소규모 사업자 부가세·GST 등록 2곳 (2026-11-22, 실무자 축 P6): tools-oiyo world-small-business-vat-2026과 같은 계산.
+export const SMALL_VAT_TOOLS = [
+  fn("calculate_de_kleinunternehmer_vat", "Germany § 19 UStG small business rule from 2025: Kleinunternehmer if net turnover last year <= 25,000 EUR and expected this year <= 100,000 EUR; over 100,000 switch during the year; opting out binds 5 years. General information only, not tax advice, as of 2026-11-22; does not register anyone.", { priorYear: num("Net turnover last year (EUR)"), currentYear: num("Expected net turnover this year (EUR)"), founded: yes("Business founded this year"), optedOut: yes("Opted out of the small business rule (Verzicht)") }, ["currentYear"]),
+  fn("calculate_sg_gst_registration", "Singapore GST registration test: over S$1 million on the retrospective (calendar year) or prospective (next 12 months) view; for forecasts from 2025-07-01 apply within 30 days and registration starts 2 months from the forecast date. GST 9%. General information only, not tax advice, as of 2026-11-22; does not register anyone.", { calendarYearTurnover: num("Turnover last calendar year (SGD)"), forecastNext12: num("Expected turnover next 12 months (SGD)"), forecastDate: date("Date of the forecast (YYYY-MM-DD)") }, []),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1070,6 +1076,8 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_uk_child_benefit: { path: "/v1/parental/uk-child-benefit", method: "POST" },
   calculate_jp_childcare_leave_benefit: { path: "/v1/parental/jp-childcare-leave", method: "POST" },
   calculate_de_elterngeld: { path: "/v1/parental/de-elterngeld", method: "POST" },
+  calculate_de_kleinunternehmer_vat: { path: "/v1/small-business-vat/de", method: "POST" },
+  calculate_sg_gst_registration: { path: "/v1/small-business-vat/sg", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1077,4 +1085,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...WORLD_INTAKE_TOOLS];

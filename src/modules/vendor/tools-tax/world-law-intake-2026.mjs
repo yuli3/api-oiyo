@@ -20,7 +20,7 @@ export const INTAKE_AS_OF = "2026-11-22";
  *  pro: running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing). */
                                         
                                                                                                                                             
-const PRO = /corporate_tax|withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
+const PRO = /corporate_tax|gst_registration|kleinunternehmer|withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
 export const audienceOf = (mcp        )           => (PRO.test(mcp) ? "pro" : "person");
 
 const T = "https://tools.oiyo.net/";
@@ -164,6 +164,8 @@ export const WORLD_TOOLS               = [
   t("DE", "labor", "calculate_de_notice_period", "de/kuendigungsfrist-rechner", "Kündigungsfrist nach § 622 BGB", ["kündigung", "kündigungsfrist", "gekündigt", "kündigen", "probezeit", "letzter arbeitstag", "notice", "fired", "dismissal"]),
   t("DE", "labor", "check_de_minimum_wage", "de/kuendigungsfrist-rechner", "Mindestlohn und Minijob-Grenze", ["mindestlohn", "minijob", "stundenlohn", "minimum wage", "603", "13,90", "13.90"]),
   t("DE", "tax", "check_de_einvoicing", "de/e-rechnung-pflicht-ab-wann", "E-Rechnung: ab wann Pflicht", ["e-rechnung", "erechnung", "xrechnung", "zugferd", "rechnung", "e-invoice", "einvoice"]),
+  t("DE", "tax", "calculate_de_kleinunternehmer_vat", "en/small-business-vat-registration-check", "Kleinunternehmerregelung (§ 19 UStG)", ["kleinunternehmer", "kleinunternehmerregelung", "§ 19 ustg", "umsatzgrenze", "ohne umsatzsteuer", "25.000", "100.000"]),
+  t("SG", "tax", "calculate_sg_gst_registration", "en/small-business-vat-registration-check", "GST registration (S$1 million)", ["gst registration", "register for gst", "gst-registered", "s$1 million", "retrospective view", "prospective view", "gst threshold"]),
   t("SG", "tax", "calculate_sg_income_tax", "en/singapore-income-tax-calculator", "Singapore income tax (IRAS rates, YA 2024 onwards)", ["income tax", "iras", "chargeable income", "tax resident", "non-resident", "rebate", "year of assessment"]),
   t("SG", "labor", "calculate_sg_cpf", "en/singapore-cpf-contribution-calculator-2026", "CPF contributions 2026", ["cpf", "contribution", "employer share", "ordinary wage", "payslip"]),
   t("SG", "labor", "calculate_sg_notice_period", "en/singapore-notice-period-calculator", "Notice period under the Employment Act", ["notice", "resign", "resignation", "terminate", "fired", "dismissed", "last day", "employment act"]),

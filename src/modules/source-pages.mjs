@@ -257,6 +257,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_uk_child_benefit: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_jp_childcare_leave_benefit: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_de_elterngeld: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
+  calculate_de_kleinunternehmer_vat: "https://tools.oiyo.net/en/small-business-vat-registration-check/",
+  calculate_sg_gst_registration: "https://tools.oiyo.net/en/small-business-vat-registration-check/",
   calculate_uk_take_home: "https://tools.oiyo.net/en/uk-take-home-pay-calculator-2026/",
   calculate_us_take_home: "https://tools.oiyo.net/en/us-take-home-pay-calculator-2026/",
   calculate_jp_take_home: "https://tools.oiyo.net/ja/japan-salary-calculator/",
