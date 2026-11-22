@@ -232,6 +232,12 @@ const fixtures = {
   check_es_withholding: { type: "royalty", amount: 1000 },
   check_tw_withholding: { type: "royalty", amount: 1000 },
   check_de_withholding: { type: "royalty", amount: 1000 },
+  calculate_jp_corporate_tax: { profit: 100000 },
+  calculate_uk_corporate_tax: { profit: 100000 },
+  calculate_us_corporate_tax: { profit: 100000 },
+  calculate_fr_corporate_tax: { profit: 100000 },
+  calculate_es_corporate_tax: { profit: 100000 },
+  calculate_de_corporate_tax: { profit: 100000 },
   calculate_uk_take_home: { annual: 35000 },
   calculate_us_take_home: { annual: 60000 },
   calculate_jp_take_home: { annual: 5000000 },
@@ -343,7 +349,7 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
     assert.ok(/^\/(ko|ja|en|fr|es|zh|de)\//.test(url.pathname) && url.pathname.endsWith("/"));
     // 2026-11-22: 비거주자 원천징수(*_withholding)는 6개국 공용 /en/ 페이지 하나로 보내요.
-    const shared = /_withholding$/.test(name);
+    const shared = /_withholding$|^calculate_(jp|uk|us|fr|es|de)_corporate_tax$/.test(name);
     if (shared) assert.ok(url.pathname.startsWith("/en/"), name);
     if (!shared && /_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
     if (!shared && /_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);

@@ -20,7 +20,7 @@ export const INTAKE_AS_OF = "2026-11-22";
  *  pro: running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing). */
                                         
                                                                                                                                             
-const PRO = /withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
+const PRO = /corporate_tax|withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
 export const audienceOf = (mcp        )           => (PRO.test(mcp) ? "pro" : "person");
 
 const T = "https://tools.oiyo.net/";
@@ -130,6 +130,12 @@ export const WORLD_TOOLS               = [
   t("US", "labor", "calculate_us_take_home", "en/us-take-home-pay-calculator-2026", "Take-home pay 2026 (federal tax and FICA)", ["take home", "take-home", "net pay", "paycheck", "after tax", "fica", "salary after tax"]),
   t("FR", "labor", "calculate_fr_take_home", "fr/france-salary-calculator", "Salaire net après impôt (brut en net)", ["brut en net", "salaire net", "net après impôt", "fiche de paie", "salaire brut", "combien je touche"]),
   t("ES", "labor", "calculate_es_take_home", "es/spain-salary-calculator", "Salario neto (bruto a neto, IRPF y cotizaciones)", ["salario neto", "bruto a neto", "nómina", "cuánto cobro", "sueldo neto", "neto"]),
+  t("JP", "tax", "calculate_jp_corporate_tax", "en/corporate-tax-calculator-2026", "法人税額（税率23.2%・中小法人15%）", ["法人税率", "法人税額", "中小法人", "軽減税率", "800万円", "資本金1億円", "法人税 いくら", "法人税の計算"]),
+  t("UK", "tax", "calculate_uk_corporate_tax", "en/corporate-tax-calculator-2026", "Corporation Tax with marginal relief", ["corporation tax rate", "marginal relief", "small profits rate", "associated companies", "how much corporation tax", "ct rate"]),
+  t("US", "tax", "calculate_us_corporate_tax", "en/corporate-tax-calculator-2026", "Federal corporate income tax (21%)", ["corporate tax rate", "c corporation tax", "c corp", "21%", "federal corporate tax", "how much corporate tax"]),
+  t("FR", "tax", "calculate_fr_corporate_tax", "en/corporate-tax-calculator-2026", "Impôt sur les sociétés (taux normal et taux réduit PME)", ["impôt sur les sociétés", "taux réduit", "42 500", "is pme", "taux de l'is", "combien d'is"]),
+  t("ES", "tax", "calculate_es_corporate_tax", "en/corporate-tax-calculator-2026", "Impuesto sobre Sociedades (tipos 2026)", ["impuesto sobre sociedades", "tipo de gravamen", "microempresa", "reducida dimensión", "nueva creación", "cuánto pago de sociedades"]),
+  t("DE", "tax", "calculate_de_corporate_tax", "en/corporate-tax-calculator-2026", "Körperschaftsteuer und Gewerbesteuer", ["körperschaftsteuer", "gewerbesteuer", "hebesatz", "gmbh steuer", "kapitalgesellschaft", "unternehmenssteuer"]),
   t("JP", "tax", "check_jp_withholding", "en/withholding-tax-non-resident-payments", "非居住者への支払と源泉徴収税率", ["非居住者", "源泉徴収", "海外", "使用料", "20.42", "外国法人", "withholding"]),
   t("US", "tax", "check_us_withholding", "en/withholding-tax-non-resident-payments", "NRA withholding on payments to non-residents (30%)", ["nra withholding", "withholding", "non-resident", "nonresident", "fdap", "1042", "w-8ben", "foreign contractor"]),
   t("FR", "tax", "check_fr_withholding", "en/withholding-tax-non-resident-payments", "Retenue à la source sur paiements aux non-résidents (art. 182 B)", ["retenue à la source", "non-résident", "182 b", "redevances", "prestataire étranger"]),
