@@ -2,6 +2,14 @@
 // from, and nobody had published a Korean welfare / benefits MCP (survey 2026-11-20). A profile is only a
 // filter over TOOLS_SPEC: same schemas, same in-process REST dispatcher, no second formula.
 // Each profile has its own MCP Registry entry (registry/<name>/server.json).
+import { TOOLS_SPEC } from "./tools-spec.mjs";
+
+// 2026-11-22: country tools outside Korea (JP UK US FR ES DE CN TW SG CA). The full server is listed as
+// "Korean ...", so people looking for Japanese take-home pay or a German notice period never find these.
+// Derived from the tool name (calculate_<cc>_..., check_<cc>_..., start_world_...) so new country tools join
+// without a second list to maintain.
+export const WORLD_TOOL_PATTERN = /_(jp|uk|us|fr|es|de|cn|tw|sg|ca|world)_/;
+
 export const MCP_PROFILES = {
   welfare: {
     serverName: "oiyo-welfare",
@@ -36,6 +44,11 @@ export const MCP_PROFILES = {
       "check_kr_special_supply",
       "diagnose_hug_guarantee",
     ],
+  },
+  world: {
+    serverName: "oiyo-world",
+    paths: ["/mcp/world", "/mcp/world/"],
+    tools: TOOLS_SPEC.tools.map(t => t.function.name).filter(name => WORLD_TOOL_PATTERN.test(name)),
   },
 };
 
