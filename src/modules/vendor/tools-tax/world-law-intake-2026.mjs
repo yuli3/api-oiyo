@@ -30,6 +30,7 @@ export const WORLD_TOOLS               = [
   t("JP", "labor", "calculate_jp_labor_exit", "ja/japan-dismissal-unemployment-checker", "解雇予告手当・失業手当・有給", ["解雇", "解雇予告", "退職", "失業", "基本手当", "有給", "最低賃金", "残業代", "未払い", "dismiss", "fired", "unemployment"]),
   t("JP", "tenancy", "check_jp_rental_deposit_notice", "ja/japan-rental-deposit-notice-checker", "敷金・解約予告", ["敷金", "賃貸", "家賃", "退去", "解約", "更新", "定期借家", "大家", "deposit", "rent", "lease"]),
   t("JP", "consumer", "check_jp_cooling_off", "ja/japan-cooling-off-deadline", "クーリング・オフ期限", ["クーリング・オフ", "クーリングオフ", "訪問販売", "電話勧誘", "エステ", "マルチ", "解約したい", "返品", "契約をやめ"]),
+  t("JP", "tax", "calculate_jp_inheritance_gift_tax", "ja/japan-inheritance-gift-tax-deadline", "相続税・贈与税の基礎控除と期限", ["相続税", "相続", "遺産", "贈与税", "贈与", "生前贈与", "基礎控除"]),
 
   t("US", "tax", "get_us_tax_calendar", "en/us-tax-deadline-calendar", "US federal tax deadlines", ["deadline", "due date", "1040", "april 15", "extension", "calendar", "when"]),
   t("US", "tax", "calculate_us_self_employment_tax", "en/self-employment-tax-qbi-calculator", "Self-employment tax and QBI", ["self-employment", "self employed", "1099", "schedule c", "qbi", "freelance", "se tax"]),
@@ -40,6 +41,7 @@ export const WORLD_TOOLS               = [
   t("US", "labor", "check_us_labor_rights", "en/us-wage-layoff-deadline-checker", "Minimum wage, overtime, WARN and EEOC deadlines", ["minimum wage", "overtime", "layoff", "warn", "fired", "final pay", "eeoc", "discrimination", "back wages"]),
   t("US", "tenancy", "check_us_security_deposit_notice", "en/california-new-york-security-deposit-notice", "California and New York security deposit, notice and rent cap", ["security deposit", "rent", "landlord", "tenant", "lease", "move out", "rent increase", "ab 1482", "rent stabilized"]),
   t("US", "consumer", "check_us_cooling_off", "en/ftc-cooling-off-rule-deadline", "FTC three-day Cooling-Off Rule", ["cooling-off", "cooling off", "door-to-door", "cancel a purchase", "salesperson", "three-day", "3-day", "refund"]),
+  t("US", "tax", "check_us_estate_gift_exclusion", "en/us-estate-gift-tax-exclusion-2026", "Estate and gift tax exclusions and due dates", ["estate tax", "gift tax", "inheritance", "form 706", "form 709", "annual exclusion", "estate"]),
 
   t("FR", "tax", "get_fr_tax_calendar", "fr/calendrier-fiscal-entreprise", "Calendrier fiscal 2026", ["calendrier", "échéance", "date limite", "déclaration", "cfe", "tva"]),
   t("FR", "tax", "calculate_fr_micro_entrepreneur", "fr/micro-entrepreneur-cotisations-impot", "Micro-entrepreneur : cotisations et impôt", ["micro-entrepreneur", "auto-entrepreneur", "cotisations", "urssaf", "versement libératoire", "chiffre d'affaires"]),
@@ -50,6 +52,7 @@ export const WORLD_TOOLS               = [
   t("FR", "labor", "calculate_fr_labor_exit", "fr/indemnite-licenciement-delais-prudhommes", "Indemnité de licenciement, préavis et prud'hommes", ["licenciement", "licencié", "indemnité", "préavis", "rupture conventionnelle", "prud'hommes", "smic", "chômage", "démission"]),
   t("FR", "tenancy", "check_fr_deposit_notice_irl", "fr/depot-de-garantie-preavis-irl", "Dépôt de garantie, préavis et révision IRL", ["dépôt de garantie", "caution", "loyer", "bail", "propriétaire", "locataire", "préavis", "irl", "état des lieux", "meublé"]),
   t("FR", "consumer", "check_fr_retractation", "fr/delai-retractation-achat-distance", "Délai de rétractation de 14 jours", ["rétractation", "retractation", "remboursement", "achat en ligne", "commande", "démarchage", "annuler un achat"]),
+  t("FR", "tax", "calculate_fr_droits_succession", "fr/droits-succession-abattement-delai", "Droits de succession : abattement et délai", ["succession", "héritage", "heritage", "hériter", "abattement", "notaire", "décès"]),
 
   t("ES", "tax", "get_es_tax_calendar", "es/calendario-fiscal-autonomos-2026", "Calendario fiscal de autónomos 2026", ["calendario", "plazo", "modelo 303", "modelo 130", "renta", "cuándo"]),
   t("ES", "tax", "calculate_es_autonomo_quota", "es/cuota-autonomos-tramos-irpf", "Cuota de autónomos por tramos", ["cuota", "autónomo", "tramos", "seguridad social", "reta", "tarifa plana"]),
@@ -84,6 +87,7 @@ export const WORLD_TOOLS               = [
   t("UK", "labor", "calculate_uk_labor_exit", "en/uk-redundancy-notice-tribunal-calculator", "Redundancy pay, notice and tribunal deadline", ["redundancy", "redundant", "notice", "tribunal", "acas", "minimum wage", "holiday pay", "sick pay", "ssp", "dismissed"]),
   t("UK", "tenancy", "check_uk_tenancy_deposit_notice", "en/england-tenancy-deposit-notice-checker", "England deposit cap, protection and notice", ["deposit", "tenancy", "landlord", "tenant", "rent", "renters' rights", "section 21", "deposit protection", "evict"]),
   t("UK", "consumer", "check_uk_cancellation_period", "en/uk-consumer-cancellation-period", "14-day cancellation period", ["cancel", "cancellation", "refund", "online order", "doorstep", "cooling-off"]),
+  t("UK", "tax", "calculate_uk_inheritance_tax", "en/uk-inheritance-tax-threshold-deadline", "Inheritance Tax threshold and payment date", ["inheritance tax", "inheritance", "estate", "nil rate band", "iht", "probate", "gifts before death"]),
 
   t("TW", "tax", "get_tw_tax_calendar", "zh/taiwan-tax-filing-calendar-2026", "綜所稅與營所稅申報期限", ["申報", "期限", "五月", "綜所稅", "營所稅", "什麼時候"]),
   t("TW", "tax", "calculate_tw_income_tax", "zh/taiwan-income-tax-calculator", "綜合所得稅試算", ["綜合所得稅", "所得稅", "免稅額", "扣除額", "級距"]),
@@ -94,6 +98,7 @@ export const WORLD_TOOLS               = [
   t("TW", "labor", "calculate_tw_labor_exit", "zh/taiwan-severance-notice-calculator", "資遣費·預告期間·特休·失業給付", ["資遣", "資遣費", "解僱", "離職", "預告", "特休", "失業給付", "最低工資", "勞退"]),
   t("TW", "tenancy", "check_tw_rental_deposit_termination", "zh/taiwan-rental-deposit-termination", "租屋押金與提前終止", ["租屋", "押金", "房東", "房客", "租約", "提前終止", "退租"]),
   t("TW", "consumer", "check_tw_7day_cancellation", "zh/taiwan-7-day-cancellation", "七日解約權", ["七日鑑賞期", "鑑賞期", "七天", "退貨", "網購", "解約", "退款"]),
+  t("TW", "tax", "check_tw_estate_tax_deadline", "zh/taiwan-estate-tax-filing-deadline", "遺產稅申報期限", ["遺產稅", "遺產", "繼承", "過世", "申報期限"]),
 ];
 
 // Free official help, as already published in the packs and skills (tax: *_SCOPE; labour and tenancy: pack items / SKILL.md; consumer: world-consumer-pack-2026).
@@ -138,6 +143,6 @@ export function intake(x                                                        
     ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
     help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
-    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet in this country: inheritance, limitation periods, employer payroll, company filings, tax residency.",
+    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods, employer payroll, company filings, tax residency.",
   };
 }
