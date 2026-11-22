@@ -11,7 +11,7 @@ import { twDebtClearance, esSecondChance, esInheritanceDeadline } from "./vendor
 import { jpCourtFee, deCourtFee } from "./vendor/tools-tax/world-court-fees-2026.mjs";
 import { jpOvertimeCheck, ukIrregularHoliday } from "./vendor/tools-tax/world-labor-practice-2026.mjs";
 import { deKleinunternehmer, sgGstRegistration } from "./vendor/tools-tax/world-small-business-vat-2026.mjs";
-import { ukMaternityPay, ukChildBenefit, jpChildcareLeave, deElterngeld } from "./vendor/tools-tax/world-parental-pay-2026.mjs";
+import { ukMaternityPay, ukChildBenefit, jpChildcareLeave, jpChildAllowance, deElterngeld } from "./vendor/tools-tax/world-parental-pay-2026.mjs";
 import { lateInterest } from "./vendor/tools-tax/world-late-payment-2026.mjs";
 import { erbschaftsteuer, mietkaution, pfaendung, verjaehrung, widerruf } from "./vendor/tools-tax/de-life-law-2026.mjs";
 import { homePurchaseTax } from "./vendor/tools-tax/world-home-purchase-2026.mjs";
@@ -113,6 +113,7 @@ export function makeCountryTaxHandlers() {
     "/v1/parental/uk-maternity-pay": (i) => ({ ...ukMaternityPay(i), page: `${EN}parental-pay-calculator-2026/`, note: PARENTAL_NOTE }),
     "/v1/parental/uk-child-benefit": (i) => ({ ...ukChildBenefit(i), page: `${EN}parental-pay-calculator-2026/`, note: PARENTAL_NOTE }),
     "/v1/parental/jp-childcare-leave": (i) => ({ ...jpChildcareLeave(i), page: `${EN}parental-pay-calculator-2026/`, note: PARENTAL_NOTE }),
+    "/v1/parental/jp-child-allowance": (i) => ({ ...jpChildAllowance(i), page: `${EN}parental-pay-calculator-2026/`, note: PARENTAL_NOTE }),
     "/v1/parental/de-elterngeld": (i) => ({ ...deElterngeld(i), page: `${EN}parental-pay-calculator-2026/`, note: PARENTAL_NOTE }),
     "/v1/small-business-vat/de": (i) => ({ ...deKleinunternehmer(i), page: `${EN}small-business-vat-registration-check/`, note: SMALL_VAT_NOTE }),
     "/v1/small-business-vat/sg": (i) => ({ ...sgGstRegistration(i), page: `${EN}small-business-vat-registration-check/`, note: SMALL_VAT_NOTE }),

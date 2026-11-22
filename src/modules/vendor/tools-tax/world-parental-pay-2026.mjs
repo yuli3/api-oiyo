@@ -60,6 +60,25 @@ export function jpChildcareLeave(x                                              
   return { ok: true         , wage: base, monthly67: m67, monthly50: m50, months, support, total: m67 * first + m50 * later + support, items };
 }
 
+// Japan 児童手当 (こども家庭庁「児童手当」・児童手当Q&A, read 2026-11-22): 3歳未満 15,000円, 3歳〜高校生年代 10,000円, 第3子以降 30,000円 (per month).
+// 第3子以降 counts from the oldest child, including children after 高校生年代 up to the 3/31 after turning 22 whom the parent supports.
+// Paid in even months (年6回), each time for the months up to the previous month. Applied at the municipality within 15 days of birth.
+export const JP_JIDOU = { under3: 15_000, from3: 10_000, third: 30_000 };
+export function jpChildAllowance(x                                                               ) {
+  const u3 = Math.max(0, Math.floor(Number(x.under3) || 0)), f3 = Math.max(0, Math.floor(Number(x.from3) || 0)), older = Math.max(0, Math.floor(Number(x.supported19to22) || 0));
+  // Order from the oldest: supported 19-22 first (counted, not paid), then 3歳〜高校生年代, then 3歳未満.
+  let pos = older, monthly = 0, thirds = 0;
+  for (let i = 0; i < f3; i++) { pos++; if (pos >= 3) { monthly += JP_JIDOU.third; thirds++; } else monthly += JP_JIDOU.from3; }
+  for (let i = 0; i < u3; i++) { pos++; if (pos >= 3) { monthly += JP_JIDOU.third; thirds++; } else monthly += JP_JIDOU.under3; }
+  const C = "こども家庭庁「児童手当」・児童手当Q&A";
+  const items         = [
+    { tone: "info", text: `児童手当: 月 ${monthly.toLocaleString("ja-JP")}円（年 ${(monthly * 12).toLocaleString("ja-JP")}円）。3歳未満 15,000円、3歳〜高校生年代 10,000円、第3子以降 30,000円${thirds ? `（第3子以降 ${thirds}人）` : ""}。`, cite: C },
+    { tone: "info", text: "第3子以降は年上の子から数えます。高校生年代の後、22歳になった後の最初の3月31日までで親が経済的に負担している子も数に入ります。", cite: C },
+    { tone: "warn", text: "出生日の翌日から15日以内に住んでいる市区町村へ申請します（公務員は勤務先）。遅れると、原則として遅れた月分は受けられません。支給は偶数月の年6回です。", cite: C },
+  ];
+  return { ok: true         , monthly, annual: monthly * 12, thirds, items };
+}
+
 // Germany Elterngeld (§ 2 BEEG) and Kindergeld.
 export function elterngeldRate(net        ) {
   const n = pos(net);
@@ -89,7 +108,7 @@ export function deElterngeld(x                                                  
 
 export function parentalPay(x                                                        ) {
   if (x.country === "UK") return { smp: ukMaternityPay(x         ), childBenefit: ukChildBenefit(x         ) };
-  if (x.country === "JP") return { leave: jpChildcareLeave(x         ) };
+  if (x.country === "JP") return { leave: jpChildcareLeave(x         ), childAllowance: jpChildAllowance(x         ) };
   if (x.country === "DE") return { elterngeld: deElterngeld(x         ) };
   return { error: "country must be UK, JP or DE" };
 }

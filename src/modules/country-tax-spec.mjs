@@ -696,6 +696,7 @@ export const PARENTAL_TOOLS = [
   fn("calculate_uk_maternity_pay", "UK Statutory Maternity Pay 2026-27: 39 weeks, 6 at 90% of average weekly earnings, 33 at £194.32 or 90% if lower. General information only, as of 2026-11-22; eligibility is not checked.", { weeklyEarnings: num("Average weekly earnings before tax (GBP)") }, ["weeklyEarnings"]),
   fn("calculate_uk_child_benefit", "UK Child Benefit (£27.05 eldest, £17.90 others a week) and the High Income Child Benefit Charge (1% per £200 of adjusted net income over £60,000). General information only, as of 2026-11-22; eligibility is not checked.", { children: int("Number of children", 0, 20), adjustedNetIncome: num("Higher adjusted net income in the household (GBP)") }, ["children"]),
   fn("calculate_jp_childcare_leave_benefit", "Japan 育児休業給付金: 67% for 180 days then 50% of 休業開始時賃金月額, with the caps from 2026-08-01 (332,454 / 248,100 yen), and optional 出生後休業支援給付金 (13%, 28 days). General information only, as of 2026-11-22; eligibility is not checked.", { monthlyWage: num("休業開始時賃金月額 (yen)"), months: num("Months of leave", 0, 24), support: yes("Include 出生後休業支援給付金") }, ["monthlyWage"]),
+  fn("calculate_jp_child_allowance", "Japan 児童手当 per month: 15,000 yen under 3, 10,000 yen from 3 to 高校生年代, 30,000 yen from the third child (counted from the oldest, including supported children up to the 3/31 after turning 22). Source: こども家庭庁. General information only, as of 2026-11-22; income limits and eligibility are not checked.", { under3: int("Children under 3", 0, 20), from3: int("Children from 3 to the end of 高校生年代", 0, 20), supported19to22: int("Older children after 高校生年代 up to the 3/31 after turning 22 whom you support (counted for 第3子 only)", 0, 20) }, []),
   fn("calculate_de_elterngeld", "Germany Elterngeld under § 2 BEEG (67%, 65-100% sliding, 300-1,800 EUR), ElterngeldPlus, the 175,000 EUR income limit and Kindergeld (259 EUR per child). General information only, as of 2026-11-22; eligibility is not checked.", { netBefore: num("Monthly net income before birth (EUR)"), netAfter: num("Monthly net income after birth (EUR)"), taxableIncome: num("Parents' taxable income per year (EUR)"), children: int("Children for Kindergeld", 0, 20) }, ["netBefore"]),
 ];
 
@@ -1094,6 +1095,7 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_uk_maternity_pay: { path: "/v1/parental/uk-maternity-pay", method: "POST" },
   calculate_uk_child_benefit: { path: "/v1/parental/uk-child-benefit", method: "POST" },
   calculate_jp_childcare_leave_benefit: { path: "/v1/parental/jp-childcare-leave", method: "POST" },
+  calculate_jp_child_allowance: { path: "/v1/parental/jp-child-allowance", method: "POST" },
   calculate_de_elterngeld: { path: "/v1/parental/de-elterngeld", method: "POST" },
   calculate_de_kleinunternehmer_vat: { path: "/v1/small-business-vat/de", method: "POST" },
   calculate_sg_gst_registration: { path: "/v1/small-business-vat/sg", method: "POST" },
