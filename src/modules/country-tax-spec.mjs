@@ -544,6 +544,23 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 고용주 급여 비용 4곳 (2026-11-22): tools-oiyo world-employer-cost-pack-2026과 같은 계산. 급여 대행·신고 없음.
+const EMP = (c) => `${c}, as of 2026-11-22. General estimate only: not payroll or tax advice, no filing. Items not verified are listed as not included.`;
+export const EMPLOYER_TOOLS = [
+  fn("calculate_jp_employer_cost",
+    `Japan employer social insurance on a monthly salary (令和8年度): 協会けんぽ 健康保険 (Tokyo 9.85%, prefectures 9.21–10.55%) and 介護 1.62% (age 40–64) half each, 厚生年金 18.3% half (標準報酬 88,000–650,000円), 子ども・子育て拠出金 0.36% employer only, 雇用保険 employer 8.5/9.5/10.5 per 1000. Salary is used as the standard remuneration without grade rounding; 労災 and 子ども・子育て支援金 are not included. ${EMP("Japan (協会けんぽ, 日本年金機構, 厚生労働省)")}`,
+    { monthly: num("Monthly gross salary (JPY)"), age: num("Employee age", 15, 100), industry: pick(["general", "agri", "construction"], "雇用保険 business type"), healthRate: num("協会けんぽ prefecture health rate in % (default Tokyo 9.85)", 8, 12) }, ["monthly"]),
+  fn("calculate_uk_employer_cost",
+    `UK employer cost for 2026 to 2027: Class 1 secondary NICs 15% above £5,000 a year (0% up to £50,270 for under-21s and apprentices under 25), optional £10,500 Employment Allowance, Apprenticeship Levy 0.5% of the pay bill minus £15,000. Allowance eligibility, pensions and Class 1A are not checked. ${EMP("UK (HMRC rates and thresholds 2026 to 2027)")}`,
+    { annual: num("Annual salary per employee (GBP)"), employees: num("Number of employees on this salary", 1, 100000), category: pick(["standard", "under21", "apprentice"], "Employee category"), allowance: yes("Claim the Employment Allowance") }, ["annual"]),
+  fn("calculate_us_employer_cost",
+    `US employer FICA for 2026: Social Security 6.2% up to the $184,500 wage base plus Medicare 1.45% with no cap; no employer match on the 0.9% Additional Medicare Tax. FUTA, state unemployment and workers' compensation are not included. ${EMP("United States (IRS Topic 751, SSA)")}`,
+    { annual: num("Annual wages for one employee (USD)") }, ["annual"]),
+  fn("calculate_es_employer_cost",
+    `Spain employer Social Security, Régimen General 2026: contingencias comunes 23,60 % empresa on a base between the group minimum (grupo 1 1.989,30 €, 2 1.649,70 €, 3 1.435,20 €, 4–7 1.424,40 €) and the 5.101,20 € maximum (Orden PJC/297/2026). Desempleo, FOGASA, FP, MEI and AT/EP are not included. ${EMP("Spain (BOE)")}`,
+    { monthly: num("Monthly gross salary including prorated extra pays (EUR)"), group: num("Grupo de cotización: 1, 2, 3 or 4 (= grupos 4 a 7)", 1, 4) }, ["monthly"]),
+];
+
 // 소멸시효·소액소송 6곳 (2026-11-22): tools-oiyo world-limitation-pack-2026과 같은 계산. 법률 자문·대리·소송 제기 없음.
 const LIM = (c) => `${c}, as of 2026-11-22. General information only: no legal advice, no representation, no filing; interruption, suspension and discovery rules are not applied.`;
 export const LIMITATION_TOOLS = [
@@ -791,6 +808,10 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_fr_prescription: { path: "/v1/claims/fr", method: "POST" },
   check_tw_limitation_small_claims: { path: "/v1/claims/tw", method: "POST" },
   check_cn_small_claims: { path: "/v1/claims/cn", method: "POST" },
+  calculate_jp_employer_cost: { path: "/v1/employer/jp", method: "POST" },
+  calculate_uk_employer_cost: { path: "/v1/employer/uk", method: "POST" },
+  calculate_us_employer_cost: { path: "/v1/employer/us", method: "POST" },
+  calculate_es_employer_cost: { path: "/v1/employer/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...WORLD_INTAKE_TOOLS];

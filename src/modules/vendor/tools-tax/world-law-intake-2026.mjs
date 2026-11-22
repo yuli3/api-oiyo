@@ -28,6 +28,7 @@ export const WORLD_TOOLS               = [
   t("JP", "tax", "calculate_jp_appeal_deadlines", "ja/kasanzei-entaizei-calculator", "再調査・審査請求の期限", ["再調査", "審査請求", "不服", "更正の請求", "appeal"]),
   t("JP", "tax", "calculate_jp_depreciation", "ja/genka-shokyaku-calculator", "減価償却", ["減価償却", "耐用年数", "少額", "30万", "一括償却", "depreciation"]),
   t("JP", "labor", "calculate_jp_labor_exit", "ja/japan-dismissal-unemployment-checker", "解雇予告手当・失業手当・有給", ["解雇", "解雇予告", "退職", "失業", "基本手当", "有給", "最低賃金", "残業代", "未払い", "dismiss", "fired", "unemployment"]),
+  t("JP", "labor", "calculate_jp_employer_cost", "ja/japan-employer-social-insurance-cost", "社会保険料の会社負担", ["会社負担", "事業主負担", "社会保険料", "人件費", "雇う", "採用コスト", "厚生年金"]),
   t("JP", "tenancy", "check_jp_rental_deposit_notice", "ja/japan-rental-deposit-notice-checker", "敷金・解約予告", ["敷金", "賃貸", "家賃", "退去", "解約", "更新", "定期借家", "大家", "deposit", "rent", "lease"]),
   t("JP", "claims", "check_jp_limitation_small_claims", "ja/japan-shometsu-jiko-shogaku-sosho", "消滅時効と少額訴訟", ["時効", "消滅時効", "少額訴訟", "貸したお金", "返してくれない", "請求", "訴え", "裁判"]),
   t("JP", "consumer", "check_jp_cooling_off", "ja/japan-cooling-off-deadline", "クーリング・オフ期限", ["クーリング・オフ", "クーリングオフ", "訪問販売", "電話勧誘", "エステ", "マルチ", "解約したい", "返品", "契約をやめ"]),
@@ -40,6 +41,7 @@ export const WORLD_TOOLS               = [
   t("US", "tax", "calculate_us_tax_appeal_deadlines", "en/irs-penalty-interest-calculator", "Tax Court, CDP and refund deadlines", ["tax court", "notice of deficiency", "cdp", "refund claim", "appeal"]),
   t("US", "tax", "calculate_us_depreciation", "en/macrs-section-179-calculator", "MACRS, Section 179 and bonus depreciation", ["depreciation", "section 179", "macrs", "bonus", "de minimis"]),
   t("US", "labor", "check_us_labor_rights", "en/us-wage-layoff-deadline-checker", "Minimum wage, overtime, WARN and EEOC deadlines", ["minimum wage", "overtime", "layoff", "warn", "fired", "final pay", "eeoc", "discrimination", "back wages"]),
+  t("US", "labor", "calculate_us_employer_cost", "en/us-employer-payroll-tax-fica-2026", "Employer FICA (Social Security and Medicare)", ["employer fica", "payroll tax", "employer share", "social security tax", "medicare tax", "cost of hiring"]),
   t("US", "tenancy", "check_us_security_deposit_notice", "en/california-new-york-security-deposit-notice", "California and New York security deposit, notice and rent cap", ["security deposit", "rent", "landlord", "tenant", "lease", "move out", "rent increase", "ab 1482", "rent stabilized"]),
   t("US", "claims", "check_ca_limitation_small_claims", "en/california-statute-of-limitations-small-claims", "California deadlines to sue and small claims", ["statute of limitations", "small claims", "sue", "lawsuit", "deadline to sue", "owes me money"]),
   t("US", "consumer", "check_us_cooling_off", "en/ftc-cooling-off-rule-deadline", "FTC three-day Cooling-Off Rule", ["cooling-off", "cooling off", "door-to-door", "cancel a purchase", "salesperson", "three-day", "3-day", "refund"]),
@@ -65,6 +67,7 @@ export const WORLD_TOOLS               = [
   t("ES", "tax", "calculate_es_appeal_deadlines", "es/recargo-extemporaneo-sanciones-plazos", "Plazos de recurso", ["recurso", "reposición", "reclamación económico", "plazo para recurrir"]),
   t("ES", "tax", "calculate_es_depreciation", "es/amortizacion-tablas-oficiales", "Amortización por tablas oficiales", ["amortización", "tablas", "coeficiente"]),
   t("ES", "labor", "calculate_es_labor_exit", "es/indemnizacion-despido-paro-plazos", "Indemnización por despido, paro y plazos", ["despido", "despedid", "me echan", "indemnización", "improcedente", "objetivo", "paro", "finiquito", "smi", "conciliación"]),
+  t("ES", "labor", "calculate_es_employer_cost", "es/coste-empresa-seguridad-social-2026", "Coste de empresa en Seguridad Social", ["coste empresa", "cuota empresa", "seguridad social empresa", "contratar", "cotización empresa", "coste de un trabajador"]),
   t("ES", "tenancy", "check_es_fianza_preaviso", "es/fianza-alquiler-preaviso-actualizacion", "Fianza, preaviso y actualización del alquiler", ["fianza", "alquiler", "arrendador", "inquilino", "casero", "preaviso", "prórroga", "irav", "subida del alquiler"]),
   t("ES", "consumer", "check_es_desistimiento", "es/plazo-desistimiento-compra-online", "Plazo de desistimiento de 14 días", ["desistimiento", "devolución", "devolver", "compra online", "reembolso", "pedido"]),
 
@@ -89,6 +92,7 @@ export const WORLD_TOOLS               = [
   t("UK", "tax", "calculate_uk_tax_appeal_deadlines", "en/hmrc-late-filing-penalty-interest-calculator", "HMRC appeal deadlines", ["appeal", "30 days", "tribunal", "review"]),
   t("UK", "tax", "calculate_uk_capital_allowances", "en/uk-capital-allowances-aia-calculator", "Capital allowances, AIA and full expensing", ["capital allowances", "aia", "full expensing", "writing down", "van", "equipment"]),
   t("UK", "labor", "calculate_uk_labor_exit", "en/uk-redundancy-notice-tribunal-calculator", "Redundancy pay, notice and tribunal deadline", ["redundancy", "redundant", "notice", "tribunal", "acas", "minimum wage", "holiday pay", "sick pay", "ssp", "dismissed"]),
+  t("UK", "labor", "calculate_uk_employer_cost", "en/uk-employer-national-insurance-2026", "Employer National Insurance and Employment Allowance", ["employer ni", "employer national insurance", "employment allowance", "apprenticeship levy", "cost of hiring", "employer nics"]),
   t("UK", "tenancy", "check_uk_tenancy_deposit_notice", "en/england-tenancy-deposit-notice-checker", "England deposit cap, protection and notice", ["deposit", "tenancy", "landlord", "tenant", "rent", "renters' rights", "section 21", "deposit protection", "evict"]),
   t("UK", "claims", "check_uk_limitation_small_claims", "en/uk-limitation-period-small-claims", "Limitation period and small claims fee", ["limitation", "small claims", "sue", "money claim", "court claim", "owes me", "county court"]),
   t("UK", "consumer", "check_uk_cancellation_period", "en/uk-consumer-cancellation-period", "14-day cancellation period", ["cancel", "cancellation", "refund", "online order", "doorstep", "cooling-off"]),
@@ -150,6 +154,6 @@ export function intake(x                                                        
     ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
     help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer", "claims"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
-    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll, company filings, tax residency.",
+    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filings, tax residency.",
   };
 }
