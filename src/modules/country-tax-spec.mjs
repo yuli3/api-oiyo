@@ -615,6 +615,28 @@ export const WITHHOLDING_TOOLS = [
     { type: pick(["royalty", "services", "interest", "dividend", "salary", "director", "rent"], "Type of payment"), amount: num("Amount paid"), listedShares: yes("JP dividends: listed shares, holder under 3%"), euEea: yes("ES: recipient resident in the EU, Iceland or Norway"), listedBond: yes("TW interest: listed bonds or short-term notes"), lowPay: yes("TW salary: full-month pay at most 1.5 x basic wage"), etnc: yes("FR: recipient in a non-cooperative state") }, ["type", "amount"]),
 ];
 
+// 법인세 6곳 (2026-11-22, 실무자 축 P2): tools-oiyo world-corporate-tax-2026과 같은 계산.
+export const CORPORATE_TAX_TOOLS = [
+  fn("calculate_jp_corporate_tax",
+    "National corporate income tax on a taxable profit in Japan (NTA No.5759: 23.2%, capital ¥100m or less 15% on the first ¥8m), 2026 statutory rates. Local and surcharge taxes not read are not included and are named in the result. General information only: not tax advice, no filing, as of 2026-11-22.",
+    { profit: num("Taxable profit"), smallCapital: yes("JP: capital ¥100 million or less"), excludedSme: yes("JP: 適用除外事業者"), associated: num("UK: number of associated companies"), distributions: num("UK: exempt distributions received"), months: num("UK: accounting period in months (1-12)"), frSme: yes("FR: turnover ≤ €10m and ≥ 75% held by individuals"), esKind: pick(["general", "micro", "reduced", "new", "patrimonial"], "ES: type of company"), hebesatz: num("DE: Gewerbesteuer Hebesatz in %") }, ["profit"]),
+  fn("calculate_uk_corporate_tax",
+    "National corporate income tax on a taxable profit in the UK (19% small profits rate, 25% main rate, marginal relief between £50,000 and £250,000), 2026 statutory rates. Local and surcharge taxes not read are not included and are named in the result. General information only: not tax advice, no filing, as of 2026-11-22.",
+    { profit: num("Taxable profit"), smallCapital: yes("JP: capital ¥100 million or less"), excludedSme: yes("JP: 適用除外事業者"), associated: num("UK: number of associated companies"), distributions: num("UK: exempt distributions received"), months: num("UK: accounting period in months (1-12)"), frSme: yes("FR: turnover ≤ €10m and ≥ 75% held by individuals"), esKind: pick(["general", "micro", "reduced", "new", "patrimonial"], "ES: type of company"), hebesatz: num("DE: Gewerbesteuer Hebesatz in %") }, ["profit"]),
+  fn("calculate_us_corporate_tax",
+    "National corporate income tax on a taxable profit in the US (federal 21%, IRS Pub 542), 2026 statutory rates. Local and surcharge taxes not read are not included and are named in the result. General information only: not tax advice, no filing, as of 2026-11-22.",
+    { profit: num("Taxable profit"), smallCapital: yes("JP: capital ¥100 million or less"), excludedSme: yes("JP: 適用除外事業者"), associated: num("UK: number of associated companies"), distributions: num("UK: exempt distributions received"), months: num("UK: accounting period in months (1-12)"), frSme: yes("FR: turnover ≤ €10m and ≥ 75% held by individuals"), esKind: pick(["general", "micro", "reduced", "new", "patrimonial"], "ES: type of company"), hebesatz: num("DE: Gewerbesteuer Hebesatz in %") }, ["profit"]),
+  fn("calculate_fr_corporate_tax",
+    "National corporate income tax on a taxable profit in France (25%, 15% on the first €42,500 for qualifying SMEs), 2026 statutory rates. Local and surcharge taxes not read are not included and are named in the result. General information only: not tax advice, no filing, as of 2026-11-22.",
+    { profit: num("Taxable profit"), smallCapital: yes("JP: capital ¥100 million or less"), excludedSme: yes("JP: 適用除外事業者"), associated: num("UK: number of associated companies"), distributions: num("UK: exempt distributions received"), months: num("UK: accounting period in months (1-12)"), frSme: yes("FR: turnover ≤ €10m and ≥ 75% held by individuals"), esKind: pick(["general", "micro", "reduced", "new", "patrimonial"], "ES: type of company"), hebesatz: num("DE: Gewerbesteuer Hebesatz in %") }, ["profit"]),
+  fn("calculate_es_corporate_tax",
+    "National corporate income tax on a taxable profit in Spain (25%; 2026 periods: micro 19/21%, reduced size 23%, new 15%), 2026 statutory rates. Local and surcharge taxes not read are not included and are named in the result. General information only: not tax advice, no filing, as of 2026-11-22.",
+    { profit: num("Taxable profit"), smallCapital: yes("JP: capital ¥100 million or less"), excludedSme: yes("JP: 適用除外事業者"), associated: num("UK: number of associated companies"), distributions: num("UK: exempt distributions received"), months: num("UK: accounting period in months (1-12)"), frSme: yes("FR: turnover ≤ €10m and ≥ 75% held by individuals"), esKind: pick(["general", "micro", "reduced", "new", "patrimonial"], "ES: type of company"), hebesatz: num("DE: Gewerbesteuer Hebesatz in %") }, ["profit"]),
+  fn("calculate_de_corporate_tax",
+    "National corporate income tax on a taxable profit in Germany (Körperschaftsteuer 15%, optional Gewerbesteuer with the municipal Hebesatz), 2026 statutory rates. Local and surcharge taxes not read are not included and are named in the result. General information only: not tax advice, no filing, as of 2026-11-22.",
+    { profit: num("Taxable profit"), smallCapital: yes("JP: capital ¥100 million or less"), excludedSme: yes("JP: 適用除外事業者"), associated: num("UK: number of associated companies"), distributions: num("UK: exempt distributions received"), months: num("UK: accounting period in months (1-12)"), frSme: yes("FR: turnover ≤ €10m and ≥ 75% held by individuals"), esKind: pick(["general", "micro", "reduced", "new", "patrimonial"], "ES: type of company"), hebesatz: num("DE: Gewerbesteuer Hebesatz in %") }, ["profit"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -962,6 +984,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_es_withholding: { path: "/v1/withholding/es", method: "POST" },
   check_tw_withholding: { path: "/v1/withholding/tw", method: "POST" },
   check_de_withholding: { path: "/v1/withholding/de", method: "POST" },
+  calculate_jp_corporate_tax: { path: "/v1/corporate-tax/jp", method: "POST" },
+  calculate_uk_corporate_tax: { path: "/v1/corporate-tax/uk", method: "POST" },
+  calculate_us_corporate_tax: { path: "/v1/corporate-tax/us", method: "POST" },
+  calculate_fr_corporate_tax: { path: "/v1/corporate-tax/fr", method: "POST" },
+  calculate_es_corporate_tax: { path: "/v1/corporate-tax/es", method: "POST" },
+  calculate_de_corporate_tax: { path: "/v1/corporate-tax/de", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -969,4 +997,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...WORLD_INTAKE_TOOLS];
