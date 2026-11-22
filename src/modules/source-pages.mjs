@@ -255,6 +255,7 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_uk_late_payment_b2b: "https://tools.oiyo.net/en/b2b-late-payment-interest-calculator/",
   calculate_uk_maternity_pay: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_uk_child_benefit: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
+  calculate_jp_child_allowance: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_jp_childcare_leave_benefit: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_de_elterngeld: "https://tools.oiyo.net/en/parental-pay-calculator-2026/",
   calculate_de_kleinunternehmer_vat: "https://tools.oiyo.net/en/small-business-vat-registration-check/",
