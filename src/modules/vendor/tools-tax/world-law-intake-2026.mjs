@@ -13,12 +13,18 @@ import { UK_SCOPE } from "./uk-tax-pack-2026.mjs";
 import { TW_SCOPE } from "./tw-tax-pack-2026.mjs";
 
 export const INTAKE_AS_OF = "2026-11-22";
-                                                                     
+                                                                                   
                                                                        
-                                                                                                                        
+/** Who the tool is mainly for (2026-11-22, CHOSEUN: split topics people care about from topics practitioners care about).
+ *  person: everyday life (job ending, renting, cancelling a purchase, suing, inheritance, residency, personal income tax).
+ *  pro: running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing). */
+                                        
+                                                                                                                                            
+const PRO = /depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
+export const audienceOf = (mcp        )           => (PRO.test(mcp) ? "pro" : "person");
 
 const T = "https://tools.oiyo.net/";
-const t = (country         , area      , mcp        , path        , title        , keywords          )             => ({ country, area, mcp, page: `${T}${path}/`, title, keywords });
+const t = (country         , area      , mcp        , path        , title        , keywords          )             => ({ country, area, audience: audienceOf(mcp), mcp, page: `${T}${path}/`, title, keywords });
 
 export const WORLD_TOOLS               = [
   t("JP", "tax", "get_jp_tax_calendar", "ja/jp-tax-calendar", "個人事業主の申告・納付期限", ["期限", "いつまで", "確定申告", "予定納税", "納付", "calendar", "deadline"]),
@@ -119,6 +125,13 @@ export const WORLD_TOOLS               = [
   t("TW", "tenancy", "check_tw_rental_deposit_termination", "zh/taiwan-rental-deposit-termination", "租屋押金與提前終止", ["租屋", "押金", "房東", "房客", "租約", "提前終止", "退租"]),
   t("TW", "claims", "check_tw_limitation_small_claims", "zh/taiwan-statute-limitation-small-claims", "消滅時效與小額訴訟", ["時效", "消滅時效", "小額訴訟", "欠錢", "欠款", "起訴", "打官司"]),
   t("TW", "consumer", "check_tw_7day_cancellation", "zh/taiwan-7-day-cancellation", "七日解約權", ["七日鑑賞期", "鑑賞期", "七天", "退貨", "網購", "解約", "退款"]),
+  t("DE", "tax", "calculate_de_income_tax", "de/einkommensteuer-rechner-2026", "Einkommensteuer 2026 und Solidaritätszuschlag", ["einkommensteuer", "steuer", "zve", "grundfreibetrag", "splitting", "soli", "solidaritätszuschlag", "steuersatz", "income tax"]),
+  t("DE", "labor", "calculate_de_notice_period", "de/kuendigungsfrist-rechner", "Kündigungsfrist nach § 622 BGB", ["kündigung", "kündigungsfrist", "gekündigt", "kündigen", "probezeit", "letzter arbeitstag", "notice", "fired", "dismissal"]),
+  t("DE", "labor", "check_de_minimum_wage", "de/kuendigungsfrist-rechner", "Mindestlohn und Minijob-Grenze", ["mindestlohn", "minijob", "stundenlohn", "minimum wage", "603", "13,90", "13.90"]),
+  t("DE", "tax", "check_de_einvoicing", "de/e-rechnung-pflicht-ab-wann", "E-Rechnung: ab wann Pflicht", ["e-rechnung", "erechnung", "xrechnung", "zugferd", "rechnung", "e-invoice", "einvoice"]),
+  t("SG", "tax", "calculate_sg_income_tax", "en/singapore-income-tax-calculator", "Singapore income tax (IRAS rates, YA 2024 onwards)", ["income tax", "iras", "chargeable income", "tax resident", "non-resident", "rebate", "year of assessment"]),
+  t("SG", "labor", "calculate_sg_cpf", "en/singapore-cpf-contribution-calculator-2026", "CPF contributions 2026", ["cpf", "contribution", "employer share", "ordinary wage", "payslip"]),
+  t("SG", "labor", "calculate_sg_notice_period", "en/singapore-notice-period-calculator", "Notice period under the Employment Act", ["notice", "resign", "resignation", "terminate", "fired", "dismissed", "last day", "employment act"]),
   t("TW", "tax", "check_tw_estate_tax_deadline", "zh/taiwan-estate-tax-filing-deadline", "遺產稅申報期限", ["遺產稅", "遺產", "繼承", "過世", "申報期限"]),
 ];
 
@@ -130,14 +143,26 @@ export const HELP                                        = {
   ES: { tax: "AEAT: 91 333 5 333 (información y cita previa), 91 554 87 70 (información tributaria básica)", labor: "conciliación (SMAC) de tu comunidad autónoma", tenancy: "oficina de consumo o de vivienda de tu comunidad o ayuntamiento", consumer: "OMIC de su municipio, consumoresponde.es", claims: "no hay herramienta todavía: consulte un servicio de orientación jurídica" },
   CN: { tax: "国家税务总局12366纳税服务平台（12366.chinatax.gov.cn）", labor: "当地人社部门、劳动争议仲裁委员会", tenancy: "12345 政务服务便民热线", consumer: "12315 平台", claims: "当地人民法院诉讼服务中心" },
   UK: { tax: "HMRC; on a low income, free independent advice such as TaxAid", labor: "Acas", tenancy: "Shelter, Citizens Advice, the deposit scheme's free dispute service", consumer: "Citizens Advice consumer service", claims: "Citizens Advice, Money Claim Online (gov.uk)" },
+  // DE and SG (2026-11-22): read from the statutes and official pages listed in de-sg-facts-2026-11-22.md.
+  DE: { tax: "Finanzamt; for employees, a Lohnsteuerhilfeverein (members with employment or pension income only, income tax only, § 4 StBerG)", labor: "Gewerkschaft (for members, § 7 RDG); on a low income, Beratungshilfe at your Amtsgericht (BerHG)", tenancy: "Beratungshilfe at your Amtsgericht (BerHG); no tenancy tool yet", consumer: "Verbraucherzentrale (§ 8 RDG); no consumer tool yet", claims: "Beratungshilfe at your Amtsgericht (BerHG); no time-limit tool yet" },
+  SG: { tax: "IRAS", labor: "TADM: mediation is compulsory before the Employment Claims Tribunals (salary claims within 1 year while employed or 6 months after leaving; wrongful dismissal within 1 month; up to $20,000, or $30,000 through tripartite or union mediation)", tenancy: "Small Claims Tribunals for a residential tenancy of up to 2 years (up to $20,000, or $30,000 with consent; file within 2 years)", consumer: "Small Claims Tribunals, including unfair practices under the CPFTA (up to $20,000, file within 2 years)", claims: "Small Claims Tribunals (up to $20,000, file within 2 years); free 20-minute guidance at the Community Legal Clinics (Pro Bono SG, 6536 0650); Legal Aid Bureau for citizens and PRs with limited means" },
   TW: { tax: "國稅局免付費電話 0800-000-321", labor: "地方勞工局", tenancy: "地方消保官或地政機關", consumer: "行政院消費者保護會、縣市消費者服務中心", claims: "各地方法院（簡易庭）" },
 };
 
-export const TAX_SCOPE                                                                   = { JP: JP_SCOPE, US: US_SCOPE, FR: FR_SCOPE, ES: ES_SCOPE, CN: CN_SCOPE, UK: UK_SCOPE, TW: TW_SCOPE };
+const DE_SCOPE = [
+  { title: "Who may give tax help", body: "Tax help for others, paid or unpaid, is reserved to authorised people: Steuerberater, Steuerbevollmächtigte, Rechtsanwälte, Wirtschaftsprüfer and vereidigte Buchprüfer, among others.", cite: "§§ 2, 3 StBerG" },
+  { title: "Lohnsteuerhilfeverein", body: "May help members with employment income, certain recurring and pension payments and maintenance, for income tax only. Not for members with business, farming or self-employed income or VAT-liable sales.", cite: "§ 4 StBerG" },
+  { title: "This guide", body: "General information only. It gives no tax help in a single case and does not represent anyone.", cite: "—" },
+];
+const SG_SCOPE = [
+  { title: "Tax agents", body: "We did not find on the IRAS pages we read whether tax agents in Singapore must be licensed or accredited, so this guide does not say. Ask IRAS.", cite: "IRAS (tax agents page)" },
+  { title: "This guide", body: "General information only. It gives no tax advice and does not represent anyone.", cite: "—" },
+];
+export const TAX_SCOPE                                                                   = { JP: JP_SCOPE, US: US_SCOPE, FR: FR_SCOPE, ES: ES_SCOPE, CN: CN_SCOPE, UK: UK_SCOPE, TW: TW_SCOPE, DE: DE_SCOPE, SG: SG_SCOPE };
 
 const AREA_WORDS                         = {
-  tax: ["tax", "税", "稅", "impôt", "impuesto", "tva", "iva", "vat", "hmrc", "irs", "申告", "申报", "申報"],
-  labor: ["job", "work", "employer", "salary", "wage", "労働", "雇用", "劳动", "工资", "勞工", "工資", "travail", "salarié", "trabajo", "despido", "employ"],
+  tax: ["tax", "steuer", "finanzamt", "税", "稅", "impôt", "impuesto", "tva", "iva", "vat", "hmrc", "irs", "申告", "申报", "申報"],
+  labor: ["job", "work", "employer", "salary", "wage", "労働", "雇用", "劳动", "工资", "勞工", "工資", "travail", "salarié", "trabajo", "despido", "employ", "arbeit", "lohn", "gehalt"],
   claims: ["sue", "court", "裁判", "訴訟", "诉讼", "時効", "时效", "prescription", "tribunal"],
   consumer: ["refund", "cancel", "返品", "退货", "退貨", "rétractation", "desistimiento", "クーリング"],
   tenancy: ["rent", "deposit", "賃貸", "家賃", "租", "押金", "loyer", "bail", "alquiler", "fianza", "landlord"],
@@ -145,9 +170,10 @@ const AREA_WORDS                         = {
 
 const norm = (s        ) => s.toLowerCase().normalize("NFKC");
 
-export function intake(x                                                        ) {
+export function intake(x                                                                             ) {
   const q = norm(x.question ?? "");
-  const pool = WORLD_TOOLS.filter((w) => w.country === x.country);
+  const aud = x.audience === "person" || x.audience === "pro" ? x.audience : undefined;
+  const pool = WORLD_TOOLS.filter((w) => w.country === x.country && (!aud || w.audience === aud));
   const scored = pool
     .map((w) => {
       const hits = w.keywords.filter((k) => q.includes(norm(k)));
@@ -161,10 +187,11 @@ export function intake(x                                                        
   return {
     asOf: INTAKE_AS_OF,
     country: x.country,
+    ...(aud ? { audience: aud } : {}),
     matches,
-    ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
+    ...(matches.length ? {} : { tools: pool.map(({ area, audience, mcp, page, title }) => ({ area, audience, mcp, page, title })) }),
     help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer", "claims"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
-    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filing calendars in Spain, Taiwan and mainland China, tax residency in mainland China. Germany and Singapore are not routed here yet: use the oiyo-de-guide and oiyo-sg-guide skills (de_* and sg_* MCP tools).",
+    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filing calendars in Spain, Taiwan and mainland China, tax residency in mainland China; in Germany and Singapore only income tax, notice periods, minimum wage or CPF and German e-invoicing so far.",
   };
 }
