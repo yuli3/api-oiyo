@@ -711,6 +711,12 @@ export const LABOR_PRACTICE_TOOLS = [
   fn("calculate_uk_irregular_hours_holiday", "UK irregular-hours and part-year workers: holiday accrues at 12.07% of hours worked in each pay period (leave years from 1 April 2024). Rounding and rolled-up pay not applied. General information only, not legal advice, as of 2026-11-22.", { hours: { type: "array", maxItems: 60, description: "Hours worked in each pay period", items: num("Hours") } }, ["hours"]),
 ];
 
+// 소송 비용 2곳 (2026-11-22, 실무자 축 P4): tools-oiyo world-court-fees-2026과 같은 계산. 영국은 check_uk_limitation_small_claims.
+export const COURT_FEE_TOOLS = [
+  fn("calculate_jp_court_fee", "Japan court fee (収入印紙) under 民事訴訟費用等に関する法律 別表第一: 訴え, 控訴 (1.5x), 上告 (2x), 支払督促 (1/2), 民事調停・労働審判. Old-law table; for cases first filed on/after 2026-05-21 the new-law paper/electronic amounts are flagged, not computed. General information only, not legal advice, as of 2026-11-22; court fees only.", { value: num("訴訟の目的の価額 (yen)"), nonProperty: yes("Non-property claim (counts as 1.6m yen)"), kind: pick(["suit", "appeal", "jokoku", "shiharai", "chotei"], "Procedure"), firstFiled: date("Date the original claim was filed (YYYY-MM-DD)") }, []),
+  fn("calculate_de_court_fee", "Germany court fee under § 34 GKG and the Kostenverzeichnis: Klage 3.0 (KV 1210), reduced 1.0 (KV 1211), Mahnbescheid 0.5 min 38 EUR (KV 1100). General information only, not legal advice, as of 2026-11-22; court fees only.", { value: num("Streitwert (EUR)"), kind: pick(["klage", "klage_ermaessigt", "mahn"], "Procedure") }, ["value"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1086,6 +1092,8 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_sg_gst_registration: { path: "/v1/small-business-vat/sg", method: "POST" },
   calculate_jp_overtime_cap_check: { path: "/v1/labor-practice/jp-overtime", method: "POST" },
   calculate_uk_irregular_hours_holiday: { path: "/v1/labor-practice/uk-holiday", method: "POST" },
+  calculate_jp_court_fee: { path: "/v1/court-fee/jp", method: "POST" },
+  calculate_de_court_fee: { path: "/v1/court-fee/de", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1093,4 +1101,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...COURT_FEE_TOOLS, ...WORLD_INTAKE_TOOLS];

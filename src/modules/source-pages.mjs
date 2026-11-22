@@ -261,6 +261,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_sg_gst_registration: "https://tools.oiyo.net/en/small-business-vat-registration-check/",
   calculate_jp_overtime_cap_check: "https://tools.oiyo.net/en/overtime-cap-holiday-accrual-check/",
   calculate_uk_irregular_hours_holiday: "https://tools.oiyo.net/en/overtime-cap-holiday-accrual-check/",
+  calculate_jp_court_fee: "https://tools.oiyo.net/en/court-fee-calculator-japan-germany/",
+  calculate_de_court_fee: "https://tools.oiyo.net/en/court-fee-calculator-japan-germany/",
   calculate_uk_take_home: "https://tools.oiyo.net/en/uk-take-home-pay-calculator-2026/",
   calculate_us_take_home: "https://tools.oiyo.net/en/us-take-home-pay-calculator-2026/",
   calculate_jp_take_home: "https://tools.oiyo.net/ja/japan-salary-calculator/",
