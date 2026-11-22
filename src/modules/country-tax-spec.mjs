@@ -656,6 +656,25 @@ export const HOME_PURCHASE_TOOLS = [
     { price: num("Purchase price"), firstTime: yes("UK: first-time buyer"), additional: yes("UK: will own another residential property"), nonResident: yes("UK: non-UK resident"), landValue: num("JP: land 固定資産税評価額"), landArea: num("JP: land area m²"), buildingValue: num("JP: building 固定資産税評価額"), floorArea: num("JP: floor area m²"), kind: pick(["new", "used"], "JP: new or used house"), houseDeduction: num("JP: 住宅控除額 for 不動産取得税"), qualifies: yes("JP: meets the 住宅用 reduction conditions"), frKind: pick(["ancien", "neuf"], "FR: ancien or neuf"), departmentRate: num("FR: departmental rate as a fraction, e.g. 0.045"), primoAccedant: yes("FR: first purchase of a main home"), region: pick(["madrid", "cataluna", "andalucia", "valenciana", "otra"], "ES: comunidad"), esKind: pick(["usada", "nueva"], "ES: used or new"), area: num("CN: floor area m²"), order: pick(["first", "second", "other"], "CN: home order"), localRate: num("CN: local 契税 rate as a fraction") }, ["price"]),
 ];
 
+// 독일 생활법 5종 (2026-11-22, 일반인 축 A4): tools-oiyo de-life-law-2026과 같은 계산.
+export const DE_LIFE_TOOLS = [
+  fn("calculate_de_inheritance_tax",
+    "German inheritance tax (Erbschaftsteuer) by relationship: personal allowance (§ 16 ErbStG), tax class (§ 15) and rate with hardship relief (§ 19). General information only: not legal or tax advice, as of 2026-11-22.",
+    { value: num("Value of what you inherit after valuation, EUR"), relation: pick(["spouse", "child", "grandchild", "parentInherit", "classI", "sibling", "classII", "other"], "Relationship to the deceased") }, ["value", "relation"]),
+  fn("calculate_de_garnishment",
+    "German wage garnishment limit from 1 July 2026 (§ 850c ZPO, Pfändungsfreigrenzenbekanntmachung 2026): exempt amount and seizable part of monthly net pay. General information only: not legal or tax advice, as of 2026-11-22.",
+    { net: num("Monthly net pay, EUR"), dependents: int("People you pay maintenance to (0-5)", 0, 5) }, ["net"]),
+  fn("check_de_withdrawal_deadline",
+    "German 14-day consumer withdrawal (Widerruf) deadline for online and doorstep contracts (§§ 355-357 BGB), with the 12 months + 14 days outer limit. General information only: not legal or tax advice, as of 2026-11-22.",
+    { start: date("Date goods were received, or the contract date for services (YYYY-MM-DD)"), kind: pick(["goods", "service", "digital"], "What was bought"), informed: yes("Were you told about the right of withdrawal?") }, ["start", "kind"]),
+  fn("check_de_rent_deposit",
+    "German rent deposit (Mietkaution) cap: three months' rent without service charges, payable in three instalments (§ 551 BGB). General information only: not legal or tax advice, as of 2026-11-22.",
+    { coldRent: num("Monthly rent without service charges, EUR"), asked: num("Deposit the landlord asks for, EUR") }, ["coldRent"]),
+  fn("check_de_limitation_period",
+    "German regular limitation period (Verjährung): three years from the end of the year the claim arose and you knew (§§ 195, 199 BGB), 10-year outer limit. General information only: not legal or tax advice, as of 2026-11-22.",
+    { arose: date("Date the claim arose (YYYY-MM-DD)"), known: date("Date you knew the facts and the debtor (YYYY-MM-DD)") }, ["arose"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1014,6 +1033,11 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_fr_home_purchase_tax: { path: "/v1/home-purchase/fr", method: "POST" },
   calculate_es_home_purchase_tax: { path: "/v1/home-purchase/es", method: "POST" },
   calculate_cn_home_purchase_tax: { path: "/v1/home-purchase/cn", method: "POST" },
+  calculate_de_inheritance_tax: { path: "/v1/de/inheritance-tax", method: "POST" },
+  calculate_de_garnishment: { path: "/v1/de/garnishment", method: "POST" },
+  check_de_withdrawal_deadline: { path: "/v1/de/withdrawal", method: "POST" },
+  check_de_rent_deposit: { path: "/v1/de/rent-deposit", method: "POST" },
+  check_de_limitation_period: { path: "/v1/de/limitation", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1021,4 +1045,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...WORLD_INTAKE_TOOLS];

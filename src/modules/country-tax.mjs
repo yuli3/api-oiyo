@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { erbschaftsteuer, mietkaution, pfaendung, verjaehrung, widerruf } from "./vendor/tools-tax/de-life-law-2026.mjs";
 import { homePurchaseTax } from "./vendor/tools-tax/world-home-purchase-2026.mjs";
 import { corporateTax } from "./vendor/tools-tax/world-corporate-tax-2026.mjs";
 import { withholding } from "./vendor/tools-tax/world-withholding-2026.mjs";
@@ -58,6 +59,7 @@ export function makeCountryTaxHandlers() {
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
   const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
   const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
+  const DE_LIFE_NOTE = "Allgemeine Information, keine Rechts- oder Steuerberatung. General information only, not legal or tax advice.";
   const HOME_NOTE = "General information only: taxes on buying a home from official rates, not tax or legal advice; fees not included.";
   const CIT_NOTE = "General information only: national statutory rate on the taxable profit given, not tax advice, no filing.";
   const WHT_NOTE = "General information only: domestic rate before any tax treaty, not tax advice, no filing.";
@@ -87,6 +89,11 @@ export function makeCountryTaxHandlers() {
     "/v1/home-purchase/fr": (i) => ({ ...homePurchaseTax({ ...i, country: "FR" }), page: "https://tools.oiyo.net/fr/acquisition-tax-calculator/", note: HOME_NOTE }),
     "/v1/home-purchase/es": (i) => ({ ...homePurchaseTax({ ...i, country: "ES" }), page: "https://tools.oiyo.net/es/acquisition-tax-calculator/", note: HOME_NOTE }),
     "/v1/home-purchase/cn": (i) => ({ ...homePurchaseTax({ ...i, country: "CN" }), page: "https://tools.oiyo.net/zh/acquisition-tax-calculator/", note: HOME_NOTE }),
+    "/v1/de/inheritance-tax": (i) => ({ ...erbschaftsteuer(i), page: "https://tools.oiyo.net/de/erbschaftsteuer-rechner-2026/", note: DE_LIFE_NOTE }),
+    "/v1/de/garnishment": (i) => ({ ...pfaendung(i), page: "https://tools.oiyo.net/de/pfaendungsfreigrenze-rechner-2026/", note: DE_LIFE_NOTE }),
+    "/v1/de/withdrawal": (i) => ({ ...widerruf(i), page: "https://tools.oiyo.net/de/widerruf-kaution-verjaehrung-rechner/", note: DE_LIFE_NOTE }),
+    "/v1/de/rent-deposit": (i) => ({ ...mietkaution(i), page: "https://tools.oiyo.net/de/widerruf-kaution-verjaehrung-rechner/", note: DE_LIFE_NOTE }),
+    "/v1/de/limitation": (i) => ({ ...verjaehrung(i), page: "https://tools.oiyo.net/de/widerruf-kaution-verjaehrung-rechner/", note: DE_LIFE_NOTE }),
     "/v1/take-home/uk": (i) => ({ ...ukTakeHome(i), page: `${EN}uk-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/us": (i) => ({ ...usTakeHome(i), page: `${EN}us-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/jp": (i) => ({ ...jpTakeHome(i), page: `${JA}japan-salary-calculator/`, note: TH_NOTE }),
