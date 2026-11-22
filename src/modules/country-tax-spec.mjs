@@ -497,7 +497,7 @@ export const LABOR_TOOLS = [
       fired: yes("Discharged by the employer (CA final pay due immediately)"),
     }, []),
   fn("calculate_fr_labor_exit",
-    `France indemnité légale de licenciement (8 months' service needed; 1/4 month per year up to 10 years, 1/3 beyond; Code du travail R1234-2), SMIC check (12.31 EUR an hour, 1,867.02 EUR a month from 2026-01-01), rupture conventionnelle 15-day retraction date, deadlines to contest the dismissal (12 months) and to claim wages (3 years). Préavis length and post-April 2025 ARE rules are not verified. ${LAB("France (service-public.gouv.fr, Légifrance)")}`,
+    `France indemnité légale de licenciement (8 months' service needed; 1/4 month per year up to 10 years, 1/3 beyond; Code du travail R1234-2), statutory notice (6 months to 2 years: 1 month, 2+ years: 2 months, doubled for disabled workers up to 3; L1234-1, L5213-9), SMIC check (12.31 EUR an hour, 1,867.02 EUR a month from 2026-01-01), rupture conventionnelle 15-day retraction date, deadlines to contest the dismissal (12 months) and to claim wages (3 years). Post-April 2025 ARE rules are not verified. ${LAB("France (service-public.gouv.fr, Légifrance)")}`,
     {
       start: date("Employment start date"),
       end: date("End of the contract (end of notice)"),
@@ -506,6 +506,7 @@ export const LABOR_TOOLS = [
       mode: pick(["licenciement", "rupture"], "Dismissal or rupture conventionnelle"),
       signed: date("Rupture conventionnelle signing date"),
       notified: date("Date the dismissal was notified"),
+      disabled: yes("Worker has a recognised disability (notice doubled, at most 3 months)"),
     }, ["start", "end", "monthlyReference"]),
   fn("calculate_es_labor_exit",
     `Spain severance: despido improcedente 33 days' salary per year (max 24 months) or objetivo 20 days per year (max 12 months) (Estatuto de los Trabajadores art. 53, 56), daily salary as annual / 365, unemployment benefit duration from days contributed (LGSS art. 269), SMI check (1,221 EUR a month in 14 payments, 40.70 a day, 2026), and the 20 business-day deadline to challenge the dismissal (Saturdays and Sundays skipped only). Service before 2012-02-12 uses a transition rule that is not computed. ${LAB("Spain (BOE)")}`,
@@ -519,7 +520,7 @@ export const LABOR_TOOLS = [
       notified: date("Date the dismissal was notified"),
     }, ["start", "end", "annualSalary", "type"]),
   fn("calculate_cn_labor_exit",
-    `China economic compensation N (1 month per year; 6 months or more counts as a year, under 6 months as half; 劳动合同法 第47条), the cap at 3x the local average monthly wage which also limits N to 12 years, 2N for unlawful termination (第87条), one month in lieu of notice (第40条), and unemployment benefit duration 12/18/24 months by insured years (失业保险条例 第17条). Items also list the MOHRSS minimum wages as of 2026-10-01 (Beijing 2,540, Shanghai 2,740, Guangdong tiers 2,680/2,300/2,040, Shenzhen 2,700 CNY a month). Annual leave and arbitration limitation are not verified. ${LAB("China mainland (flk.npc.gov.cn)")}`,
+    `China economic compensation N (1 month per year; 6 months or more counts as a year, under 6 months as half; 劳动合同法 第47条), the cap at 3x the local average monthly wage which also limits N to 12 years, 2N for unlawful termination (第87条), one month in lieu of notice (第40条), and unemployment benefit duration 12/18/24 months by insured years (失业保险条例 第17条). Items also list the MOHRSS minimum wages as of 2026-10-01 (Beijing 2,540, Shanghai 2,740, Guangdong tiers 2,680/2,300/2,040, Shenzhen 2,700 CNY a month). Also annual leave by cumulative years (5/10/15 days, 职工带薪年休假条例) and the 1-year labour arbitration limitation date (劳动争议调解仲裁法). ${LAB("China mainland (flk.npc.gov.cn)")}`,
     {
       start: date("Employment start date"),
       end: date("Last day of employment"),
@@ -528,6 +529,7 @@ export const LABOR_TOOLS = [
       unlawful: yes("Unlawful termination (2N)"),
       noNotice: yes("Terminated under article 40 without 30 days' notice"),
       insuredYears: num("Years paying unemployment insurance", 0, 60),
+      cumulativeYears: num("Cumulative years worked at all employers, for annual leave", 0, 60),
     }, ["start", "end", "monthlyWage"]),
   fn("calculate_tw_labor_exit",
     `Taiwan termination: notice period 10/20/30 days by service (勞動基準法 第16條), severance under the new pension system 0.5 month per year up to 6 months (勞工退休金條例 第12條) or the old system 1 month per year (勞基法 第17條), special leave days by service up to 30 (第38條), unemployment benefit at 60% of insured wage for 6 months, or 9 months at 45+ or with a disability (就業保險法 第16條), and the dates for paying severance (within 30 days) and the 5-year wage claim limitation (民法 第126條). Items also show the minimum wage (29,500 TWD a month / 196 an hour in 2026; 30,900 / 205 from 2027-01-01) and warn when the average monthly wage is below it. ${LAB("Taiwan (law.moj.gov.tw)")}`,
@@ -629,6 +631,17 @@ export const TENANCY_TOOLS = [
     }, ["rent", "deposit"]),
 ];
 
+// 각국 길잡이 (2026-11-22): 질문을 현지 도구·무료 창구·자격사 범위로 안내. 계산 아님.
+export const WORLD_INTAKE_TOOLS = [
+  fn("start_world_law_intake",
+    "Start here for a tax, job-ending or renting question about Japan (JP), the United States (US; renting covers California and New York), France (FR), Spain (ES), mainland China (CN), the United Kingdom (UK; renting covers England) or Taiwan (TW). Pass the question in the user's own language; returns the best-matching local OIYO tool (MCP tool name and tools.oiyo.net page in the local language), the free official help channel for that area, and for tax questions who may give paid tax advice in that country. Routing and general information only: no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance, consumer refunds, limitation periods, employer payroll, company filings, tax residency.",
+    {
+      country: pick(["JP", "US", "FR", "ES", "CN", "UK", "TW"], "Country"),
+      question: { type: "string", description: "The question in the user's own words, any language", maxLength: 2000 },
+      limit: int("Maximum matches to return", 1, 10),
+    }, ["country", "question"]),
+];
+
 export const COUNTRY_TAX_ENDPOINTS = {
   get_jp_tax_calendar: { path: "/v1/tax/jp/calendar", method: "POST" },
   calculate_jp_blue_return_deduction: { path: "/v1/tax/jp/blue-return", method: "POST" },
@@ -690,6 +703,7 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_es_fianza_preaviso: { path: "/v1/tenancy/es", method: "POST" },
   check_cn_rental_contract_deposit: { path: "/v1/tenancy/cn", method: "POST" },
   check_tw_rental_deposit_termination: { path: "/v1/tenancy/tw", method: "POST" },
+  start_world_law_intake: { path: "/v1/law/world/intake", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...WORLD_INTAKE_TOOLS];

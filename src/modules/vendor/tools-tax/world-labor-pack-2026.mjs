@@ -3,10 +3,10 @@
 // no legal advice, no representation, no filing. Same code powers the oiyo-world-labor-guide skill and api.oiyo.net *_labor_* tools.
 // Facts: company-brain projects/oiyo-ecosystem/labor-pack-facts-2026-11-21.md (f58c262a), checked 2026-11-21 against
 // e-Gov/MHLW, gov.uk, DOL/eCFR/EEOC/CA DIR, service-public.gouv.fr, BOE, flk.npc.gov.cn, law.moj.gov.tw.
+// 2026-11-22 added from the same facts file (1da994bb): FR préavis, CN annual leave and arbitration limitation, TW/CN minimum wages.
 // Not verified (so not computed): JP 給付制限 practice (1 month from 2025?), JP 特定受給資格者 under 30 with 1-5 years,
-// US NY/TX final pay, FR préavis length and ARE after 2025-04, ES SMI annual amount and the 45/33-day transition cap,
-// CN annual leave, arbitration limitation and 2026 local minimum wages, TW 2026 minimum wage amount and mediation offices,
-// UK ET "less one day" counting and the 2-year qualifying period text.
+// US NY/TX final pay, FR ARE after 2025-04, ES SMI annual amount and the 45/33-day transition cap,
+// TW mediation offices, UK ET "less one day" counting and the 2-year qualifying period text.
 
 export const LABOR_AS_OF = "2026-11-21";
                                             
@@ -134,7 +134,7 @@ export function usLaborExit(x                                                   
 
 // ── France ───────────────────────────────────────────────────────────
 export const FR_SMIC = { hourly: 12.31, monthly: 1_867.02 }         ;
-export function frLaborExit(x                                                                                                                                                       ) {
+export function frLaborExit(x                                                                                                                                                                           ) {
   const items          = [];
   const s = service(x.start, x.end);
   const y = s.exactYears;
@@ -143,7 +143,15 @@ export function frLaborExit(x                                                   
   items.push(eligible
     ? { tone: "info", text: `Indemnité légale minimale : ${ind.toLocaleString("fr-FR")} € (1/4 de mois par année jusqu'à 10 ans, 1/3 au-delà, ancienneté ${s.years} ans ${s.months} mois). La convention collective peut prévoir plus.`, cite: "service-public.gouv.fr F987" }
     : { tone: "info", text: "Moins de 8 mois d'ancienneté ininterrompue : pas d'indemnité légale de licenciement.", cite: "service-public.gouv.fr F987" });
-  items.push({ tone: "info", text: "La durée du préavis n'est pas calculée ici (non vérifiée) ; voir le contrat, la convention collective ou service-public.gouv.fr.", cite: "—" });
+  let preavisMonths                = null;
+  if (x.mode !== "rupture") {
+    const a = service(x.start, x.notified ?? x.end).totalMonths;
+    preavisMonths = a < 6 ? null : a < 24 ? 1 : 2;
+    if (preavisMonths != null && x.disabled) preavisMonths = Math.min(3, preavisMonths * 2);
+    items.push(preavisMonths == null
+      ? { tone: "info", text: "Moins de 6 mois d'ancienneté : la durée du préavis dépend de la convention collective ou des usages.", cite: "Code du travail L1234-1 (code.travail.gouv.fr)" }
+      : { tone: "info", text: `Préavis légal de licenciement : ${preavisMonths} mois (6 mois à 2 ans : 1 mois ; 2 ans et plus : 2 mois${x.disabled ? " ; doublé pour un travailleur handicapé, 3 mois au plus" : ""}). Le contrat ou la convention collective peut prévoir plus ; pas de préavis en cas de faute grave ou lourde.`, cite: "Code du travail L1234-1, L5213-9 (code.travail.gouv.fr)" });
+  }
   items.push({ tone: "info", text: `Congés payés : 2,5 jours ouvrables par mois de travail effectif, soit 30 jours par an.`, cite: "service-public.gouv.fr F2258" });
   if (x.hourlyGross != null) items.push(x.hourlyGross < FR_SMIC.hourly ? { tone: "warn", text: `${x.hourlyGross} € brut de l'heure est inférieur au SMIC (12,31 €).`, cite: "service-public.gouv.fr F2300" } : { tone: "good", text: `${x.hourlyGross} € brut de l'heure respecte le SMIC (12,31 €).`, cite: "service-public.gouv.fr F2300" });
   const dates          = [];
@@ -152,7 +160,7 @@ export function frLaborExit(x                                                   
   dates.push({ id: "contestation", label: "Contester la rupture du contrat aux prud'hommes : 12 mois à partir de la notification", date: addMonths(n, 12), cite: "service-public.gouv.fr F2360" });
   dates.push({ id: "salaire", label: "Réclamer des salaires : 3 ans", date: addMonths(x.end, 36), cite: "service-public.gouv.fr F2360" });
   items.push({ tone: "info", text: "Les règles de l'ARE (France Travail) après le 1er avril 2025 ne sont pas calculées ici.", cite: "service-public.gouv.fr F14860" });
-  return { country: "FR", service: s, indemnite: ind, dates, items };
+  return { country: "FR", service: s, indemnite: ind, preavisMonths, dates, items };
 }
 
 // ── Spain ────────────────────────────────────────────────────────────
@@ -183,7 +191,7 @@ export function esLaborExit(x                                                   
 }
 
 // ── China ────────────────────────────────────────────────────────────
-export function cnLaborExit(x                                                                                                                                                  ) {
+export function cnLaborExit(x                                                                                                                                                                            ) {
   const items          = [];
   const s = service(x.start, x.end);
   const capped = x.localAverageMonthly != null && x.monthlyWage > x.localAverageMonthly * 3;
@@ -200,8 +208,11 @@ export function cnLaborExit(x                                                   
     items.push(m ? { tone: "info", text: `失业保险金最长领取${m}个月（累计缴费${x.insuredYears}年）。金额由省级政府确定。`, cite: "失业保险条例第17条" } : { tone: "warn", text: "累计缴费不满1年，不符合领取失业保险金的期限规定。", cite: "失业保险条例第17条" });
   }
   items.push({ tone: "info", text: "最低工资（人社部公布，截至2026年10月1日，月／小时）：北京2,540元／27.7元，上海2,740元／25元，广东一至三档2,680／2,300／2,040元，深圳2,700元／25.4元。各地施行日期不同，请以当地公告为准。", cite: "人社部全国各地最低工资标准情况（截至2026年10月1日）" });
-  items.push({ tone: "info", text: "带薪年休假天数和劳动仲裁时效未核实，本工具不计算，请向当地人社部门确认。", cite: "—" });
-  return { country: "CN", service: s, months: n, compensation: comp, total: r2(total), dates: []           , items };
+  const cy = x.cumulativeYears ?? s.exactYears;
+  const annualLeave = cy >= 20 ? 15 : cy >= 10 ? 10 : cy >= 1 ? 5 : 0;
+  items.push({ tone: "info", text: `带薪年休假：累计工作${x.cumulativeYears != null ? `${x.cumulativeYears}年` : `约${s.years}年（按本单位年限估算，累计工作年限包括在其他单位的工作时间）`}，每年${annualLeave}天（满1年不满10年5天，满10年不满20年10天，满20年15天；法定休假日、休息日不计入）。`, cite: "职工带薪年休假条例" });
+  const dates          = [{ id: "arbitration", label: "劳动争议仲裁时效：一般自知道或应当知道权利被侵害之日起1年；劳动关系终止后追索拖欠工资，自终止之日起1年（在职期间拖欠工资不受1年限制）", date: addMonths(x.end, 12), cite: "劳动争议调解仲裁法" }];
+  return { country: "CN", service: s, months: n, compensation: comp, total: r2(total), annualLeaveDays: annualLeave, dates, items };
 }
 
 // ── Taiwan ───────────────────────────────────────────────────────────

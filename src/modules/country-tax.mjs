@@ -6,6 +6,7 @@ import { FR_TAX_AS_OF, FR_TAX_NOTE, frAmortissement, frClaimDeadline, frMicro, f
 import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos, esRecargo, esSancion, esTaxCalendar } from "./vendor/tools-tax/es-tax-pack-2026.mjs";
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
+import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
 import { TENANCY_AS_OF, cnTenancy, esTenancy, frTenancy, jpTenancy, twTenancy, ukTenancy, usTenancy } from "./vendor/tools-tax/world-tenancy-pack-2026.mjs";
 import { LABOR_AS_OF, cnLaborExit, esLaborExit, frLaborExit, jpLaborExit, twLaborExit, ukLaborExit, usLaborExit } from "./vendor/tools-tax/world-labor-pack-2026.mjs";
 import { CN_TAX_AS_OF, CN_TAX_NOTE, cnAppealDeadlines, cnBusinessIncome, cnComprehensive, cnDepreciation, cnLateFee, cnSmallProfitCit, cnSmallScaleVat, cnTaxCalendar } from "./vendor/tools-tax/cn-tax-pack-2026.mjs";
@@ -36,6 +37,7 @@ export function makeCountryTaxHandlers() {
   const TENANCY_NOTE = "General information and estimates only: no legal advice, no representation, no filing. Values that could not be verified are flagged in items, not computed. Check with a free local housing advice service or a qualified professional.";
   const ten = (base, slug, body) => ({ asOf: TENANCY_AS_OF, ...body, page: `${base}${slug}/`, note: TENANCY_NOTE });
   return {
+    "/v1/law/world/intake": (i) => ({ ...worldIntake(i), page: `${EN}world-law-guide/` }),
     "/v1/tenancy/jp": (i) => ten(JA, "japan-rental-deposit-notice-checker", jpTenancy(i)),
     "/v1/tenancy/uk": (i) => ten(EN, "england-tenancy-deposit-notice-checker", ukTenancy(i)),
     "/v1/tenancy/us": (i) => ten(EN, "california-new-york-security-deposit-notice", usTenancy(i)),

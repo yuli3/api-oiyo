@@ -185,6 +185,7 @@ const fixtures = {
   check_es_fianza_preaviso: { rent: 1000, fianza: 1000, extraGuarantee: 0, company: false },
   check_cn_rental_contract_deposit: { termMonths: 12, written: true, deposit: 6000, rent: 3000 },
   check_tw_rental_deposit_termination: { rent: 20000, deposit: 50000 },
+  start_world_law_intake: { country: "JP", question: "退去したのに敷金が返ってきません" },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
