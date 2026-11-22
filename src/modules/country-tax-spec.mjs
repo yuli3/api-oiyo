@@ -544,6 +544,32 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 청약철회 7곳 (2026-11-22): tools-oiyo world-consumer-pack-2026과 같은 계산. 법률 자문·대리·통지 대행 없음.
+const CON = (c) => `${c}, as of 2026-11-22. General information only: no legal advice, no representation, no notices sent; holiday calendars and unverified rules are flagged in the result, not computed.`;
+export const CONSUMER_TOOLS = [
+  fn("check_jp_cooling_off",
+    `Japan クーリング・オフ deadline under 特定商取引法: 8 days for 訪問販売, 電話勧誘販売, 特定継続的役務提供 and 訪問購入, 20 days for 連鎖販売取引 and 業務提供誘引販売取引, counted from the day the 申込書面 or 契約書面 was received (that day is day 1); notice is effective when sent. 通信販売 has no クーリング・オフ. ${CON("Japan (prefecture consumer centre guides)")}`,
+    { kind: pick(["visit", "phone", "continuous", "visitPurchase", "mlm", "businessOpportunity", "mailOrder"], "Type of sale"), documentReceived: date("Date the application or contract document was received (earlier one)") }, ["kind"]),
+  fn("check_uk_cancellation_period",
+    `UK 14-day cancellation period for distance and off-premises contracts (Consumer Contracts Regulations 2013 regs 29-31): goods 14 days after delivery (last item for split deliveries, first for regular deliveries), services 14 days after the contract, extended up to 12 months if cancellation information was not given. ${CON("UK (legislation.gov.uk)")}`,
+    { kind: pick(["goods", "multipleGoods", "regularDelivery", "services"], "What was bought"), delivered: date("Delivery date (goods)"), contractDate: date("Contract date (services)"), infoGiven: yes("Trader gave the cancellation information"), infoDate: date("Date the information was finally received") }, ["kind"]),
+  fn("check_fr_retractation",
+    `France délai de rétractation (Code de la consommation L221-18 s.): 14 calendar days from the day after delivery (biens) or contract (services), a Saturday/Sunday end moves to Monday, +12 months if not informed (L221-20), refund within 14 days of the withdrawal (L221-24), exclusions (L221-28). ${CON("France (service-public.gouv.fr F10485)")}`,
+    { kind: pick(["biens", "plusieursBiens", "services"], "Goods, several goods delivered separately, or a service"), delivered: date("Delivery date (last item)"), contractDate: date("Contract date (services)"), infoGiven: yes("Seller gave the withdrawal information"), infoDate: date("Date the information was received"), withdrawalSent: date("Date the withdrawal was sent") }, ["kind"]),
+  fn("check_es_desistimiento",
+    `Spain derecho de desistimiento (TRLGDCU): 14 natural days from receipt of goods or from the service contract, 12-month extension if not informed, refund within 14 natural days of the withdrawal. ${CON("Spain (consumoresponde.es)")}`,
+    { kind: pick(["bienes", "servicios"], "Goods or services"), delivered: date("Delivery date (goods)"), contractDate: date("Contract date (services)"), infoGiven: yes("Seller gave the withdrawal information"), infoDate: date("Date the information was received"), withdrawalSent: date("Date the withdrawal was sent") }, ["kind"]),
+  fn("check_cn_7day_return",
+    `China 七日无理由退货 for online, TV, phone and mail-order purchases (消费者权益保护法 第25条, 网络购买商品七日无理由退货暂行办法): 7 days from the day after signing for the goods, excluded categories (art. 6) and those needing confirmation at purchase (art. 7), refund within 7 days of receiving the returned goods. ${CON("China (gov.cn)")}`,
+    { online: yes("Bought online, by TV, phone or mail order"), signedFor: date("Date the goods were signed for"), excluded: pick(["none", "custom", "perishable", "digitalOpened", "newspaper", "safetyOpened", "activated", "nearExpiry"], "Goods category if excluded"), returnReceived: date("Date the seller received the returned goods") }, ["online"]),
+  fn("check_tw_7day_cancellation",
+    `Taiwan 七日解約權 for 通訊交易 and 訪問交易 (消費者保護法 第19條): 7 days after receiving the goods or service (start day not counted, a Sunday end rolls over, 民法 第120・122條), counted from late notice if the business did not inform (lapses 4 months after the original start), refund within 15 days (第19條之2). ${CON("Taiwan (laws.gov.taipei)")}`,
+    { channel: pick(["mail", "visit", "store"], "Online/TV/mail order, door-to-door, or in a shop"), received: date("Date the goods or service were received"), infoGiven: yes("Business told you the cancellation period and method"), infoDate: date("Date the business gave the information late"), noticeOrReturn: date("Date you gave notice or returned the goods") }, ["channel"]),
+  fn("check_us_cooling_off",
+    `US FTC Cooling-Off Rule (16 CFR 429): door-to-door sales of $25+ and temporary-location sales of $130+ can be cancelled until midnight of the third business day after the sale (Saturdays count, Sundays and federal holidays don't); online, mail and phone sales and certain items are not covered; refund within 10 days. ${CON("United States (consumer.ftc.gov)")}`,
+    { place: pick(["home", "temporary", "online", "sellerStore"], "Where the sale happened"), price: num("Price (USD)"), saleDate: date("Sale date"), excludedItem: yes("Real estate, insurance, securities, or a vehicle at a temporary location"), cancelSent: date("Date the cancellation was sent") }, ["place", "price"]),
+];
+
 // 임대차 7곳 (2026-11-22): tools-oiyo world-tenancy-pack-2026과 같은 계산. 법률 자문·대리·제출 없음.
 const TEN = (c) => `${c}, as of 2026-11-21. General information and estimates only: no legal advice, no representation, no filing; values that could not be verified are flagged in the result, not computed.`;
 export const TENANCY_TOOLS = [
@@ -704,6 +730,13 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_cn_rental_contract_deposit: { path: "/v1/tenancy/cn", method: "POST" },
   check_tw_rental_deposit_termination: { path: "/v1/tenancy/tw", method: "POST" },
   start_world_law_intake: { path: "/v1/law/world/intake", method: "POST" },
+  check_jp_cooling_off: { path: "/v1/consumer/jp", method: "POST" },
+  check_uk_cancellation_period: { path: "/v1/consumer/uk", method: "POST" },
+  check_fr_retractation: { path: "/v1/consumer/fr", method: "POST" },
+  check_es_desistimiento: { path: "/v1/consumer/es", method: "POST" },
+  check_cn_7day_return: { path: "/v1/consumer/cn", method: "POST" },
+  check_tw_7day_cancellation: { path: "/v1/consumer/tw", method: "POST" },
+  check_us_cooling_off: { path: "/v1/consumer/us", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...WORLD_INTAKE_TOOLS];
