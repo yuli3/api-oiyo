@@ -544,6 +544,29 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 소멸시효·소액소송 6곳 (2026-11-22): tools-oiyo world-limitation-pack-2026과 같은 계산. 법률 자문·대리·소송 제기 없음.
+const LIM = (c) => `${c}, as of 2026-11-22. General information only: no legal advice, no representation, no filing; interruption, suspension and discovery rules are not applied.`;
+export const LIMITATION_TOOLS = [
+  fn("check_jp_limitation_small_claims",
+    `Japan 消滅時効 under the 2020 Civil Code: earlier of 5 years from knowledge and 10 years from when the right could be exercised (tort 3/20, life or body 5/20), plus whether 少額訴訟 (60万円以下, one hearing, 10 times a year per court) fits. ${LIM("Japan (法務省, courts.go.jp)")}`,
+    { claim: pick(["general", "tort", "injury"], "Type of claim"), knew: date("Date the right and the other party became known"), couldExercise: date("Date the right could first be exercised (or the tort happened)"), amount: num("Amount claimed (JPY)"), today: date("Today, for open/expired status") }, ["claim"]),
+  fn("check_uk_limitation_small_claims",
+    `England and Wales limitation (Limitation Act 1980: contract s.5 and tort s.2 six years, personal injury s.11 three years from accrual or later knowledge), the £10,000 small claims track and the HMCTS money-claim court fee. ${LIM("England and Wales (legislation.gov.uk, gov.uk)")}`,
+    { claim: pick(["contract", "tort", "injury"], "Type of claim"), accrued: date("Date the cause of action accrued"), knowledge: date("Date of knowledge (injury)"), amount: num("Amount claimed (GBP)"), today: date("Today") }, ["claim"]),
+  fn("check_ca_limitation_small_claims",
+    `California deadlines to sue (written contract 4 years CCP 337, oral 2 years CCP 339, personal injury 2 years CCP 335.1, property damage 3 years CCP 338, libel/slander 1 year CCP 340(c)) and the small claims limit ($12,500 individuals, $6,250 businesses). ${LIM("California (selfhelp.courts.ca.gov)")}`,
+    { claim: pick(["writtenContract", "oralContract", "injury", "property", "defamation"], "Type of claim"), start: date("Start date (breach, injury or damage)"), amount: num("Amount (USD)"), business: yes("Suing for a business"), today: date("Today") }, ["claim"]),
+  fn("check_fr_prescription",
+    `France délai de prescription: 5 ans in principle from when the sum is due, 2 ans for a professional against a consumer (C. consom. L.218-2, from the invoice), insurance 2, telecom 1, wages 3; injonction de payer (no amount cap) and petites créances up to 5 000 €. ${LIM("France (CIDJ, Que Choisir, justice.fr)")}`,
+    { claim: pick(["general", "proConsommateur", "assurance", "telecom", "salaire"], "Type of debt"), start: date("Date the sum was due (or invoice date)"), amount: num("Amount (EUR)"), today: date("Today") }, ["claim"]),
+  fn("check_tw_limitation_small_claims",
+    `Taiwan 消滅時效 (民法 第125條 15年, 第126條 5年 for periodic payments, 第127條 2年 for goods, lodging, professional fees; from when the claim could be exercised, 第128條) and 小額訴訟 (10萬元以下, 50萬元以下 by written agreement, 裁判費 1,500元). ${LIM("Taiwan (司法院, 民法)")}`,
+    { claim: pick(["general", "periodic", "shortTwoYear"], "Type of claim"), start: date("Date the claim could first be exercised"), amount: num("Amount (TWD)"), today: date("Today") }, ["claim"]),
+  fn("check_cn_small_claims",
+    `China 小额诉讼 (民事诉讼法 第165条, 2021): simple money claims up to 50% of the province's previous-year average wage of employed persons use the small-claims procedure (一审终审); up to 2× by agreement. 诉讼时效 is not computed. ${LIM("China (gov.cn)")}`,
+    { amount: num("Amount claimed (CNY)"), provincialAverageWage: num("Province's previous-year average annual wage of employed persons (CNY)") }, ["amount"]),
+];
+
 // 상속·증여 5곳 (2026-11-22): tools-oiyo world-inheritance-pack-2026과 같은 계산. 세무 자문·대리·신고 없음.
 const INH = (c) => `${c}, as of 2026-11-22. General information and estimates only: no tax advice, no representation, no filing; values that could not be verified are flagged in the result, not computed.`;
 export const INHERITANCE_TOOLS = [
@@ -762,6 +785,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_us_estate_gift_exclusion: { path: "/v1/inheritance/us", method: "POST" },
   calculate_fr_droits_succession: { path: "/v1/inheritance/fr", method: "POST" },
   check_tw_estate_tax_deadline: { path: "/v1/inheritance/tw", method: "POST" },
+  check_jp_limitation_small_claims: { path: "/v1/claims/jp", method: "POST" },
+  check_uk_limitation_small_claims: { path: "/v1/claims/uk", method: "POST" },
+  check_ca_limitation_small_claims: { path: "/v1/claims/us-ca", method: "POST" },
+  check_fr_prescription: { path: "/v1/claims/fr", method: "POST" },
+  check_tw_limitation_small_claims: { path: "/v1/claims/tw", method: "POST" },
+  check_cn_small_claims: { path: "/v1/claims/cn", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...WORLD_INTAKE_TOOLS];

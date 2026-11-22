@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { caLimitation, cnSmallClaims, frLimitation, jpLimitation, twLimitation, ukLimitation } from "./vendor/tools-tax/world-limitation-pack-2026.mjs";
 import { frSuccession, jpGift, jpInheritance, twEstate, ukInheritance, usEstateGift } from "./vendor/tools-tax/world-inheritance-pack-2026.mjs";
 import { cnCoolingOff, esCoolingOff, frCoolingOff, jpCoolingOff, twCoolingOff, ukCoolingOff, usCoolingOff } from "./vendor/tools-tax/world-consumer-pack-2026.mjs";
 import { TENANCY_AS_OF, cnTenancy, esTenancy, frTenancy, jpTenancy, twTenancy, ukTenancy, usTenancy } from "./vendor/tools-tax/world-tenancy-pack-2026.mjs";
@@ -42,7 +43,15 @@ export function makeCountryTaxHandlers() {
   const con = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CONSUMER_NOTE });
   const INHERITANCE_NOTE = "General information and estimates only: no tax advice, no representation, no filing. Values that could not be verified are flagged in items, not computed. Check with the tax office or a qualified professional.";
   const inh = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: INHERITANCE_NOTE });
+  const CLAIMS_NOTE = "General information only: no legal advice, no representation, no filing. The limitation date is an estimate from the start date given; interruption, suspension and discovery rules are not applied. Act well before it.";
+  const clm = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CLAIMS_NOTE });
   return {
+    "/v1/claims/jp": (i) => clm(JA, "japan-shometsu-jiko-shogaku-sosho", jpLimitation(i)),
+    "/v1/claims/uk": (i) => clm(EN, "uk-limitation-period-small-claims", ukLimitation(i)),
+    "/v1/claims/us-ca": (i) => clm(EN, "california-statute-of-limitations-small-claims", caLimitation(i)),
+    "/v1/claims/fr": (i) => clm(FRP, "delai-prescription-dette-injonction", frLimitation(i)),
+    "/v1/claims/tw": (i) => clm(ZHP, "taiwan-statute-limitation-small-claims", twLimitation(i)),
+    "/v1/claims/cn": (i) => clm(ZHP, "china-small-claims-threshold", cnSmallClaims(i)),
     "/v1/inheritance/jp": (i) => inh(JA, "japan-inheritance-gift-tax-deadline", i.kind === "gift" ? jpGift(i) : jpInheritance(i)),
     "/v1/inheritance/uk": (i) => inh(EN, "uk-inheritance-tax-threshold-deadline", ukInheritance(i)),
     "/v1/inheritance/us": (i) => inh(EN, "us-estate-gift-tax-exclusion-2026", usEstateGift(i)),

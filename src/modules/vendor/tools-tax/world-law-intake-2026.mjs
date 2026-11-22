@@ -14,7 +14,7 @@ import { TW_SCOPE } from "./tw-tax-pack-2026.mjs";
 
 export const INTAKE_AS_OF = "2026-11-22";
                                                                      
-                                                            
+                                                                       
                                                                                                                         
 
 const T = "https://tools.oiyo.net/";
@@ -29,6 +29,7 @@ export const WORLD_TOOLS               = [
   t("JP", "tax", "calculate_jp_depreciation", "ja/genka-shokyaku-calculator", "減価償却", ["減価償却", "耐用年数", "少額", "30万", "一括償却", "depreciation"]),
   t("JP", "labor", "calculate_jp_labor_exit", "ja/japan-dismissal-unemployment-checker", "解雇予告手当・失業手当・有給", ["解雇", "解雇予告", "退職", "失業", "基本手当", "有給", "最低賃金", "残業代", "未払い", "dismiss", "fired", "unemployment"]),
   t("JP", "tenancy", "check_jp_rental_deposit_notice", "ja/japan-rental-deposit-notice-checker", "敷金・解約予告", ["敷金", "賃貸", "家賃", "退去", "解約", "更新", "定期借家", "大家", "deposit", "rent", "lease"]),
+  t("JP", "claims", "check_jp_limitation_small_claims", "ja/japan-shometsu-jiko-shogaku-sosho", "消滅時効と少額訴訟", ["時効", "消滅時効", "少額訴訟", "貸したお金", "返してくれない", "請求", "訴え", "裁判"]),
   t("JP", "consumer", "check_jp_cooling_off", "ja/japan-cooling-off-deadline", "クーリング・オフ期限", ["クーリング・オフ", "クーリングオフ", "訪問販売", "電話勧誘", "エステ", "マルチ", "解約したい", "返品", "契約をやめ"]),
   t("JP", "tax", "calculate_jp_inheritance_gift_tax", "ja/japan-inheritance-gift-tax-deadline", "相続税・贈与税の基礎控除と期限", ["相続税", "相続", "遺産", "贈与税", "贈与", "生前贈与", "基礎控除"]),
 
@@ -40,6 +41,7 @@ export const WORLD_TOOLS               = [
   t("US", "tax", "calculate_us_depreciation", "en/macrs-section-179-calculator", "MACRS, Section 179 and bonus depreciation", ["depreciation", "section 179", "macrs", "bonus", "de minimis"]),
   t("US", "labor", "check_us_labor_rights", "en/us-wage-layoff-deadline-checker", "Minimum wage, overtime, WARN and EEOC deadlines", ["minimum wage", "overtime", "layoff", "warn", "fired", "final pay", "eeoc", "discrimination", "back wages"]),
   t("US", "tenancy", "check_us_security_deposit_notice", "en/california-new-york-security-deposit-notice", "California and New York security deposit, notice and rent cap", ["security deposit", "rent", "landlord", "tenant", "lease", "move out", "rent increase", "ab 1482", "rent stabilized"]),
+  t("US", "claims", "check_ca_limitation_small_claims", "en/california-statute-of-limitations-small-claims", "California deadlines to sue and small claims", ["statute of limitations", "small claims", "sue", "lawsuit", "deadline to sue", "owes me money"]),
   t("US", "consumer", "check_us_cooling_off", "en/ftc-cooling-off-rule-deadline", "FTC three-day Cooling-Off Rule", ["cooling-off", "cooling off", "door-to-door", "cancel a purchase", "salesperson", "three-day", "3-day", "refund"]),
   t("US", "tax", "check_us_estate_gift_exclusion", "en/us-estate-gift-tax-exclusion-2026", "Estate and gift tax exclusions and due dates", ["estate tax", "gift tax", "inheritance", "form 706", "form 709", "annual exclusion", "estate"]),
 
@@ -51,6 +53,7 @@ export const WORLD_TOOLS               = [
   t("FR", "tax", "calculate_fr_depreciation", "fr/amortissement-lineaire-degressif", "Amortissement linéaire et dégressif", ["amortissement", "dégressif", "linéaire", "immobilisation"]),
   t("FR", "labor", "calculate_fr_labor_exit", "fr/indemnite-licenciement-delais-prudhommes", "Indemnité de licenciement, préavis et prud'hommes", ["licenciement", "licencié", "indemnité", "préavis", "rupture conventionnelle", "prud'hommes", "smic", "chômage", "démission"]),
   t("FR", "tenancy", "check_fr_deposit_notice_irl", "fr/depot-de-garantie-preavis-irl", "Dépôt de garantie, préavis et révision IRL", ["dépôt de garantie", "caution", "loyer", "bail", "propriétaire", "locataire", "préavis", "irl", "état des lieux", "meublé"]),
+  t("FR", "claims", "check_fr_prescription", "fr/delai-prescription-dette-injonction", "Prescription d'une dette et injonction de payer", ["prescription", "dette", "injonction de payer", "créance", "recouvrement", "me doit"]),
   t("FR", "consumer", "check_fr_retractation", "fr/delai-retractation-achat-distance", "Délai de rétractation de 14 jours", ["rétractation", "retractation", "remboursement", "achat en ligne", "commande", "démarchage", "annuler un achat"]),
   t("FR", "tax", "calculate_fr_droits_succession", "fr/droits-succession-abattement-delai", "Droits de succession : abattement et délai", ["succession", "héritage", "heritage", "hériter", "abattement", "notaire", "décès"]),
 
@@ -75,6 +78,7 @@ export const WORLD_TOOLS               = [
   t("CN", "tax", "calculate_cn_depreciation", "zh/china-depreciation-calculator", "固定资产折旧", ["折旧", "固定资产", "一次性扣除"]),
   t("CN", "labor", "calculate_cn_labor_exit", "zh/china-severance-compensation-calculator", "经济补偿·赔偿金·失业保险金", ["辞退", "解除劳动合同", "经济补偿", "赔偿金", "n+1", "2n", "失业", "年休假", "仲裁", "裁员", "最低工资"]),
   t("CN", "tenancy", "check_cn_rental_contract_deposit", "zh/china-rental-contract-deposit-check", "租房合同与押金", ["租房", "押金", "房东", "租客", "租赁合同", "退租", "房租"]),
+  t("CN", "claims", "check_cn_small_claims", "zh/china-small-claims-threshold", "小额诉讼适用判断", ["小额诉讼", "起诉", "欠钱", "欠款", "打官司", "诉讼"]),
   t("CN", "consumer", "check_cn_7day_return", "zh/china-7-day-return-deadline", "七日无理由退货", ["七天无理由", "七日无理由", "退货", "网购", "退款", "签收"]),
 
   t("UK", "tax", "get_uk_tax_calendar", "en/uk-self-assessment-deadlines-2026", "Self Assessment and MTD deadlines", ["self assessment", "31 january", "deadline", "mtd", "payment on account", "tax return"]),
@@ -86,6 +90,7 @@ export const WORLD_TOOLS               = [
   t("UK", "tax", "calculate_uk_capital_allowances", "en/uk-capital-allowances-aia-calculator", "Capital allowances, AIA and full expensing", ["capital allowances", "aia", "full expensing", "writing down", "van", "equipment"]),
   t("UK", "labor", "calculate_uk_labor_exit", "en/uk-redundancy-notice-tribunal-calculator", "Redundancy pay, notice and tribunal deadline", ["redundancy", "redundant", "notice", "tribunal", "acas", "minimum wage", "holiday pay", "sick pay", "ssp", "dismissed"]),
   t("UK", "tenancy", "check_uk_tenancy_deposit_notice", "en/england-tenancy-deposit-notice-checker", "England deposit cap, protection and notice", ["deposit", "tenancy", "landlord", "tenant", "rent", "renters' rights", "section 21", "deposit protection", "evict"]),
+  t("UK", "claims", "check_uk_limitation_small_claims", "en/uk-limitation-period-small-claims", "Limitation period and small claims fee", ["limitation", "small claims", "sue", "money claim", "court claim", "owes me", "county court"]),
   t("UK", "consumer", "check_uk_cancellation_period", "en/uk-consumer-cancellation-period", "14-day cancellation period", ["cancel", "cancellation", "refund", "online order", "doorstep", "cooling-off"]),
   t("UK", "tax", "calculate_uk_inheritance_tax", "en/uk-inheritance-tax-threshold-deadline", "Inheritance Tax threshold and payment date", ["inheritance tax", "inheritance", "estate", "nil rate band", "iht", "probate", "gifts before death"]),
 
@@ -97,19 +102,20 @@ export const WORLD_TOOLS               = [
   t("TW", "tax", "calculate_tw_depreciation", "zh/taiwan-depreciation-calculator", "固定資產折舊", ["折舊", "耐用年數", "8萬"]),
   t("TW", "labor", "calculate_tw_labor_exit", "zh/taiwan-severance-notice-calculator", "資遣費·預告期間·特休·失業給付", ["資遣", "資遣費", "解僱", "離職", "預告", "特休", "失業給付", "最低工資", "勞退"]),
   t("TW", "tenancy", "check_tw_rental_deposit_termination", "zh/taiwan-rental-deposit-termination", "租屋押金與提前終止", ["租屋", "押金", "房東", "房客", "租約", "提前終止", "退租"]),
+  t("TW", "claims", "check_tw_limitation_small_claims", "zh/taiwan-statute-limitation-small-claims", "消滅時效與小額訴訟", ["時效", "消滅時效", "小額訴訟", "欠錢", "欠款", "起訴", "打官司"]),
   t("TW", "consumer", "check_tw_7day_cancellation", "zh/taiwan-7-day-cancellation", "七日解約權", ["七日鑑賞期", "鑑賞期", "七天", "退貨", "網購", "解約", "退款"]),
   t("TW", "tax", "check_tw_estate_tax_deadline", "zh/taiwan-estate-tax-filing-deadline", "遺產稅申報期限", ["遺產稅", "遺產", "繼承", "過世", "申報期限"]),
 ];
 
 // Free official help, as already published in the packs and skills (tax: *_SCOPE; labour and tenancy: pack items / SKILL.md; consumer: world-consumer-pack-2026).
 export const HELP                                        = {
-  JP: { tax: "税務署の電話相談センター、税理士会の無料税務相談", labor: "総合労働相談コーナー", tenancy: "消費者ホットライン 188", consumer: "消費者ホットライン 188" },
-  US: { tax: "IRS VITA and TCE (free return preparation), Taxpayer Advocate Service, Low Income Taxpayer Clinics", labor: "US Department of Labor 1-866-487-2365 (Wage and Hour Division) or your state labor department", tenancy: "California courts self-help, New York Attorney General", consumer: "FTC ReportFraud.ftc.gov, your state attorney general" },
-  FR: { tax: "centre des finances publiques ou SIE, messagerie sécurisée impots.gouv, 0 809 401 401 (particuliers), 0 806 807 807 (professionnels), France Services", labor: "conseil de prud'hommes, service-public.gouv.fr", tenancy: "ADIL, commission départementale de conciliation", consumer: "SignalConso, conciliateur de justice" },
-  ES: { tax: "AEAT: 91 333 5 333 (información y cita previa), 91 554 87 70 (información tributaria básica)", labor: "conciliación (SMAC) de tu comunidad autónoma", tenancy: "oficina de consumo o de vivienda de tu comunidad o ayuntamiento", consumer: "OMIC de su municipio, consumoresponde.es" },
-  CN: { tax: "国家税务总局12366纳税服务平台（12366.chinatax.gov.cn）", labor: "当地人社部门、劳动争议仲裁委员会", tenancy: "12345 政务服务便民热线", consumer: "12315 平台" },
-  UK: { tax: "HMRC; on a low income, free independent advice such as TaxAid", labor: "Acas", tenancy: "Shelter, Citizens Advice, the deposit scheme's free dispute service", consumer: "Citizens Advice consumer service" },
-  TW: { tax: "國稅局免付費電話 0800-000-321", labor: "地方勞工局", tenancy: "地方消保官或地政機關", consumer: "行政院消費者保護會、縣市消費者服務中心" },
+  JP: { tax: "税務署の電話相談センター、税理士会の無料税務相談", labor: "総合労働相談コーナー", tenancy: "消費者ホットライン 188", consumer: "消費者ホットライン 188", claims: "簡易裁判所の窓口" },
+  US: { tax: "IRS VITA and TCE (free return preparation), Taxpayer Advocate Service, Low Income Taxpayer Clinics", labor: "US Department of Labor 1-866-487-2365 (Wage and Hour Division) or your state labor department", tenancy: "California courts self-help, New York Attorney General", consumer: "FTC ReportFraud.ftc.gov, your state attorney general", claims: "California Courts Self-Help, county small claims advisor" },
+  FR: { tax: "centre des finances publiques ou SIE, messagerie sécurisée impots.gouv, 0 809 401 401 (particuliers), 0 806 807 807 (professionnels), France Services", labor: "conseil de prud'hommes, service-public.gouv.fr", tenancy: "ADIL, commission départementale de conciliation", consumer: "SignalConso, conciliateur de justice", claims: "tribunal judiciaire (greffe), justice.fr" },
+  ES: { tax: "AEAT: 91 333 5 333 (información y cita previa), 91 554 87 70 (información tributaria básica)", labor: "conciliación (SMAC) de tu comunidad autónoma", tenancy: "oficina de consumo o de vivienda de tu comunidad o ayuntamiento", consumer: "OMIC de su municipio, consumoresponde.es", claims: "no hay herramienta todavía: consulte un servicio de orientación jurídica" },
+  CN: { tax: "国家税务总局12366纳税服务平台（12366.chinatax.gov.cn）", labor: "当地人社部门、劳动争议仲裁委员会", tenancy: "12345 政务服务便民热线", consumer: "12315 平台", claims: "当地人民法院诉讼服务中心" },
+  UK: { tax: "HMRC; on a low income, free independent advice such as TaxAid", labor: "Acas", tenancy: "Shelter, Citizens Advice, the deposit scheme's free dispute service", consumer: "Citizens Advice consumer service", claims: "Citizens Advice, Money Claim Online (gov.uk)" },
+  TW: { tax: "國稅局免付費電話 0800-000-321", labor: "地方勞工局", tenancy: "地方消保官或地政機關", consumer: "行政院消費者保護會、縣市消費者服務中心", claims: "各地方法院（簡易庭）" },
 };
 
 export const TAX_SCOPE                                                                   = { JP: JP_SCOPE, US: US_SCOPE, FR: FR_SCOPE, ES: ES_SCOPE, CN: CN_SCOPE, UK: UK_SCOPE, TW: TW_SCOPE };
@@ -117,6 +123,7 @@ export const TAX_SCOPE                                                          
 const AREA_WORDS                         = {
   tax: ["tax", "税", "稅", "impôt", "impuesto", "tva", "iva", "vat", "hmrc", "irs", "申告", "申报", "申報"],
   labor: ["job", "work", "employer", "salary", "wage", "労働", "雇用", "劳动", "工资", "勞工", "工資", "travail", "salarié", "trabajo", "despido", "employ"],
+  claims: ["sue", "court", "裁判", "訴訟", "诉讼", "時効", "时效", "prescription", "tribunal"],
   consumer: ["refund", "cancel", "返品", "退货", "退貨", "rétractation", "desistimiento", "クーリング"],
   tenancy: ["rent", "deposit", "賃貸", "家賃", "租", "押金", "loyer", "bail", "alquiler", "fianza", "landlord"],
 };
@@ -141,8 +148,8 @@ export function intake(x                                                        
     country: x.country,
     matches,
     ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
-    help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
+    help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer", "claims"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
-    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods, employer payroll, company filings, tax residency.",
+    note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll, company filings, tax residency.",
   };
 }
