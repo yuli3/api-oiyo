@@ -100,9 +100,21 @@ const worker = {
     const peek = isMcp ? (request.method === "POST" ? mcpPeek(await request.clone().text().catch(() => "")) : { rpc: `(${request.method.toLowerCase()})`, client: "" }) : null;
     const response = await route(request, env);
     recordUsage(env, request, response, Date.now() - started, isMcp ? "mcp" : "rest", isMcp ? mcpMedium(request) : "", peek);
-    return response;
+    return withSecurityHeaders(response);
   },
 };
+
+// 2026-11-22 audit: api.oiyo.net answered with nosniff only (no HSTS, no framing or referrer policy).
+// Added once here so every route, MCP stream and redirect gets them without touching each handler.
+export function withSecurityHeaders(response) {
+  if (response.status === 101) return response;
+  const headers = new Headers(response.headers);
+  if (!headers.has("Strict-Transport-Security")) headers.set("Strict-Transport-Security", "max-age=31536000");
+  if (!headers.has("X-Content-Type-Options")) headers.set("X-Content-Type-Options", "nosniff");
+  if (!headers.has("Referrer-Policy")) headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  if ((headers.get("Content-Type") ?? "").startsWith("text/html") && !headers.has("X-Frame-Options")) headers.set("X-Frame-Options", "SAMEORIGIN");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
 
 async function route(request, env) {
   // The extra block keeps the pre-2026-10-27 handler body (and its multi-line strings) byte-identical.
