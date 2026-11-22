@@ -20,7 +20,7 @@ export const INTAKE_AS_OF = "2026-11-22";
  *  pro: running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing). */
                                         
                                                                                                                                             
-const PRO = /depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
+const PRO = /withholding|depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
 export const audienceOf = (mcp        )           => (PRO.test(mcp) ? "pro" : "person");
 
 const T = "https://tools.oiyo.net/";
@@ -130,6 +130,12 @@ export const WORLD_TOOLS               = [
   t("US", "labor", "calculate_us_take_home", "en/us-take-home-pay-calculator-2026", "Take-home pay 2026 (federal tax and FICA)", ["take home", "take-home", "net pay", "paycheck", "after tax", "fica", "salary after tax"]),
   t("FR", "labor", "calculate_fr_take_home", "fr/france-salary-calculator", "Salaire net après impôt (brut en net)", ["brut en net", "salaire net", "net après impôt", "fiche de paie", "salaire brut", "combien je touche"]),
   t("ES", "labor", "calculate_es_take_home", "es/spain-salary-calculator", "Salario neto (bruto a neto, IRPF y cotizaciones)", ["salario neto", "bruto a neto", "nómina", "cuánto cobro", "sueldo neto", "neto"]),
+  t("JP", "tax", "check_jp_withholding", "en/withholding-tax-non-resident-payments", "非居住者への支払と源泉徴収税率", ["非居住者", "源泉徴収", "海外", "使用料", "20.42", "外国法人", "withholding"]),
+  t("US", "tax", "check_us_withholding", "en/withholding-tax-non-resident-payments", "NRA withholding on payments to non-residents (30%)", ["nra withholding", "withholding", "non-resident", "nonresident", "fdap", "1042", "w-8ben", "foreign contractor"]),
+  t("FR", "tax", "check_fr_withholding", "en/withholding-tax-non-resident-payments", "Retenue à la source sur paiements aux non-résidents (art. 182 B)", ["retenue à la source", "non-résident", "182 b", "redevances", "prestataire étranger"]),
+  t("ES", "tax", "check_es_withholding", "en/withholding-tax-non-resident-payments", "Retenciones IRNR a no residentes", ["no residente", "irnr", "retención", "modelo 216", "cánones", "pago al extranjero"]),
+  t("TW", "tax", "check_tw_withholding", "en/withholding-tax-non-resident-payments", "非居住者扣繳率", ["非居住者", "扣繳", "權利金", "外國", "境外", "扣繳率"]),
+  t("DE", "tax", "check_de_withholding", "en/withholding-tax-non-resident-payments", "Steuerabzug nach § 50a EStG", ["50a", "steuerabzug", "beschränkt steuerpflichtig", "lizenz", "ausland", "quellensteuer"]),
   t("DE", "tax", "calculate_de_income_tax", "de/einkommensteuer-rechner-2026", "Einkommensteuer 2026 und Solidaritätszuschlag", ["einkommensteuer", "steuer", "zve", "grundfreibetrag", "splitting", "soli", "solidaritätszuschlag", "steuersatz", "income tax"]),
   t("DE", "labor", "calculate_de_notice_period", "de/kuendigungsfrist-rechner", "Kündigungsfrist nach § 622 BGB", ["kündigung", "kündigungsfrist", "gekündigt", "kündigen", "probezeit", "letzter arbeitstag", "notice", "fired", "dismissal"]),
   t("DE", "labor", "check_de_minimum_wage", "de/kuendigungsfrist-rechner", "Mindestlohn und Minijob-Grenze", ["mindestlohn", "minijob", "stundenlohn", "minimum wage", "603", "13,90", "13.90"]),
