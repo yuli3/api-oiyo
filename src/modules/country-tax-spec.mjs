@@ -544,6 +544,23 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 회사 연간 일정 4곳 (2026-11-22): tools-oiyo world-company-calendar-2026과 같은 계산. 신고 대행 없음.
+const CAL = (c) => `${c}, as of 2026-11-22. General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.`;
+export const COMPANY_CALENDAR_TOOLS = [
+  fn("check_jp_company_calendar",
+    `Japan corporate deadlines from the business-year end: 法人税 確定申告・納付 within 2 months, 中間申告 (12-month year: 6 months + 2 months; not needed if 予定申告額 10万円以下), 消費税 2 months (+1 month with 延長特例 and 消費税申告期限延長届出書). The 延長特例 length for 法人税 is not computed. ${CAL("Japan (国税庁)")}`,
+    { yearEnd: date("Business year end (決算日)"), consumptionTax: yes("Consumption-tax registered business"), extensionFiled: yes("法人税 延長特例 and 消費税 延長届出 filed"), today: date("Today, for the next deadline") }, ["yearEnd"]),
+  fn("check_uk_company_calendar",
+    `UK private limited company deadlines: annual accounts to Companies House 9 months after year end (first accounts 21 months after registration), Corporation Tax payment 9 months and 1 day, CT600 12 months, with late filing penalties. ${CAL("UK (gov.uk)")}`,
+    { yearEnd: date("Financial year end"), firstAccounts: yes("These are the first accounts"), incorporated: date("Date registered with Companies House"), today: date("Today") }, ["yearEnd"]),
+  fn("check_us_company_calendar",
+    `US federal business return due dates from the tax year end: Form 1120 15th day of the 4th month (June year end: 3rd month) with a 6-month Form 7004 extension (7 months for June), Forms 1120-S and 1065 15th day of the 3rd month. ${CAL("United States (IRS Form 7004 due date chart PY2026)")}`,
+    { yearEnd: date("Tax year end"), entity: pick(["ccorp", "scorp", "partnership"], "Return type"), today: date("Today") }, ["yearEnd", "entity"]),
+  fn("check_fr_company_calendar",
+    `France: approbation des comptes within 6 months of the clôture, then dépôt au greffe 1 month after approval (2 months online); 1 500 € fine for not filing. Liasse fiscale date is not computed. ${CAL("France (service-public, justice.fr)")}`,
+    { yearEnd: date("Date de clôture"), approvedOn: date("Date d'approbation, if done"), online: yes("Filing online (guichet unique)"), today: date("Today") }, ["yearEnd"]),
+];
+
 // 고용주 급여 비용 4곳 (2026-11-22): tools-oiyo world-employer-cost-pack-2026과 같은 계산. 급여 대행·신고 없음.
 const EMP = (c) => `${c}, as of 2026-11-22. General estimate only: not payroll or tax advice, no filing. Items not verified are listed as not included.`;
 export const EMPLOYER_TOOLS = [
@@ -812,6 +829,10 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_uk_employer_cost: { path: "/v1/employer/uk", method: "POST" },
   calculate_us_employer_cost: { path: "/v1/employer/us", method: "POST" },
   calculate_es_employer_cost: { path: "/v1/employer/es", method: "POST" },
+  check_jp_company_calendar: { path: "/v1/company-calendar/jp", method: "POST" },
+  check_uk_company_calendar: { path: "/v1/company-calendar/uk", method: "POST" },
+  check_us_company_calendar: { path: "/v1/company-calendar/us", method: "POST" },
+  check_fr_company_calendar: { path: "/v1/company-calendar/fr", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...WORLD_INTAKE_TOOLS];

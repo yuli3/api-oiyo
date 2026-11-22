@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { frCompanyCalendar, jpCompanyCalendar, ukCompanyCalendar, usCompanyCalendar } from "./vendor/tools-tax/world-company-calendar-2026.mjs";
 import { esEmployerCost, jpEmployerCost, ukEmployerCost, usEmployerCost } from "./vendor/tools-tax/world-employer-cost-pack-2026.mjs";
 import { caLimitation, cnSmallClaims, frLimitation, jpLimitation, twLimitation, ukLimitation } from "./vendor/tools-tax/world-limitation-pack-2026.mjs";
 import { frSuccession, jpGift, jpInheritance, twEstate, ukInheritance, usEstateGift } from "./vendor/tools-tax/world-inheritance-pack-2026.mjs";
@@ -48,7 +49,13 @@ export function makeCountryTaxHandlers() {
   const clm = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CLAIMS_NOTE });
   const EMP_NOTE = "General estimate only: not payroll or tax advice, no filing. Items listed as not included were not verified and are not added.";
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
+  const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
+  const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
   return {
+    "/v1/company-calendar/jp": (i) => cal(JA, "japan-hojin-shinkoku-kigen-calendar", jpCompanyCalendar(i)),
+    "/v1/company-calendar/uk": (i) => cal(EN, "uk-company-accounts-ct600-deadlines", ukCompanyCalendar(i)),
+    "/v1/company-calendar/us": (i) => cal(EN, "us-business-tax-return-due-dates", usCompanyCalendar(i)),
+    "/v1/company-calendar/fr": (i) => cal(FRP, "delai-approbation-depot-comptes-annuels", frCompanyCalendar(i)),
     "/v1/employer/jp": (i) => emp(JA, "japan-employer-social-insurance-cost", jpEmployerCost(i)),
     "/v1/employer/uk": (i) => emp(EN, "uk-employer-national-insurance-2026", ukEmployerCost(i)),
     "/v1/employer/us": (i) => emp(EN, "us-employer-payroll-tax-fica-2026", usEmployerCost(i)),
