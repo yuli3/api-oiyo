@@ -56,6 +56,7 @@
 
 ## MCP Registry (2026-11-09)
 - `server.json`이 공식 MCP Registry 등록 정보다(`io.github.yuli3/oiyo-calculations`, remote `https://api-oiyo.861106.workers.dev/mcp` 우선, `https://api.oiyo.net/mcp` 보조). `version`은 `tools-spec.mjs`의 `version`과 같이 올린다(테스트가 확인).
+- 2026-11-22 `/mcp/world`(`io.github.yuli3/oiyo-world`, `registry/oiyo-world/server.json`): 한국 밖 국가 도구만 모은 프로필. 도구 목록은 이름 패턴(`WORLD_TOOL_PATTERN`, `_jp_`·`_uk_`… `_world_`)으로 자동이라 새 국가 도구는 이름만 규칙대로 지으면 들어가요.
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
 
 ## MCP 출처 링크·등재 (2026-11-12, 파일럿 #1)

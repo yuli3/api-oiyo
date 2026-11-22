@@ -483,3 +483,27 @@ test("/mcp/welfare serves only the welfare profile, with the same results as /mc
   const outside = await parse(await call("/mcp/welfare", "calculate_dcf_valuation"));
   assert.ok(outside.error || outside.result?.isError, "tools outside the profile are not callable");
 });
+
+test("/mcp/world serves every country tool outside Korea and nothing Korean", async () => {
+  const { MCP_PROFILES } = await import("../src/modules/mcp-profiles.mjs");
+  const profile = MCP_PROFILES.world.tools;
+  assert.ok(profile.length >= 100, `world profile has ${profile.length} tools`);
+  assert.ok(profile.every(name => !/_kr_/.test(name)), "no Korean tools");
+  for (const name of ["calculate_jp_take_home", "calculate_uk_take_home", "check_de_rent_deposit", "check_fr_retractation", "start_world_law_intake"]) {
+    assert.ok(profile.includes(name), name);
+  }
+  const headers = { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "User-Agent": "node", "MCP-Protocol-Version": "2025-06-18" };
+  const parse = async (response) => { const text = await response.text(); return JSON.parse(text.startsWith("{") ? text : text.split("\n").find((l) => l.startsWith("data:")).slice(5)); };
+  const post = (path, body) => worker.fetch(new Request(`https://api.oiyo.net${path}`, { method: "POST", headers, body: JSON.stringify(body) }));
+  const init = await parse(await post("/mcp/world", { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } } }));
+  assert.equal(init.result.serverInfo.name, "oiyo-world");
+  const list = await parse(await post("/mcp/world/", { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }));
+  assert.deepEqual(list.result.tools.map(t => t.name).sort(), [...profile].sort());
+  const call = (path, name) => post(path, { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name, arguments: fixtures[name] } });
+  const world = await parse(await call("/mcp/world", "calculate_jp_take_home"));
+  const full = await parse(await call("/mcp", "calculate_jp_take_home"));
+  assert.equal(world.result.isError, false);
+  assert.deepEqual(world.result.structuredContent, full.result.structuredContent);
+  const outside = await parse(await call("/mcp/world", "calculate_kr_work_child_incentive"));
+  assert.ok(outside.error || outside.result?.isError, "Korean tools are not callable on /mcp/world");
+});
