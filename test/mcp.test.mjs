@@ -221,6 +221,12 @@ const fixtures = {
   check_tw_residency: { days: 40, householdRegistration: true },
   check_jp_residency: { domicileInJapan: true },
   check_fr_residency: { foyerInFrance: true },
+  calculate_de_income_tax: { zvE: 50000 },
+  calculate_de_notice_period: { noticeDate: "2026-11-20", startDate: "2020-01-01", by: "employer" },
+  check_de_minimum_wage: { date: "2026-11-22", hourly: 13 },
+  check_de_einvoicing: { turnover2026: 500000 },
+  calculate_sg_cpf: { monthlyWage: 5000, age: 30 },
+  calculate_sg_notice_period: { startDate: "2020-01-01", noticeDate: "2026-11-02" },
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
@@ -323,13 +329,15 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     const url = new URL(sourcePageUrl(name, "smithery"));
     assert.match(url.origin, /^https:\/\/(tools\.)?oiyo\.net$/);
     // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
-    assert.ok(/^\/(ko|ja|en|fr|es|zh)\//.test(url.pathname) && url.pathname.endsWith("/"));
+    assert.ok(/^\/(ko|ja|en|fr|es|zh|de)\//.test(url.pathname) && url.pathname.endsWith("/"));
     if (/_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
     if (/_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
     if (/_(fr)_/.test(name)) assert.ok(url.pathname.startsWith("/fr/"), name);
     if (/_(es)_/.test(name)) assert.ok(url.pathname.startsWith("/es/"), name);
     if (/_(cn|tw)_/.test(name)) assert.ok(url.pathname.startsWith("/zh/"), name);
     if (/_(uk)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
+    if (/_(de)_/.test(name)) assert.ok(url.pathname.startsWith("/de/"), name);
+    if (/_(sg)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
     assert.equal(url.searchParams.get("utm_source"), "mcp");
     assert.equal(url.searchParams.get("utm_medium"), "smithery");
     assert.equal(url.searchParams.get("utm_campaign"), "mcp-pilot");

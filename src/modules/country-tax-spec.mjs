@@ -544,6 +544,29 @@ export const LABOR_TOOLS = [
     }, ["start", "end", "averageMonthlyWage", "system"]),
 ];
 
+// 독일·싱가포르 첫 묶음 (2026-11-22): tools-oiyo world-de-sg-pack-2026과 같은 계산.
+const DSG = (c) => `${c}, as of 2026-11-22. General information only: not tax or legal advice.`;
+export const DE_SG_TOOLS = [
+  fn("calculate_de_income_tax",
+    `Germany Einkommensteuer 2026 from zu versteuerndes Einkommen under § 32a EStG (Grundfreibetrag 12,348 EUR, 42% from 69,879 EUR, 45% from 277,826 EUR), Grund- or Splittingtabelle, with average and marginal rate. Solidaritätszuschlag, Kirchensteuer and Kinderfreibetrag are not computed. ${DSG("Germany (§ 32a EStG)")}`,
+    { zvE: num("Zu versteuerndes Einkommen for the year (EUR)"), joint: yes("Joint assessment (Splitting)") }, ["zvE"]),
+  fn("calculate_de_notice_period",
+    `Germany Kündigungsfrist under § 622 BGB: 4 weeks to the 15th or month end; employer notice 1 to 7 months to month end after 2 to 20 years; 2 weeks in a probation period of up to 6 months. Gives the last day of employment. Kündigungsschutzgesetz and collective agreements are not checked. ${DSG("Germany (§ 622 BGB)")}`,
+    { noticeDate: date("Date the notice is received"), startDate: date("Start of employment"), by: pick(["employer", "employee"], "Who gives notice"), probation: yes("Within an agreed probation period") }, ["noticeDate", "by"]),
+  fn("check_de_minimum_wage",
+    `Germany Mindestlohn (13.90 EUR per hour from 1 January 2026, 14.60 EUR in 2027) and Minijob limit (603 EUR a month in 2026, 633 EUR in 2027) for a date, with a check of an hourly wage and monthly pay. ${DSG("Germany (bundesregierung.de)")}`,
+    { date: date("Date to check"), hourly: num("Hourly gross wage (EUR)"), monthlyHours: num("Hours per month", 0, 744) }, ["date"]),
+  fn("check_de_einvoicing",
+    `Germany E-Rechnung timeline: all domestic businesses must be able to receive e-invoices since 2025; issuing for domestic B2B from 1 January 2027 if 2026 turnover exceeded 800,000 EUR, otherwise from 1 January 2028. Small invoices up to 250 EUR, tickets and B2C are excluded. ${DSG("Germany (IHK Stuttgart)")}`,
+    { turnover2026: num("Total turnover in 2026 (EUR)"), today: date("Date to check") }),
+  fn("calculate_sg_cpf",
+    `Singapore CPF contributions from 1 January 2026 for monthly wages above $750: employer and employee rates by age (55 and below 17% + 20%, above 55 to 60 16% + 18%, above 60 to 65 12.5% + 12.5%, above 65 to 70 9% + 7.5%, above 70 7.5% + 5%), Ordinary Wage ceiling $8,000. Not rounded; bonuses and low-wage rates are not computed. ${DSG("Singapore (CPF Board)")}`,
+    { monthlyWage: num("Monthly ordinary wage (SGD)"), age: num("Age", 0, 120) }, ["monthlyWage", "age"]),
+  fn("calculate_sg_notice_period",
+    `Singapore notice period when the contract is silent (Employment Act): 1 day under 26 weeks, 1 week to under 2 years, 2 weeks to under 5 years, 4 weeks from 5 years; the period includes the day notice is given. Gives the last day. ${DSG("Singapore (MOM)")}`,
+    { startDate: date("Start of employment"), noticeDate: date("Day notice is given"), contractDays: num("Notice period in the contract (days), if any", 0, 365) }, ["startDate", "noticeDate"]),
+];
+
 // 개인 세법상 거주자 판정 6곳 (2026-11-22): tools-oiyo world-tax-residency-2026과 같은 계산.
 const RES = (c) => `${c}, as of 2026-11-22. General information only: not tax advice; tax treaties can override the result. Verdict is resident, nonresident or depends.`;
 const days = (d) => num(d, 0, 366);
@@ -880,6 +903,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_tw_residency: { path: "/v1/residency/tw", method: "POST" },
   check_jp_residency: { path: "/v1/residency/jp", method: "POST" },
   check_fr_residency: { path: "/v1/residency/fr", method: "POST" },
+  calculate_de_income_tax: { path: "/v1/de/income-tax", method: "POST" },
+  calculate_de_notice_period: { path: "/v1/de/notice", method: "POST" },
+  check_de_minimum_wage: { path: "/v1/de/minimum-wage", method: "POST" },
+  check_de_einvoicing: { path: "/v1/de/einvoice", method: "POST" },
+  calculate_sg_cpf: { path: "/v1/sg/cpf", method: "POST" },
+  calculate_sg_notice_period: { path: "/v1/sg/notice", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...WORLD_INTAKE_TOOLS];

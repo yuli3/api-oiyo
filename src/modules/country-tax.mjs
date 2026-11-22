@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { deEInvoice, deIncomeTax, deMinimumWage, deNoticePeriod, sgCpf, sgNotice } from "./vendor/tools-tax/world-de-sg-pack-2026.mjs";
 import { esResidency, frResidency, jpResidency, twResidency, ukStatutoryResidence, usSubstantialPresence } from "./vendor/tools-tax/world-tax-residency-2026.mjs";
 import { esVerifactu, frEInvoice, jpInvoiceTransition } from "./vendor/tools-tax/world-einvoice-pack-2026.mjs";
 import { frCompanyCalendar, jpCompanyCalendar, ukCompanyCalendar, usCompanyCalendar } from "./vendor/tools-tax/world-company-calendar-2026.mjs";
@@ -53,11 +54,20 @@ export function makeCountryTaxHandlers() {
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
   const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
   const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
+  const DSG_NOTE = "General information only: not tax or legal advice.";
+  const DEP = "https://tools.oiyo.net/de/";
+  const dsg = (url, body) => ({ ...body, page: url, note: DSG_NOTE });
   const RES_NOTE = "General information only: not tax advice; tax treaties can override the result.";
   const res = (url, body) => ({ ...body, page: url, note: RES_NOTE });
   const EIN_NOTE = "General information only: not tax advice, no filing, no software certification.";
   const ein = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EIN_NOTE });
   return {
+    "/v1/de/income-tax": (i) => dsg(`${DEP}einkommensteuer-rechner-2026/`, deIncomeTax(i)),
+    "/v1/de/notice": (i) => dsg(`${DEP}kuendigungsfrist-rechner/`, deNoticePeriod(i)),
+    "/v1/de/minimum-wage": (i) => dsg(`${DEP}kuendigungsfrist-rechner/`, deMinimumWage(i)),
+    "/v1/de/einvoice": (i) => dsg(`${DEP}e-rechnung-pflicht-ab-wann/`, deEInvoice(i)),
+    "/v1/sg/cpf": (i) => dsg(`${EN}singapore-cpf-contribution-calculator-2026/`, sgCpf(i)),
+    "/v1/sg/notice": (i) => dsg(`${EN}singapore-notice-period-calculator/`, sgNotice(i)),
     "/v1/residency/us": (i) => res(`${EN}us-substantial-presence-test-calculator/`, usSubstantialPresence(i)),
     "/v1/residency/uk": (i) => res(`${EN}uk-statutory-residence-test-calculator/`, ukStatutoryResidence(i)),
     "/v1/residency/es": (i) => res(`${ESP}residencia-fiscal-espana-183-dias/`, esResidency(i)),
