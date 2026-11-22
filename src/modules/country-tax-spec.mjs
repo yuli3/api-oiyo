@@ -801,11 +801,12 @@ export const TENANCY_TOOLS = [
 // 각국 길잡이 (2026-11-22): 질문을 현지 도구·무료 창구·자격사 범위로 안내. 계산 아님.
 export const WORLD_INTAKE_TOOLS = [
   fn("start_world_law_intake",
-    "Start here for a tax, job-ending or renting question about Japan (JP), the United States (US; renting covers California and New York), France (FR), Spain (ES), mainland China (CN), the United Kingdom (UK; renting covers England) or Taiwan (TW). Pass the question in the user's own language; returns the best-matching local OIYO tool (MCP tool name and tools.oiyo.net page in the local language), the free official help channel for that area, and for tax questions who may give paid tax advice in that country. Routing and general information only: no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance, consumer refunds, limitation periods, employer payroll, company filings, tax residency.",
+    "Start here for a tax, job-ending or renting question about Japan (JP), the United States (US; renting covers California and New York), France (FR), Spain (ES), mainland China (CN), the United Kingdom (UK; renting covers England) or Taiwan (TW). Pass the question in the user's own language; returns the best-matching local OIYO tool (MCP tool name and tools.oiyo.net page in the local language), the free official help channel for that area, and for tax questions who may give paid tax advice in that country. Pass audience 'person' for someone's own job, home, purchase, claim, inheritance or residency, or 'pro' for running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing); every tool in the result is tagged with its audience. Routing and general information only: no legal or tax advice, no representation, no filing. Germany and Singapore are not routed here: use the de_* and sg_* tools.",
     {
       country: pick(["JP", "US", "FR", "ES", "CN", "UK", "TW"], "Country"),
       question: { type: "string", description: "The question in the user's own words, any language", maxLength: 2000 },
       limit: int("Maximum matches to return", 1, 10),
+      audience: pick(["person", "pro"], "Who is asking: person (own life) or pro (business or adviser); leave out for both"),
     }, ["country", "question"]),
 ];
 

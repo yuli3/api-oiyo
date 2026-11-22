@@ -15,10 +15,16 @@ import { TW_SCOPE } from "./tw-tax-pack-2026.mjs";
 export const INTAKE_AS_OF = "2026-11-22";
                                                                      
                                                                        
-                                                                                                                        
+/** Who the tool is mainly for (2026-11-22, CHOSEUN: split topics people care about from topics practitioners care about).
+ *  person: everyday life (job ending, renting, cancelling a purchase, suing, inheritance, residency, personal income tax).
+ *  pro: running a business or advising one (filing calendars, penalties, appeals, depreciation, VAT, payroll cost, e-invoicing). */
+                                        
+                                                                                                                                            
+const PRO = /depreciation|capital_allowances|penalty|late_fee|late_payment|late_filing|tax_sanction|appeal|claim_deadline|calendar|employer_cost|einvoic|invoice_transition|verifactu|vat|business_tax|business_income_tax|small_profit|consumption_tax|blue_return|micro_entrepreneur|autonomo|self_employ|estimated_tax/;
+export const audienceOf = (mcp        )           => (PRO.test(mcp) ? "pro" : "person");
 
 const T = "https://tools.oiyo.net/";
-const t = (country         , area      , mcp        , path        , title        , keywords          )             => ({ country, area, mcp, page: `${T}${path}/`, title, keywords });
+const t = (country         , area      , mcp        , path        , title        , keywords          )             => ({ country, area, audience: audienceOf(mcp), mcp, page: `${T}${path}/`, title, keywords });
 
 export const WORLD_TOOLS               = [
   t("JP", "tax", "get_jp_tax_calendar", "ja/jp-tax-calendar", "個人事業主の申告・納付期限", ["期限", "いつまで", "確定申告", "予定納税", "納付", "calendar", "deadline"]),
@@ -145,9 +151,10 @@ const AREA_WORDS                         = {
 
 const norm = (s        ) => s.toLowerCase().normalize("NFKC");
 
-export function intake(x                                                        ) {
+export function intake(x                                                                             ) {
   const q = norm(x.question ?? "");
-  const pool = WORLD_TOOLS.filter((w) => w.country === x.country);
+  const aud = x.audience === "person" || x.audience === "pro" ? x.audience : undefined;
+  const pool = WORLD_TOOLS.filter((w) => w.country === x.country && (!aud || w.audience === aud));
   const scored = pool
     .map((w) => {
       const hits = w.keywords.filter((k) => q.includes(norm(k)));
@@ -161,8 +168,9 @@ export function intake(x                                                        
   return {
     asOf: INTAKE_AS_OF,
     country: x.country,
+    ...(aud ? { audience: aud } : {}),
     matches,
-    ...(matches.length ? {} : { tools: pool.map(({ area, mcp, page, title }) => ({ area, mcp, page, title })) }),
+    ...(matches.length ? {} : { tools: pool.map(({ area, audience, mcp, page, title }) => ({ area, audience, mcp, page, title })) }),
     help: (areas.length ? areas : (["tax", "labor", "tenancy", "consumer", "claims"]          )).map((a) => ({ area: a, channel: HELP[x.country][a] })),
     taxScope: areas.includes("tax") || !areas.length ? TAX_SCOPE[x.country] : undefined,
     note: "Routing only: general information, no legal or tax advice, no representation, no filing. Areas not covered yet: inheritance in Spain and mainland China, limitation periods in Spain and mainland China, employer payroll in France, Taiwan and mainland China, company filing calendars in Spain, Taiwan and mainland China, tax residency in mainland China. Germany and Singapore are not routed here yet: use the oiyo-de-guide and oiyo-sg-guide skills (de_* and sg_* MCP tools).",
