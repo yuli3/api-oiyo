@@ -675,6 +675,22 @@ export const DE_LIFE_TOOLS = [
     { arose: date("Date the claim arose (YYYY-MM-DD)"), known: date("Date you knew the facts and the debtor (YYYY-MM-DD)") }, ["arose"]),
 ];
 
+// 기업 간 지연이자 4곳 (2026-11-22, 실무자 축 P3): tools-oiyo world-late-payment-2026과 같은 계산.
+export const LATE_PAYMENT_TOOLS = [
+  fn("calculate_de_late_payment_b2b",
+    "Statutory interest and fixed compensation on a late invoice between businesses in Germany (§ 288 BGB: Basiszinssatz + 9 points, 10.52% from 1 July 2026; €40 flat fee). A half-year rate that was not read is flagged, not invented. General information only: not legal advice, as of 2026-11-22.",
+    { amount: num("Invoice amount"), due: date("Date payment was due (YYYY-MM-DD)"), paid: date("Date paid, or today (YYYY-MM-DD)"), consumerDebtor: yes("DE: the debtor is a consumer"), baseRate: num("UK: Bank of England reference rate in %", 0, 20) }, ["amount", "due", "paid"]),
+  fn("calculate_fr_late_payment_b2b",
+    "Statutory interest and fixed compensation on a late invoice between businesses in France (art. L441-10 C. com.: ECB rate + 10 points, 12.15% / 12.40% for the two halves of 2026; €40 indemnity). A half-year rate that was not read is flagged, not invented. General information only: not legal advice, as of 2026-11-22.",
+    { amount: num("Invoice amount"), due: date("Date payment was due (YYYY-MM-DD)"), paid: date("Date paid, or today (YYYY-MM-DD)"), consumerDebtor: yes("DE: the debtor is a consumer"), baseRate: num("UK: Bank of England reference rate in %", 0, 20) }, ["amount", "due", "paid"]),
+  fn("calculate_es_late_payment_b2b",
+    "Statutory interest and fixed compensation on a late invoice between businesses in Spain (Ley 3/2004: ECB rate + 8 points, 10.40% for the 2nd half of 2026). A half-year rate that was not read is flagged, not invented. General information only: not legal advice, as of 2026-11-22.",
+    { amount: num("Invoice amount"), due: date("Date payment was due (YYYY-MM-DD)"), paid: date("Date paid, or today (YYYY-MM-DD)"), consumerDebtor: yes("DE: the debtor is a consumer"), baseRate: num("UK: Bank of England reference rate in %", 0, 20) }, ["amount", "due", "paid"]),
+  fn("calculate_uk_late_payment_b2b",
+    "Statutory interest and fixed compensation on a late invoice between businesses in the UK (Late Payment of Commercial Debts (Interest) Act 1998: 8% + the Bank of England reference rate you give; £40/£70/£100). A half-year rate that was not read is flagged, not invented. General information only: not legal advice, as of 2026-11-22.",
+    { amount: num("Invoice amount"), due: date("Date payment was due (YYYY-MM-DD)"), paid: date("Date paid, or today (YYYY-MM-DD)"), consumerDebtor: yes("DE: the debtor is a consumer"), baseRate: num("UK: Bank of England reference rate in %", 0, 20) }, ["amount", "due", "paid"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1038,6 +1054,10 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_de_withdrawal_deadline: { path: "/v1/de/withdrawal", method: "POST" },
   check_de_rent_deposit: { path: "/v1/de/rent-deposit", method: "POST" },
   check_de_limitation_period: { path: "/v1/de/limitation", method: "POST" },
+  calculate_de_late_payment_b2b: { path: "/v1/late-payment/de", method: "POST" },
+  calculate_fr_late_payment_b2b: { path: "/v1/late-payment/fr", method: "POST" },
+  calculate_es_late_payment_b2b: { path: "/v1/late-payment/es", method: "POST" },
+  calculate_uk_late_payment_b2b: { path: "/v1/late-payment/uk", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1045,4 +1065,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...WORLD_INTAKE_TOOLS];
