@@ -4,9 +4,9 @@
 // Facts: company-brain projects/oiyo-ecosystem/labor-pack-facts-2026-11-21.md (f58c262a), checked 2026-11-21 against
 // e-Gov/MHLW, gov.uk, DOL/eCFR/EEOC/CA DIR, service-public.gouv.fr, BOE, flk.npc.gov.cn, law.moj.gov.tw.
 // 2026-11-22 added from the same facts file (1da994bb): FR préavis, CN annual leave and arbitration limitation, TW/CN minimum wages.
-// Not verified (so not computed): JP 給付制限 practice (1 month from 2025?), JP 特定受給資格者 under 30 with 1-5 years,
-// US NY/TX final pay, FR ARE after 2025-04, ES SMI annual amount and the 45/33-day transition cap,
-// TW mediation offices, UK ET "less one day" counting and the 2-year qualifying period text.
+// Not verified (so not computed): JP 特定受給資格者 under 30 with 1-5 years,
+// US NY/TX final pay, FR ARE amount, ES SMI annual amount and the 45/33-day transition cap,
+// TW mediation fees, UK ET "less one day" counting and the 2-year qualifying period text.
 
 export const LABOR_AS_OF = "2026-11-21";
                                             
@@ -58,7 +58,9 @@ export function jpLaborExit(x                                                   
     ? { tone: "info", text: `基本手当の所定給付日数は${days}日です（${x.reason === "dismissal" ? "倒産・解雇等による離職" : "自己都合等による離職"}、被保険者期間${y}年、${x.age}歳）。受給資格の有無はハローワークが判断します。`, cite: x.reason === "dismissal" ? "雇用保険法第23条" : "雇用保険法第22条" }
     : { tone: "warn", text: "この年齢・被保険者期間の給付日数は、確認した条文の範囲外のため表示しません。ハローワークで確認してください。", cite: "雇用保険法第22条・第23条" });
   items.push({ tone: "info", text: "求職の申込み後、失業の状態が通算7日に満たない間は支給されません（待期）。", cite: "雇用保険法第21条" });
-  if (x.reason === "self") items.push({ tone: "warn", text: "自己都合退職などは、待期の後、1か月以上3か月以内の給付制限があります（法律の規定）。現在の運用上の期間はハローワークで確認してください。", cite: "雇用保険法第33条" });
+  if (x.reason === "self") items.push(x.end >= "2025-04-01"
+    ? { tone: "warn", text: "正当な理由のない自己都合退職は、待期の後、原則1か月の給付制限があります（離職日が2025年4月1日以降）。離職日から遡って5年間に2回以上の自己都合離職があると3か月です。2025年4月以降に教育訓練を受けると給付制限が解除されます。", cite: "雇用保険法第33条、厚生労働省" }
+    : { tone: "warn", text: "正当な理由のない自己都合退職は、待期の後、原則2か月の給付制限があります（離職日が2025年3月31日以前）。", cite: "雇用保険法第33条、厚生労働省" });
   const grant = s.totalMonths < 6 ? 0 : [10, 11, 12, 14, 16, 18, 20][Math.min(6, Math.floor((s.totalMonths - 6) / 12))];
   items.push({ tone: "info", text: `勤続${s.years}年${s.months}か月：年次有給休暇の付与日数は${grant}日（出勤率8割以上の場合、週5日勤務など通常の労働者）。`, cite: "労働基準法第39条" });
   if (x.hourlyWage != null) {
@@ -159,7 +161,9 @@ export function frLaborExit(x                                                   
   const n = x.notified ?? x.end;
   dates.push({ id: "contestation", label: "Contester la rupture du contrat aux prud'hommes : 12 mois à partir de la notification", date: addMonths(n, 12), cite: "service-public.gouv.fr F2360" });
   dates.push({ id: "salaire", label: "Réclamer des salaires : 3 ans", date: addMonths(x.end, 36), cite: "service-public.gouv.fr F2360" });
-  items.push({ tone: "info", text: "Les règles de l'ARE (France Travail) après le 1er avril 2025 ne sont pas calculées ici.", cite: "service-public.gouv.fr F14860" });
+  items.push(x.end >= "2025-04-01"
+    ? { tone: "info", text: "ARE (fin de contrat depuis le 1er avril 2025) : il faut avoir travaillé 6 mois (130 jours ou 910 heures) sur les 24 derniers mois et être privé d'emploi involontairement (licenciement, rupture conventionnelle…). Délai d'attente de 7 jours. Durée maximale : 730 jours avant 55 ans, 913 jours à 55-56 ans, 1 095 jours à partir de 57 ans, actuellement réduite de 25 % (par exemple 730 → 548 jours, 913 → 685 jours). Le montant n'est pas calculé ici.", cite: "service-public.gouv.fr F38881" }
+    : { tone: "info", text: "Pour une fin de contrat avant le 1er avril 2025, les anciennes règles de l'ARE s'appliquent ; elles ne sont pas calculées ici.", cite: "service-public.gouv.fr F14860" });
   return { country: "FR", service: s, indemnite: ind, preavisMonths, dates, items };
 }
 
@@ -232,7 +236,8 @@ export function twLaborExit(x                                                   
   if (x.insuredMonthlyWage != null) { months = (x.age ?? 0) >= 45 || x.disabled ? 9 : 6; unemployment = Math.round(x.insuredMonthlyWage * 0.6); items.push({ tone: "info", text: `失業給付：平均月投保薪資60% = 每月約${unemployment.toLocaleString("zh-TW")}元，最長${months}個月。`, cite: "就業保險法第16條" }); }
   items.push({ tone: "info", text: `最低工資：${TW_MIN_WAGE_2026.monthly.toLocaleString("zh-TW")}元／月、${TW_MIN_WAGE_2026.hourly}元／小時（115年1月1日起）；116年1月1日起調為${TW_MIN_WAGE_2027.monthly.toLocaleString("zh-TW")}元／月、${TW_MIN_WAGE_2027.hourly}元／小時。`, cite: "最低工資法第4條、勞動部歷年最低工資調整" });
   if (x.averageMonthlyWage > 0 && x.averageMonthlyWage < TW_MIN_WAGE_2026.monthly) items.push({ tone: "warn", text: `輸入的平均月工資低於2026年月最低工資${TW_MIN_WAGE_2026.monthly.toLocaleString("zh-TW")}元。部分工時請以時薪${TW_MIN_WAGE_2026.hourly}元核對。`, cite: "最低工資法第4條" });
-  items.push({ tone: "info", text: "工資請求權時效依民法第126條為5年。勞資爭議調解窗口未核實，請洽地方勞工局。", cite: "民法第126條" });
+  items.push({ tone: "info", text: "工資請求權時效依民法第126條為5年。", cite: "民法第126條" });
+  items.push({ tone: "info", text: "勞資爭議調解：向勞務提供地的直轄市或縣（市）主管機關提出調解申請書；主管機關依申請指派調解人或組成勞資爭議調解委員會。是否收費未核實。", cite: "勞資爭議處理法第9條、第11條" });
   const dates          = [{ id: "severance", label: "資遣費發給期限：終止契約後30日內", date: addDays(x.end, 30), cite: "勞工退休金條例第12條" }, { id: "wage-claim", label: "工資請求權時效（5年）", date: addMonths(x.end, 60), cite: "民法第126條" }];
   return { country: "TW", service: s, noticeDays: notice, severance: pay, specialLeaveDays: leave, unemploymentMonthly: unemployment, unemploymentMonths: months, dates, items };
 }
