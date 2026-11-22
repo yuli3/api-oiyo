@@ -260,6 +260,8 @@ const fixtures = {
   calculate_sg_gst_registration: { forecastNext12: 1200000, forecastDate: "2026-09-02" },
   calculate_jp_overtime_cap_check: { special: true, months: [{ overtime: 60, holiday: 8 }, { overtime: 40 }] },
   calculate_uk_irregular_hours_holiday: { hours: [100, 80] },
+  calculate_jp_court_fee: { value: 3000000, kind: "suit" },
+  calculate_de_court_fee: { value: 5000 },
   calculate_uk_take_home: { annual: 35000 },
   calculate_us_take_home: { annual: 60000 },
   calculate_jp_take_home: { annual: 5000000 },
@@ -371,7 +373,7 @@ test("every MCP tool links back to an OIYO page with pilot UTM tags", () => {
     // 2026-11-21: 각국 현지판(*_jp_* 등)은 그 나라 언어 페이지로 보내요.
     assert.ok(/^\/(ko|ja|en|fr|es|zh|de)\//.test(url.pathname) && url.pathname.endsWith("/"));
     // 2026-11-22: 비거주자 원천징수(*_withholding)는 6개국 공용 /en/ 페이지 하나로 보내요.
-    const shared = /_withholding$|^calculate_jp_overtime_cap_check$|^calculate_de_kleinunternehmer_vat$|^calculate_jp_childcare_leave_benefit$|^calculate_de_elterngeld$|_late_payment_b2b$|^calculate_(jp|uk|us|fr|es|de)_corporate_tax$/.test(name);
+    const shared = /_withholding$|_court_fee$|^calculate_jp_overtime_cap_check$|^calculate_de_kleinunternehmer_vat$|^calculate_jp_childcare_leave_benefit$|^calculate_de_elterngeld$|_late_payment_b2b$|^calculate_(jp|uk|us|fr|es|de)_corporate_tax$/.test(name);
     if (shared) assert.ok(url.pathname.startsWith("/en/"), name);
     if (!shared && /_(jp)_/.test(name)) assert.ok(url.pathname.startsWith("/ja/"), name);
     if (!shared && /_(us)_/.test(name)) assert.ok(url.pathname.startsWith("/en/"), name);
