@@ -186,6 +186,7 @@ export const SOURCE_PAGES = Object.freeze({
   check_es_fianza_preaviso: "https://tools.oiyo.net/es/fianza-alquiler-preaviso-actualizacion/",
   check_cn_rental_contract_deposit: "https://tools.oiyo.net/zh/china-rental-contract-deposit-check/",
   check_tw_rental_deposit_termination: "https://tools.oiyo.net/zh/taiwan-rental-deposit-termination/",
+  start_world_law_intake: "https://tools.oiyo.net/en/world-law-guide/",
   compare_kr_bookkeeping_vs_estimate: `${TOOLS}bookkeeping-vs-estimate-calculator/`,
   check_kr_exempt_business_report: `${TOOLS}exempt-business-report-checker/`,
   compare_kr_private_pension_tax: `${TOOLS}private-pension-separate-tax-calculator/`,
