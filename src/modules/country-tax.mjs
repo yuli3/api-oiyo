@@ -7,6 +7,7 @@ import { ES_TAX_AS_OF, ES_TAX_NOTE, esAmortizacion, esAutonomo, esIva, esPlazos,
 import { UK_TAX_AS_OF, UK_TAX_NOTE, ukAppealDeadlines, ukCapitalAllowances, ukInterest, ukSaPenalties, ukSelfEmployed, ukTaxCalendar, ukVatCheck } from "./vendor/tools-tax/uk-tax-pack-2026.mjs";
 import { TW_TAX_AS_OF, TW_TAX_NOTE, twAppealDeadlines, twBusinessTax, twDepreciation, twIncomeTax, twLateFee, twTaxCalendar } from "./vendor/tools-tax/tw-tax-pack-2026.mjs";
 import { intake as worldIntake } from "./vendor/tools-tax/world-law-intake-2026.mjs";
+import { twDebtClearance, esSecondChance, esInheritanceDeadline } from "./vendor/tools-tax/world-fresh-start-2026.mjs";
 import { jpCourtFee, deCourtFee } from "./vendor/tools-tax/world-court-fees-2026.mjs";
 import { jpOvertimeCheck, ukIrregularHoliday } from "./vendor/tools-tax/world-labor-practice-2026.mjs";
 import { deKleinunternehmer, sgGstRegistration } from "./vendor/tools-tax/world-small-business-vat-2026.mjs";
@@ -64,6 +65,7 @@ export function makeCountryTaxHandlers() {
   const emp = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: EMP_NOTE });
   const CAL_NOTE = "General information only: not tax or company-law advice, no filing. Weekends move to Monday; public holidays are not applied.";
   const cal = (base, slug, body) => ({ ...body, page: `${base}${slug}/`, note: CAL_NOTE });
+  const FRESH_START_NOTE = "General information only: debt relief conditions and deadlines, not legal advice, nothing filed.";
   const COURT_FEE_NOTE = "General information only: statutory court fees, not legal advice, nothing filed.";
   const LABOR_PRACTICE_NOTE = "General information only: working-time caps and holiday accrual, not legal advice, nothing filed.";
   const SMALL_VAT_NOTE = "General information only: VAT/GST registration status, not tax advice, nothing filed.";
@@ -118,6 +120,9 @@ export function makeCountryTaxHandlers() {
     "/v1/labor-practice/uk-holiday": (i) => ({ ...ukIrregularHoliday(i), page: `${EN}overtime-cap-holiday-accrual-check/`, note: LABOR_PRACTICE_NOTE }),
     "/v1/court-fee/jp": (i) => ({ ...jpCourtFee(i), page: `${EN}court-fee-calculator-japan-germany/`, note: COURT_FEE_NOTE }),
     "/v1/court-fee/de": (i) => ({ ...deCourtFee(i), page: `${EN}court-fee-calculator-japan-germany/`, note: COURT_FEE_NOTE }),
+    "/v1/fresh-start/tw-debt": (i) => ({ ...twDebtClearance(i), page: "https://tools.oiyo.net/zh/taiwan-debt-clearance-checker/", note: FRESH_START_NOTE }),
+    "/v1/fresh-start/es-second-chance": (i) => ({ ...esSecondChance(i), page: "https://tools.oiyo.net/es/segunda-oportunidad-plazo-sucesiones/", note: FRESH_START_NOTE }),
+    "/v1/fresh-start/es-inheritance": (i) => ({ ...esInheritanceDeadline(i), page: "https://tools.oiyo.net/es/segunda-oportunidad-plazo-sucesiones/", note: FRESH_START_NOTE }),
     "/v1/take-home/uk": (i) => ({ ...ukTakeHome(i), page: `${EN}uk-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/us": (i) => ({ ...usTakeHome(i), page: `${EN}us-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/jp": (i) => ({ ...jpTakeHome(i), page: `${JA}japan-salary-calculator/`, note: TH_NOTE }),

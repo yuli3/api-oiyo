@@ -717,6 +717,13 @@ export const COURT_FEE_TOOLS = [
   fn("calculate_de_court_fee", "Germany court fee under § 34 GKG and the Kostenverzeichnis: Klage 3.0 (KV 1210), reduced 1.0 (KV 1211), Mahnbescheid 0.5 min 38 EUR (KV 1100). General information only, not legal advice, as of 2026-11-22; court fees only.", { value: num("Streitwert (EUR)"), kind: pick(["klage", "klage_ermaessigt", "mahn"], "Procedure") }, ["value"]),
 ];
 
+// 새 출발(채무·상속 기한) 3종 (2026-11-22, 일반인 축 A5): tools-oiyo world-fresh-start-2026과 같은 계산.
+export const FRESH_START_TOOLS = [
+  fn("check_tw_debt_clearance", "Taiwan 消費者債務清理條例: whether the person is a 消費者 (no business in 5 years or average monthly revenue <= NT$200,000), whether 更生 is possible (debt <= NT$12m) or only 清算, and whether 前置協商 with the largest creditor bank comes first. Filing fee NT$1,000. General information only, not legal advice, as of 2026-11-22; nothing filed.", { totalDebt: num("Total debt (TWD)"), hasBankDebt: yes("Has debts to banks or credit unions"), hadBusiness5y: yes("Had business activity in the last 5 years"), avgMonthlyRevenue5y: num("Average monthly revenue over 5 years (TWD)") }, ["totalDebt"]),
+  fn("check_es_second_chance", "Spain Ley de Segunda Oportunidad (TRLC arts. 487-488 after Ley 16/2022): good-faith blocks (conviction or very serious sanction in 10 years, culpable insolvency) and waiting time after a prior exoneración (2 years plan, 5 years liquidation). General information only, not legal advice, as of 2026-11-22; nothing filed.", { conviction10y: yes("Final prison conviction in the last 10 years for the listed crimes"), severeSanction10y: yes("Final very serious tax, or Social Security/labour, sanction in 10 years"), culpable: yes("Insolvency declared culpable"), priorExoneration: pick(["none", "plan", "liquidation"], "Prior exoneración"), priorDate: date("Date of the prior exoneración (YYYY-MM-DD)") }, []),
+  fn("get_es_inheritance_deadline", "Spain Impuesto sobre Sucesiones: 6 months from the date of death (AEAT Modelo 650; regional offices elsewhere). General information only, not legal advice, as of 2026-11-22; nothing filed.", { death: date("Date of death (YYYY-MM-DD)") }, ["death"]),
+];
+
 export const RESIDENCY_TOOLS = [
   fn("check_us_residency",
     `US substantial presence test: resident if at least 31 days this year and at least 183 weighted days (all days this year + 1/3 of last year + 1/6 of the year before), after removing exempt-individual days. Closer connection exception and treaties are not checked. ${RES("US (IRS)")}`,
@@ -1094,6 +1101,9 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_uk_irregular_hours_holiday: { path: "/v1/labor-practice/uk-holiday", method: "POST" },
   calculate_jp_court_fee: { path: "/v1/court-fee/jp", method: "POST" },
   calculate_de_court_fee: { path: "/v1/court-fee/de", method: "POST" },
+  check_tw_debt_clearance: { path: "/v1/fresh-start/tw-debt", method: "POST" },
+  check_es_second_chance: { path: "/v1/fresh-start/es-second-chance", method: "POST" },
+  get_es_inheritance_deadline: { path: "/v1/fresh-start/es-inheritance", method: "POST" },
   calculate_uk_take_home: { path: "/v1/take-home/uk", method: "POST" },
   calculate_us_take_home: { path: "/v1/take-home/us", method: "POST" },
   calculate_jp_take_home: { path: "/v1/take-home/jp", method: "POST" },
@@ -1101,4 +1111,4 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_es_take_home: { path: "/v1/take-home/es", method: "POST" },
 };
 
-export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...COURT_FEE_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...COURT_FEE_TOOLS, ...FRESH_START_TOOLS, ...WORLD_INTAKE_TOOLS];
