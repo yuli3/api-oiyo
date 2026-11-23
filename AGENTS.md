@@ -59,6 +59,10 @@
 - 2026-11-22 `/mcp/world`(`io.github.yuli3/oiyo-world`, `registry/oiyo-world/server.json`): 한국 밖 국가 도구만 모은 프로필. 도구 목록은 이름 패턴(`WORLD_TOOL_PATTERN`, `_jp_`·`_uk_`… `_world_`)으로 자동이라 새 국가 도구는 이름만 규칙대로 지으면 들어가요.
 - main에서 server.json이 바뀌면 `.github/workflows/publish-mcp-registry.yml`이 GitHub OIDC로 게시한다. 수동 실행도 가능.
 
+## 도구 찾기 (2026-11-24)
+- MCP `find_oiyo_tools` · REST `POST /v1/catalog/find-tools`: 사용자 질문을 받아 맞는 도구 이름·입력·페이지와 `answerable`(likely/partial/none)을 돌려줘요. 계산은 하지 않아요. NVIDIA Auto Ontology의 retrieve·check_answerable 생각을 300개 넘는 도구 목록에 적용한 것이에요(검토 기록 company-brain `projects/research/references/a2ui-auto-ontology-review-2026-11-24.md`).
+- 정본은 `TOOLS_SPEC`의 이름·설명 + `src/modules/tool-finder.mjs`의 한국어 동의어 표예요. 새 도구의 한국어 설명에 사람들이 쓰는 말을 넣으면 따로 등록할 것이 없고, 설명에 없는 일상어만 동의어 표에 더해요. 스키마는 `tool-finder-spec.mjs`(순환 import 방지).
+
 ## MCP 출처 링크·등재 (2026-11-12, 파일럿 #1)
 - 성공한 MCP 도구 결과에는 `sourcePage`(tools.oiyo.net/ko 또는 oiyo.net/ko 계산기 페이지 + `utm_source=mcp&utm_medium=<등재처|클라이언트>&utm_campaign=mcp-pilot&utm_content=<도구>`)를 붙인다. 정본은 `src/modules/source-pages.mjs`. 새 도구를 추가하면 매핑도 추가한다(테스트가 누락을 막는다). REST 응답 필드는 그대로 둔다.
 - 등재처 URL은 `/mcp?ref=<등재처>`로 단다(허용 목록만 신뢰). 사용량 점의 blob 7이 이 값이다. 입력값은 남기지 않는다.

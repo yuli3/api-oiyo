@@ -6,6 +6,7 @@ import { OPENAPI_SPEC } from "../src/modules/openapi.mjs";
 import { SOURCE_PAGES, mcpMedium, sourcePageUrl } from "../src/modules/source-pages.mjs";
 
 const fixtures = {
+  find_oiyo_tools: { question: "퇴직금이랑 실업급여 얼마 받아요?" },
   get_kr_minimum_wage: { year: 2027 },
   get_kr_holidays: { year: 2026 },
   check_kr_business_day: { date: "2026-10-16" },

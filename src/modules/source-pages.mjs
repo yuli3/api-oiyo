@@ -6,6 +6,7 @@
 const TOOLS = "https://tools.oiyo.net/ko/";
 
 export const SOURCE_PAGES = Object.freeze({
+  find_oiyo_tools: TOOLS,
   get_kr_minimum_wage: `${TOOLS}salary-calculator/`,
   get_kr_holidays: `${TOOLS}business-day-checker/`,
   check_kr_business_day: `${TOOLS}business-day-checker/`,

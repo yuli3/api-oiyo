@@ -8,7 +8,8 @@ import { TOOLS_SPEC } from "./tools-spec.mjs";
 // "Korean ...", so people looking for Japanese take-home pay or a German notice period never find these.
 // Derived from the tool name (calculate_<cc>_..., check_<cc>_..., start_world_...) so new country tools join
 // without a second list to maintain.
-export const WORLD_TOOL_PATTERN = /_(jp|uk|us|fr|es|de|cn|tw|sg|ca|world)_/;
+// 2026-11-24: au added (calculate_au_take_home etc. existed but never reached /mcp/world).
+export const WORLD_TOOL_PATTERN = /_(jp|uk|us|fr|es|de|cn|tw|sg|ca|au|world)_/;
 
 export const MCP_PROFILES = {
   welfare: {
