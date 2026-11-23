@@ -4,7 +4,7 @@ import { visitOffice } from "../src/modules/country-tax.mjs";
 
 test("visit_practice_office lists rooms, then opens a room with intake, tools and help", () => {
   const lobby = visitOffice({ country: "KR", lang: "ko" });
-  assert.equal(lobby.rooms.length, 9);
+  assert.equal(lobby.rooms.length, 10);
   assert.ok(lobby.page.endsWith("/ko/pro-office/"));
   const plan = visitOffice({ country: "KR", room: "plan", lang: "ko" });
   assert.equal(plan.intake.length, 5);
@@ -17,11 +17,12 @@ test("visit_practice_office lists rooms, then opens a room with intake, tools an
   assert.ok(pro.tools.every((t) => t.for === "practitioners"));
 });
 
-test("Korea floor has insurance, realty, biz and welfare rooms; other floors keep five", () => {
+test("Korea floor has insurance, realty, biz and welfare rooms; other floors have six with trade", () => {
   for (const room of ["insurance", "realty", "biz", "welfare"]) {
     const r = visitOffice({ country: "KR", room, lang: "en" });
     assert.ok(r.name && r.intake.length === 5 && r.tools.length >= 3 && r.freeHelp.length > 0, room);
   }
-  assert.equal(visitOffice({ country: "JP", lang: "ja" }).rooms.length, 5);
+  assert.equal(visitOffice({ country: "JP", lang: "ja" }).rooms.length, 6);
+  assert.ok(visitOffice({ country: "UK", room: "trade" }).tools.some((t) => t.url.endsWith("/en/uk-parcel-import-vat-duty-135/")));
   assert.ok(visitOffice({ country: "JP", room: "realty" }).error);
 });
