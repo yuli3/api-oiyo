@@ -49,6 +49,7 @@ import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { handleAdvisory } from "./modules/kr-advisory.mjs";
 import { handleBiz } from "./modules/biz-strategy.mjs";
 import { mcpPeek, recordUsage } from "./modules/usage.mjs";
+import { checkRateLimit, rateLimitedResponse } from "./modules/rate-limit.mjs";
 import { mcpMedium } from "./modules/source-pages.mjs";
 import {
   DOCS_HTML,
@@ -98,7 +99,12 @@ const worker = {
     const isMcp = MCP_PATHS.has(new URL(request.url).pathname);
     // Peek at the JSON-RPC envelope on a clone; the handler still reads the original body.
     const peek = isMcp ? (request.method === "POST" ? mcpPeek(await request.clone().text().catch(() => "")) : { rpc: `(${request.method.toLowerCase()})`, client: "" }) : null;
-    const response = await route(request, env);
+    const allowed = await checkRateLimit(env, request);
+    const response = allowed ? await route(request, env) : rateLimitedResponse(isMcp);
+    // 2026-11-23: Workers Logs (observability) is on; log only server errors and limits, no bodies or IPs.
+    if (response.status >= 500 || response.status === 429) {
+      console.log(JSON.stringify({ event: response.status === 429 ? "rate_limited" : "server_error", status: response.status, path: new URL(request.url).pathname, channel: isMcp ? "mcp" : "rest" }));
+    }
     recordUsage(env, request, response, Date.now() - started, isMcp ? "mcp" : "rest", isMcp ? mcpMedium(request) : "", peek);
     return withSecurityHeaders(response);
   },

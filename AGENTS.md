@@ -121,3 +121,7 @@
 - 1.37.0 각국 현지판 2차 미국 6종: `get_us_tax_calendar`, `calculate_us_self_employment_tax`, `calculate_us_estimated_tax`, `calculate_us_irs_penalty`, `calculate_us_tax_appeal_deadlines`, `calculate_us_depreciation`. 정본 tools `us-tax-pack-2026`(tools #137, IRS·eCFR 2026-11-21 대조). 결과 페이지는 /en/. 2027 분기 이자율·2026 승용차 한도 공표되면 tools부터 고쳐요.
 - 1.36.0 각국 세무·회계 현지판 1차 일본 6종: `get_jp_tax_calendar`, `calculate_jp_blue_return_deduction`, `check_jp_consumption_tax`, `calculate_jp_penalty_tax`, `calculate_jp_appeal_deadlines`, `calculate_jp_depreciation` (`country-tax-spec.mjs`/`country-tax.mjs`). 정본 tools `jp-tax-pack-2026`(tools #136, e-Gov·국세청 2026-11-21 대조). 결과 페이지는 /ja/. 미국·프랑스·스페인·중국도 같은 두 파일에 `*_us_*`처럼 더해요. 개별 세무상담·신고서 작성은 하지 않아요(税理士法 第52条).
 - 1.35.0 산업안전 4종: `check_kr_serious_accident`, `calculate_kr_accident_report_deadline`, `calculate_kr_safety_education_hours`, `check_kr_safety_staffing`. 정본 tools `kr-industrial-safety-2026`(tools #135, 현행 원문 2026-11-21 대조). 별표 4·35, 위험성평가 고시가 바뀌면 tools부터 고쳐요.
+
+## 속도 제한·로그 (2026-11-23)
+- `wrangler.jsonc` `ratelimits` RATE_LIMITER: IP당 위치별 60초 300회(대략값). 넘으면 429 + `Retry-After: 60`(MCP는 JSON-RPC `-32029`). `/health`·robots·sitemap·favicon·glama.json·OPTIONS는 세지 않음. 바인딩이 없거나 오류면 막지 않음. 코드 `src/modules/rate-limit.mjs`.
+- observability 켜짐. 5xx와 429만 `console.log` 한 줄(경로·상태만, IP·본문 없음). 한도를 낮출 땐 MCP 공유 출구 IP(Claude·디렉터리 프록시)를 먼저 생각할 것.

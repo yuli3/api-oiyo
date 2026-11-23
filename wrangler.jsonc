@@ -6,6 +6,7 @@
   "preview_urls": true,
   "previews": {},
   "routes": [{ "pattern": "api.oiyo.net", "custom_domain": true }],
-  "observability": { "enabled": false },
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "ratelimits": [{ "name": "RATE_LIMITER", "namespace_id": "2311", "simple": { "limit": 300, "period": 60 } }],
   "analytics_engine_datasets": [{ "binding": "API_USAGE", "dataset": "api_oiyo_usage" }]
 }
