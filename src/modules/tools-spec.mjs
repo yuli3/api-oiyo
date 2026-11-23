@@ -3,14 +3,17 @@
  * Standard tool schemas directly consumable by OpenAI, Anthropic, Gemini, and LangChain agents.
  */
 import { BIZ_ENDPOINTS, BIZ_TOOLS } from "./biz-tools-spec.mjs";
+import { FINDER_ENDPOINTS, FINDER_TOOLS } from "./tool-finder-spec.mjs";
 
 export const TOOLS_SPEC = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  version: "1.75.0",
+  version: "1.76.0",
   service: "api.oiyo.net",
   description: "Deterministic B2A tool specifications for LLM agent function calling (OpenAI / Claude / Gemini / AutoGen compatible)",
   baseUrl: "https://api.oiyo.net",
   tools: [
+    // 2026-11-24: catalog finder first, so a model that reads only the top of the list still finds it.
+    ...FINDER_TOOLS,
     {
       type: "function",
       function: {
@@ -636,4 +639,5 @@ export const TOOL_ENDPOINTS = Object.freeze({
   calculate_kr_incorporation_conversion: { path: "/v1/tax/kr/incorporation-conversion", method: "POST" },
   calculate_dcf_valuation: { path: "/v1/finance/dcf-valuation", method: "POST" },
   ...BIZ_ENDPOINTS,
+  ...FINDER_ENDPOINTS,
 });

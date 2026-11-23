@@ -48,6 +48,7 @@ import { PROFILE_PATHS, profileForPath } from "./modules/mcp-profiles.mjs";
 import { handlePersonalTax } from "./modules/kr-personal-tax.mjs";
 import { handleAdvisory } from "./modules/kr-advisory.mjs";
 import { handleBiz } from "./modules/biz-strategy.mjs";
+import { handleToolFinder } from "./modules/tool-finder.mjs";
 import { mcpPeek, recordUsage } from "./modules/usage.mjs";
 import { checkRateLimit, rateLimitedResponse } from "./modules/rate-limit.mjs";
 import { mcpMedium } from "./modules/source-pages.mjs";
@@ -1541,6 +1542,10 @@ async function route(request, env) {
     // 2026-11-15: 경영 도구(의사결정 트리·일정·SWOT·BCG·포지셔닝·단위경제·우선순위·사업자 세무 일정), tools-oiyo biz-strategy
     const biz = await handleBiz(request, url, commonHeaders);
     if (biz) return biz;
+
+    // 2026-11-24: catalog finder (Auto Ontology retrieve/check_answerable idea over TOOLS_SPEC)
+    const finder = await handleToolFinder(request, url, commonHeaders);
+    if (finder) return finder;
 
     // 404 Fallback
     return new Response(
