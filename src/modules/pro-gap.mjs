@@ -18,6 +18,8 @@ import { DEPOSIT_AS_OF, DEPOSIT_NOTE, depositCheck } from "./vendor/tools-tax/kr
 import { REG_AS_OF, REG_NOTE, selfRegistrationCost } from "./vendor/tools-tax/kr-self-registration-2026.mjs";
 import { F27_AS_OF, F27_NOTE, f27Points } from "./vendor/tools-tax/kr-f27-points-2026.mjs";
 import { SAFETY_AS_OF, SAFETY_NOTE, accidentReport, safetyEducation, safetyStaffing, seriousAccident } from "./vendor/tools-tax/kr-industrial-safety-2026.mjs";
+import { PAYROLL_MONTH_AS_OF, joinLeaveMonths, simplifiedWithholding } from "./vendor/tools-tax/kr-payroll-month-2026.mjs";
+import { LEAVER_AS_OF, midYearLeaver } from "./vendor/tools-tax/kr-midyear-leaver-2026.mjs";
 import { NTS_PACK_AS_OF, NTS_PACK_NOTE, bookVsEstimate, exemptBusinessReport, pensionIncomeChoice, studentLoanRepayment, withholdingStatement } from "./vendor/tools-tax/kr-nts-pack-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
@@ -179,6 +181,25 @@ export function makeProGapHandlers(InputError) {
     return out(NTS_PACK_AS_OF, "private-pension-separate-tax-calculator", NTS_PACK_NOTE, pensionIncomeChoice(i));
   }
 
+  // 실무 오피스 새 계산 3종 (2026-11-23, tools #206)
+  const WITHHOLDING_NOTE = "소득세법 시행령 [별표 2] <개정 2026. 2. 27.> 근로소득 간이세액표 그대로(1천만 원 초과 원문 산식, 8~20세 자녀 차감 20,830/45,830/+33,330, 80·100·120% 시행령 제194조). 새 자녀 차감액의 적용 지급분(부칙)은 미확인. 원천징수액이며 확정 세액은 연말정산에서 정해져요.";
+  const JOIN_LEAVE_NOTE = "건강·장기요양: 국민건강보험법 제69조②·노인장기요양보험법 제8조, 국민연금: 국민연금법 제17조·제12조, 고용·산재: 보험료징수법 제16조의4. 2026 요율·연금 상하한, 근로자 부담분. 퇴사 달 고용보험은 원문 미확인이라 금액에 넣지 않고 employmentCheck로 표시해요.";
+  const LEAVER_NOTE = "연말정산 엔진(2026 귀속)을 두 번 돌린 추정: 퇴사 달 회사 정산(소득세법 제137조, 본인 기본공제·보험료·표준세액공제)과 다음 해 5월 확정신고(제70조). 같은 해 재취업하면 새 회사가 합산 정산(제148조).";
+  function withholding(i) {
+    need(i, "withholding", ["pay", "family"]);
+    return out(PAYROLL_MONTH_AS_OF, "simplified-withholding-tax-calculator", WITHHOLDING_NOTE, simplifiedWithholding(i));
+  }
+  function joinLeave(i) {
+    need(i, "join-leave", ["join", "monthlyPay"]);
+    return out(PAYROLL_MONTH_AS_OF, "join-leave-month-insurance-calculator", JOIN_LEAVE_NOTE, joinLeaveMonths(i));
+  }
+  function leaver(i) {
+    need(i, "leaver", ["salaryToDate", "withheld"]);
+    const r = midYearLeaver({ year: 2026, ...i });
+    const pick = (y) => ({ finalTax: y.finalTax, localTax: y.localTax, usedStandard: y.usedStandard, refund: y.refund });
+    return out(LEAVER_AS_OF, "midyear-leaver-year-end-settlement", LEAVER_NOTE, { company: pick(r.company), may: pick(r.may), companyRefund: r.companyRefund, mayRefund: r.mayRefund, extraByFiling: r.extraByFiling, mayDeadline: r.mayDeadline, drivers: r.drivers });
+  }
+
   function serious(i) {
     return out(SAFETY_AS_OF, "serious-accident-checker", SAFETY_NOTE, seriousAccident(i));
   }
@@ -202,6 +223,9 @@ export function makeProGapHandlers(InputError) {
     "/v1/tax/kr/bookkeeping-vs-estimate": bookEstimate,
     "/v1/tax/kr/exempt-business-report": exemptReport,
     "/v1/tax/kr/private-pension-tax": pension,
+    "/v1/tax/kr/simplified-withholding": withholding,
+    "/v1/labor/kr/join-leave-month-insurance": joinLeave,
+    "/v1/tax/kr/midyear-leaver-settlement": leaver,
     "/v1/tax/kr/corporate-tax": corporate,
     "/v1/tax/kr/tax-penalty": penalty,
     "/v1/law/kr/appeal-deadlines": appeals,
