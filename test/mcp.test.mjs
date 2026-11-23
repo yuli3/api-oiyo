@@ -193,6 +193,7 @@ const fixtures = {
   find_kr_life_desk: { question: "다음 달에 퇴사해요" },
   prepare_kr_expert_visit: { question: "종합소득세 신고를 맡겨야 할까요" },
   draft_kr_demand_letter: { type: "loan", sender: "홍길동", receiver: "김철수", amount: 3000000, since: "2026-03-02", dueDate: "2026-12-15" },
+  draft_kr_consult_memo: { situation: "퇴사했는데 월급을 못 받았어요", events: [{ date: "2026-10-31", what: "퇴사" }], questions: ["진정은 어디에"] },
   check_kr_household_finance: { monthlyNet: 3000000, monthlySpend: 1800000, monthlySaving: 400000, monthlyDebtPay: 500000, monthlyInsurance: 200000, emergencyFund: 3000000 },
   estimate_kr_national_pension: { startYear: 2010, endYear: 2040, monthlyIncome: 3000000 },
   plan_kr_quit: { monthlyWage: 3000000, years: 5, insuredYears: 5, involuntary: true },

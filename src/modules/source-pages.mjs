@@ -194,6 +194,7 @@ export const SOURCE_PAGES = Object.freeze({
   find_kr_life_desk: "https://tools.oiyo.net/ko/life-event-navigator/",
   prepare_kr_expert_visit: "https://tools.oiyo.net/ko/before-expert-visit/",
   draft_kr_demand_letter: "https://tools.oiyo.net/ko/demand-letter-builder/",
+  draft_kr_consult_memo: "https://tools.oiyo.net/ko/consult-memo-builder/",
   check_kr_household_finance: "https://tools.oiyo.net/ko/household-money-checkup/",
   estimate_kr_national_pension: "https://tools.oiyo.net/ko/national-pension-estimate-calculator/",
   plan_kr_quit: "https://tools.oiyo.net/ko/quit-one-stop-calculator/",
