@@ -2,6 +2,9 @@
 import { PRACTICE_OFFICE } from "./vendor/practice-office.mjs";
 import { krPensionEstimate, krQuitPlan, jpFurusatoLimit, ukMarriageAllowance, caIncomeTax2025 } from "./vendor/tools-tax/new-calc-5-2026.mjs";
 import { KR_DESKS, KR_DESKS_AS_OF, deskById, findDesks } from "./vendor/tools-tax/kr-desks-2026.mjs";
+import { EXPERTS, EXPERT_VISIT_AS_OF, expertById, findExpertNeeds } from "./vendor/tools-tax/expert-visit-2026.mjs";
+import { LETTER_TYPES, buildDemandLetter } from "./vendor/tools-tax/demand-letter-2026.mjs";
+import { householdCheckup } from "./vendor/tools-tax/household-checkup-2026.mjs";
 import { JP_TAX_AS_OF, JP_TAX_NOTE, jpAppealDeadlines, jpBlueReturn, jpConsumptionTax, jpDepreciation, jpPenalty, jpTaxCalendar } from "./vendor/tools-tax/jp-tax-pack-2026.mjs";
 
 import { US_TAX_AS_OF, US_TAX_NOTE, usAppealDeadlines, usDepreciation, usEstimatedTax, usPenalty, usSelfEmployment, usTaxCalendar } from "./vendor/tools-tax/us-tax-pack-2026.mjs";
@@ -242,6 +245,19 @@ export function makeCountryTaxHandlers() {
       if (i?.question) return { asOf: KR_DESKS_AS_OF, matches: findDesks(String(i.question), kind).map(full), page: `${T}/ko/${kind === "event" ? "life-event-navigator" : "job-desk"}/` };
       return { asOf: KR_DESKS_AS_OF, desks: KR_DESKS.filter((d) => !kind || d.kind === kind).map((d) => ({ id: d.id, kind: d.kind, title: d.title })) };
     },
+    "/v1/kr/expert-visit": (i) => {
+      const link = (t) => ({ ...t, url: `${T}${t.href}` });
+      const full = (e) => ({ ...e, guide: `${T}${e.guide}`, needs: e.needs.map((n) => ({ ...n, tools: n.tools.map(link) })) });
+      const page = `${T}/ko/before-expert-visit/`;
+      if (i?.id) { const e = expertById(String(i.id)); return e ? { asOf: EXPERT_VISIT_AS_OF, expert: full(e), page } : { error: "unknown id" }; }
+      if (i?.question) return { asOf: EXPERT_VISIT_AS_OF, matches: findExpertNeeds(String(i.question)).map((h) => { const e = expertById(h.expert); return { expert: h.expert, name: e?.name, need: { ...h.need, tools: h.need.tools.map(link) }, bring: e?.bring, free: e?.free, lawyerWhen: e?.lawyerWhen }; }), page };
+      return { asOf: EXPERT_VISIT_AS_OF, experts: EXPERTS.map((e) => ({ id: e.id, name: e.name, scope: e.scope })), page };
+    },
+    "/v1/kr/demand-letter": (i) => {
+      if (!LETTER_TYPES.some((t) => t.id === i?.type)) return { error: "type must be one of " + LETTER_TYPES.map((t) => t.id).join(", ") };
+      return { ...buildDemandLetter(i), page: `${T}/ko/demand-letter-builder/` };
+    },
+    "/v1/planning/kr/household-checkup": (i) => ({ ...householdCheckup(i), page: `${T}/ko/household-money-checkup/` }),
     "/v1/tenancy/jp": (i) => ten(JA, "japan-rental-deposit-notice-checker", jpTenancy(i)),
     "/v1/tenancy/uk": (i) => ten(EN, "england-tenancy-deposit-notice-checker", ukTenancy(i)),
     "/v1/tenancy/us": (i) => ten(EN, "california-new-york-security-deposit-notice", usTenancy(i)),
