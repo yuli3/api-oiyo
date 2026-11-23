@@ -17,11 +17,10 @@ export const KR_DESKS         = [
     steps: [
       { when: "수익이 계속 생기면", what: "사업자등록 여부부터 정해요. 사업을 시작한 날부터 20일 안에 신청해요.", law: "부가가치세법 제8조" },
       { when: "협찬·광고 계약 때", what: "현물 협찬도 소득이에요. 계약서에 금액·대가·광고 표시 의무를 적어 둬요." },
-      { when: "매년 1월·7월", what: "일반과세자라면 부가가치세 확정신고(1월 25일, 7월 25일)를 해요. 해외 플랫폼에서 외화로 받은 수익은 영세율 대상인지 확인해요.", law: "부가가치세법 제48·49조" },
-      { when: "매년 2월 10일", what: "면세 사업자라면 사업장현황신고를 해요.", law: "소득세법 제78조" },
+      { when: "매년 1월 1일~2월 10일", what: "면세사업자인 1인 미디어 창작자는 사업장현황신고를 해요. 홈택스 「1인미디어창작자 자료조회」로 지급명세서·외화 수취 수입을 불러올 수 있어요(11~12월분은 빠질 수 있어요).", law: "소득세법 제78조" },
       { when: "매년 5월", what: "종합소득세 신고: 장부를 쓸지, 경비율로 추계할지 비교해요.", law: "소득세법 제70조" },
     ],
-    tools: [T("/ko/influencer-deal-calculator/", "협찬·광고 단가 계산"), T("/ko/general-vs-simplified-vat-calculator/", "일반 vs 간이과세"), T("/ko/expense-ratio-calculator/", "경비율 계산"), T("/ko/bookkeeping-vs-estimate-calculator/", "장부 vs 추계"), T("/ko/exempt-business-report-checker/", "사업장현황신고 확인"), T("/ko/comprehensive-income-tax-calculator/", "종합소득세 계산")],
+    tools: [T("/ko/influencer-deal-calculator/", "협찬·광고 단가 계산"), T("/ko/expense-ratio-calculator/", "경비율 계산"), T("/ko/bookkeeping-vs-estimate-calculator/", "장부 vs 추계"), T("/ko/exempt-business-report-checker/", "사업장현황신고 확인"), T("/ko/comprehensive-income-tax-calculator/", "종합소득세 계산")],
     help: ["국세청 126", "홈택스 사업자등록 신청"],
   },
   {
@@ -76,6 +75,32 @@ export const KR_DESKS         = [
     tools: [T("/ko/freelance-contract-check/", "외주 계약서 점검"), T("/ko/freelancer-tax-calculator/", "프리랜서 3.3% 환급"), T("/ko/legal-interest-calculator/", "지연이자"), T("/ko/statute-limitations-calculator/", "소멸시효"), T("/ko/incorporation-calculator/", "법인 전환 비교")],
     help: ["국세청 126", "대한법률구조공단 132"],
   },
+  {
+    id: "tutor", kind: "job", icon: "📚", title: "학원·과외 강사", who: "학원·학습지·개인 과외로 강의료를 받는 사람",
+    keywords: ["강사", "학원", "과외", "학습지", "방문강사", "강의료", "튜터"],
+    steps: [
+      { when: "계약할 때", what: "근로계약인지 위탁(프리랜서) 계약인지 확인해요. 출퇴근·지휘감독을 받으면 근로자일 수 있고, 그러면 퇴직금·4대보험 판단이 달라져요." },
+      { when: "강의료를 받을 때", what: "3.3%가 떼였다면 사업소득이에요. 지급명세를 모아 둬요." },
+      { when: "학습지·방문강사라면", what: "노무제공자 고용보험·산재보험 대상인지 확인해요." },
+      { when: "매년 5월", what: "종합소득세 신고로 떼인 3.3%의 일부를 돌려받을 수 있어요. 경비율과 장부를 비교해요.", law: "소득세법 제70조" },
+      { when: "그만둘 때", what: "근로자였다면 퇴직금(1년 이상)과 실업급여를 확인해요." },
+    ],
+    tools: [T("/ko/freelancer-tax-calculator/", "프리랜서 3.3% 환급"), T("/ko/expense-ratio-calculator/", "경비율 계산"), T("/ko/comprehensive-income-tax-calculator/", "종합소득세 계산"), T("/ko/quit-one-stop-calculator/", "퇴사 원스톱"), T("/ko/unemployment-benefits-calculator/", "실업급여 계산")],
+    help: ["국세청 126", "고용노동부 1350", "근로복지공단 1588-0075"],
+  },
+  {
+    id: "landlord", kind: "job", icon: "🔑", title: "집주인(주택 임대)", who: "집을 전세·월세로 빌려주는 사람",
+    keywords: ["집주인", "임대인", "주택임대", "임대소득", "월세 받", "전세 놓", "세입자"],
+    steps: [
+      { when: "계약한 날부터 30일 안", what: "주택 임대차 계약을 신고해요(대상 지역·금액이면). 임대인과 임차인 모두의 의무예요.", law: "부동산 거래신고 등에 관한 법률 제6조의2" },
+      { when: "갱신 요구를 받으면", what: "차임·보증금 증액은 5%를 넘을 수 없어요.", law: "주택임대차보호법 제6조의3·제7조" },
+      { when: "임대를 시작하면", what: "주택임대 사업자등록을 해요. 하지 않으면 가산세가 있어요.", law: "소득세법 제168조" },
+      { when: "매년 5월", what: "임대 수입을 신고해요. 연 2천만 원 이하면 분리과세와 종합과세 중 고를 수 있어요.", law: "소득세법 제64조의2" },
+      { when: "계약이 끝날 때", what: "보증금을 제때 돌려줘요. 늦으면 지연이자와 임차권등기 문제가 생겨요." },
+    ],
+    tools: [T("/ko/housing-rental-income-tax-calculator/", "주택임대소득세"), T("/ko/jeonse-monthly-converter/", "전월세 전환"), T("/ko/rental-yield-calculator/", "임대 수익률"), T("/ko/comprehensive-real-estate-tax-calculator/", "종합부동산세"), T("/ko/legal-interest-calculator/", "지연이자")],
+    help: ["국세청 126", "대한법률구조공단 132", "정부민원안내 110"],
+  },
   // ── 인생 사건 내비 ──
   {
     id: "marriage", kind: "event", icon: "💍", title: "결혼", who: "결혼을 앞두거나 막 결혼한 부부",
@@ -110,6 +135,32 @@ export const KR_DESKS         = [
     ],
     tools: [T("/ko/jeonse-guarantee-calculator/", "전세보증 가입 확인"), T("/ko/brokerage-calculator/", "중개보수"), T("/ko/jeonse-monthly-converter/", "전월세 전환"), T("/ko/monthly-rent-tax-credit-calculator/", "월세 세액공제"), T("/ko/youth-monthly-rent-support-checker/", "청년 월세 지원")],
     help: ["대한법률구조공단 132", "주택도시보증공사 1566-9009"],
+  },
+  {
+    id: "homebuy", kind: "event", icon: "🏡", title: "집 사기", who: "집을 사서 등기까지 마치려는 사람",
+    keywords: ["집 사", "매수", "내 집", "주택 구입", "매매", "취득세", "등기", "잔금", "주담대"],
+    steps: [
+      { when: "계약 전", what: "대출 한도(DSR)와 정책 대출 자격, 중개보수를 먼저 계산해요." },
+      { when: "계약한 날부터 30일 안", what: "부동산 거래신고를 해요. 보통 중개사무소가 신고해요.", law: "부동산 거래신고 등에 관한 법률 제3조" },
+      { when: "취득일(잔금일)부터 60일 안", what: "취득세를 신고·납부해요.", law: "지방세법 제20조" },
+      { when: "잔금일부터 60일 안", what: "소유권이전등기를 신청해요.", law: "부동산등기 특별조치법 제2조" },
+      { when: "그해 연말정산", what: "주택담보대출 이자 공제 대상인지 확인해요." },
+    ],
+    tools: [T("/ko/dsr-calculator/", "DSR 대출 한도"), T("/ko/policy-housing-loan-eligibility-checker/", "정책 주택대출 자격"), T("/ko/brokerage-calculator/", "중개보수"), T("/ko/acquisition-tax-calculator/", "취득세"), T("/ko/self-registration-cost-calculator/", "셀프 등기 비용"), T("/ko/mortgage-calculator/", "주담대 상환")],
+    help: ["정부민원안내 110", "인터넷등기소", "위택스(지방세)"],
+  },
+  {
+    id: "accident", kind: "event", icon: "🚗", title: "교통사고", who: "교통사고를 내거나 당한 사람",
+    keywords: ["교통사고", "사고", "자동차보험", "과실", "합의", "후유장해", "뺑소니", "추돌"],
+    steps: [
+      { when: "사고 직후", what: "다친 사람을 구호하고 경찰에 신고해요.", law: "도로교통법 제54조" },
+      { when: "그날", what: "보험사에 사고를 접수하고 사진·블랙박스 영상을 남겨요." },
+      { when: "치료 중", what: "과실 비율과 치료비 처리 방식을 확인해요. 실손보험과 겹치는지도 봐요." },
+      { when: "합의 전", what: "후유장해와 과실 비율이 보험금에 미치는 영향을 계산해 봐요." },
+      { when: "3년 안", what: "보험금 청구권은 3년이 지나면 소멸해요.", law: "상법 제662조" },
+    ],
+    tools: [T("/ko/traffic-accident-law-guide/", "교통사고 법령 길잡이"), T("/ko/disability-fault-claim-calculator/", "장해·과실 보험금"), T("/ko/silson-insurance-generation-calculator/", "실손 세대별 자기부담"), T("/ko/statute-limitations-calculator/", "소멸시효")],
+    help: ["경찰 112", "금융감독원 1332", "대한법률구조공단 132"],
   },
   {
     id: "quit", kind: "event", icon: "🚪", title: "이직·퇴사", who: "회사를 그만두거나 옮기는 근로자",
