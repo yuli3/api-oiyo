@@ -14,6 +14,11 @@ import { deKleinunternehmer, sgGstRegistration } from "./vendor/tools-tax/world-
 import { ukMaternityPay, ukChildBenefit, jpChildcareLeave, jpChildAllowance, deElterngeld } from "./vendor/tools-tax/world-parental-pay-2026.mjs";
 import { lateInterest } from "./vendor/tools-tax/world-late-payment-2026.mjs";
 import { erbschaftsteuer, mietkaution, pfaendung, verjaehrung, widerruf } from "./vendor/tools-tax/de-life-law-2026.mjs";
+import { us401kLimit, usIraLimit, rothIraLimit, tradVsRoth, ukPensionRelief } from "./vendor/tools-tax/country-pension-4.mjs";
+import { socialSecurityTable, pmiDates, ukStudentLoan, nisaPlan } from "./vendor/tools-tax/country-finance-2.mjs";
+import { lisaPlan, cpfRefund } from "./vendor/tools-tax/country-finance-3.mjs";
+import { caStressTest, cnComboLoan, jpHousingLoanCredit } from "./vendor/tools-tax/country-finance-5.mjs";
+import { jpIdecoMonthlyLimit, japanIdecoSaving, chinaPensionSaving, francePerSaving, frPerCeilingSalarie, spainPensionLimit } from "./vendor/tools-tax/pension-countries.mjs";
 import { homePurchaseTax } from "./vendor/tools-tax/world-home-purchase-2026.mjs";
 import { corporateTax } from "./vendor/tools-tax/world-corporate-tax-2026.mjs";
 import { withholding } from "./vendor/tools-tax/world-withholding-2026.mjs";
@@ -73,6 +78,11 @@ export function makeCountryTaxHandlers() {
   const PARENTAL_NOTE = "General information only: statutory parental pay and child benefit, eligibility not checked, no claims filed.";
   const LATE_NOTE = "General information only: statutory late payment interest between businesses, not legal advice, no claims filed.";
   const DE_LIFE_NOTE = "Allgemeine Information, keine Rechts- oder Steuerberatung. General information only, not legal or tax advice.";
+  const PLAN_NOTE = "General information only: scheme limits, tax relief and loan figures from official rules. Not financial, tax or investment advice; no product is recommended.";
+  const T = "https://tools.oiyo.net";
+  const pl = (page, body) => ({ ...(body ?? { error: "Check the inputs." }), page: `${T}${page}`, note: PLAN_NOTE });
+  const S = (v) => (v === undefined || v === null ? "" : String(v));
+  const n = (v, d = 0) => (Number.isFinite(Number(v)) && v !== "" && v !== null && v !== undefined ? Number(v) : d);
   const HOME_NOTE = "General information only: taxes on buying a home from official rates, not tax or legal advice; fees not included.";
   const CIT_NOTE = "General information only: national statutory rate on the taxable profit given, not tax advice, no filing.";
   const WHT_NOTE = "General information only: domestic rate before any tax treaty, not tax advice, no filing.";
@@ -133,6 +143,22 @@ export function makeCountryTaxHandlers() {
     "/v1/take-home/ca": (i) => ({ ...caTakeHome2026(i), page: `${EN}canada-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/au": (i) => ({ ...auTakeHome(i), page: `${EN}australia-take-home-pay-calculator-2026-27/`, note: TH_NOTE }),
     "/v1/take-home/fr": (i) => ({ ...frTakeHome(i), page: `${FRP}france-salary-calculator/`, note: TH_NOTE }),
+    "/v1/planning/us/retirement-limits": (i) => pl("/en/us-401k-ira-limits-calculator/", { k401: us401kLimit(n(i?.age, 40)), ira: usIraLimit(n(i?.age, 40)), roth: rothIraLimit(n(i?.age, 40), n(i?.magi), i?.filing ?? "single") }),
+    "/v1/planning/us/traditional-vs-roth": (i) => pl("/en/us-401k-ira-limits-calculator/", tradVsRoth({ contribution: n(i?.contribution), years: n(i?.years, 30), growth: n(i?.growth, 0.06), rateNow: n(i?.rateNow, 0.22), rateLater: n(i?.rateLater, 0.12) })),
+    "/v1/planning/us/social-security": (i) => pl("/en/social-security-claiming-age-calculator/", socialSecurityTable(S(i?.birthDate), S(i?.pia), S(i?.lifeAge ?? 85))),
+    "/v1/planning/us/pmi": (i) => pl("/en/pmi-removal-date-calculator/", pmiDates(S(i?.value), S(i?.loan), S(i?.rate), S(i?.years ?? 30), i?.extra ? S(i.extra) : "")),
+    "/v1/planning/uk/pension-relief": (i) => pl("/en/uk-pension-tax-relief-calculator/", ukPensionRelief({ earnings: n(i?.earnings), netContribution: n(i?.netContribution) })),
+    "/v1/planning/uk/lifetime-isa": (i) => pl("/en/lifetime-isa-bonus-calculator/", lisaPlan(S(i?.age), S(i?.balance ?? 0), S(i?.yearly), S(i?.growth ?? 4), S(i?.targetAge ?? 50))),
+    "/v1/planning/uk/student-loan": (i) => pl("/en/uk-student-loan-plan-2-plan-5-calculator/", ukStudentLoan(i?.plan === "plan5" ? "plan5" : "plan2", S(i?.balance), S(i?.salary), S(i?.growth ?? 2), S(i?.base ?? 4.1), S(i?.thresholdGrowth ?? 0))),
+    "/v1/planning/jp/nisa": (i) => pl("/ja/nisa-limit-planner/", nisaPlan(S(i?.used ?? 0), S(i?.usedGrowth ?? 0), S(i?.monthly), S(i?.growthYear ?? 0), S(i?.startYear ?? 2026))),
+    "/v1/planning/jp/ideco": (i) => pl("/ja/pension-optimizer-calculator/", { monthlyLimit: jpIdecoMonthlyLimit(i?.category ?? "employee", i?.period === "reform" ? "reform" : "current", n(i?.otherMonthly)), saving: i?.salary ? japanIdecoSaving({ salary: n(i.salary), otherIncome: n(i.otherIncome), socialInsurance: n(i.socialInsurance), spouse: !!i.spouse, dependents: n(i.dependents), annualContribution: n(i.annualContribution) }) : null }),
+    "/v1/planning/jp/housing-loan-credit": (i) => pl("/ja/housing-loan-deduction-calculator/", jpHousingLoanCredit({ loan: n(i?.loan), annualRatePct: n(i?.annualRatePct), termYears: n(i?.termYears, 35), borrowingLimit: n(i?.borrowingLimit), creditYears: Number(i?.creditYears) === 10 ? 10 : 13, incomeTax: n(i?.incomeTax), residentTaxCap: n(i?.residentTaxCap, 97500) })),
+    "/v1/planning/cn/personal-pension": (i) => pl("/zh/personal-pension-tax-calculator/", chinaPensionSaving({ income: n(i?.income), socialInsurance: n(i?.socialInsurance), specialAdditional: n(i?.specialAdditional), otherDeductions: n(i?.otherDeductions), contribution: n(i?.contribution) })),
+    "/v1/planning/cn/combo-loan": (i) => pl("/zh/housing-provident-fund-combo-loan-calculator/", cnComboLoan({ fundAmount: n(i?.fundAmount), fundRatePct: n(i?.fundRatePct), commercialAmount: n(i?.commercialAmount), commercialRatePct: n(i?.commercialRatePct), years: n(i?.years, 30), method: i?.method === "principal" ? "principal" : "annuity" })),
+    "/v1/planning/fr/per": (i) => { const plafond = n(i?.plafond) > 0 ? n(i.plafond) : frPerCeilingSalarie(n(i?.revenusPro2025, n(i?.revenu))); return pl("/fr/pension-optimizer-calculator/", { plafond, ...francePerSaving({ revenu: n(i?.revenu), couple: !!i?.couple, children: n(i?.children), versement: n(i?.versement), plafond }) }); },
+    "/v1/planning/es/pension-plan": (i) => pl("/es/pension-optimizer-calculator/", spainPensionLimit({ individual: n(i?.individual), employer: n(i?.employer), workerEmployment: n(i?.workerEmployment), workIncomeOver60k: !!i?.workIncomeOver60k, autonomo: n(i?.autonomo), netIncome: n(i?.netIncome) })),
+    "/v1/planning/sg/cpf-housing-refund": (i) => pl("/en/cpf-housing-refund-calculator/", cpfRefund(S(i?.upfront), S(i?.monthly ?? 0), S(i?.months ?? 0), S(i?.rate ?? 2.5), S(i?.price), S(i?.loan ?? 0))),
+    "/v1/planning/ca/stress-test": (i) => pl("/en/canada-mortgage-stress-test-calculator/", caStressTest({ grossAnnualIncome: n(i?.grossAnnualIncome), contractRatePct: n(i?.contractRatePct), amortizationYears: n(i?.amortizationYears, 25), propertyTaxMonthly: n(i?.propertyTaxMonthly), heatingMonthly: n(i?.heatingMonthly), condoFeesMonthly: n(i?.condoFeesMonthly), otherDebtMonthly: n(i?.otherDebtMonthly) })),
     "/v1/take-home/es": (i) => ({ ...esTakeHome({ ...i, pagas: Number(i?.pagas) === 14 ? 14 : 12 }), page: `${ESP}spain-salary-calculator/`, note: TH_NOTE }),
     "/v1/de/income-tax": (i) => dsg(`${DEP}einkommensteuer-rechner-2026/`, deIncomeTax(i)),
     "/v1/de/notice": (i) => dsg(`${DEP}kuendigungsfrist-rechner/`, deNoticePeriod(i)),
