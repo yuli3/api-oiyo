@@ -962,6 +962,21 @@ export const TENANCY_TOOLS = [
     }, ["rent", "deposit"]),
 ];
 
+// 실무 오피스 (2026-11-23): 나라(층)·방(세무·노무·행정·법무·재무설계)별 접수 질문, 도구, 스킬, 무료 창구. 계산 아님.
+export const OFFICE_TOOLS = [
+  fn("find_kr_life_desk",
+    "Korea job desks and life events: for a 유튜버·크리에이터, 배달 라이더·플랫폼 노동자, 카페·음식점 사장, 온라인 쇼핑몰 or 프리랜서 개발자, or for 결혼, 출산, 이사·전월세, 이직·퇴사, 은퇴 or 가족 사망, returns the steps in time order with statutory deadlines (e.g. 출생신고 1개월, 전입신고 14일, 상속포기 3개월, 상속세 6개월), the tools.oiyo.net calculators to run and the free official help. No calculation; general information only.",
+    { question: { type: "string", description: "The situation in the user's words (Korean works best)", maxLength: 2000 }, id: pick(["creator", "rider", "cafe", "shop", "dev", "marriage", "birth", "move", "quit", "retire", "death"], "Open one desk directly"), kind: pick(["job", "event"], "Limit the search to jobs or life events") }, []),
+  fn("visit_practice_office",
+    "Open the OIYO practice office for a country and room: tax, labor (employment), admin (permits, renting, consumer, customs), legal (registry, court costs, limitation, family, inheritance) or plan (saving, pensions, loans). Returns the five intake questions that change the answer, the calculators and checkers (with their MCP tool names), the Claude skills and the free official help for that room. Leave out room to list the rooms with tool counts. Start here when you do not know which tool fits. General information only; no advice, representation or filing.",
+    {
+      country: pick(["KR", "JP", "US", "UK", "FR", "ES", "CN", "TW", "DE", "SG", "CA", "AU"], "Country (floor)"),
+      room: pick(["tax", "labor", "admin", "legal", "plan"], "Room; leave out to list rooms"),
+      lang: pick(["ko", "en", "ja", "fr", "es", "zh"], "Language for room names and intake questions (default en)"),
+      audience: pick(["public", "pro"], "Only tools for clients (public) or practitioners (pro); leave out for both"),
+    }, ["country"]),
+];
+
 // 각국 길잡이 (2026-11-22): 질문을 현지 도구·무료 창구·자격사 범위로 안내. 계산 아님.
 export const WORLD_INTAKE_TOOLS = [
   fn("start_world_law_intake",
@@ -1036,6 +1051,7 @@ export const COUNTRY_TAX_ENDPOINTS = {
   check_cn_rental_contract_deposit: { path: "/v1/tenancy/cn", method: "POST" },
   check_tw_rental_deposit_termination: { path: "/v1/tenancy/tw", method: "POST" },
   start_world_law_intake: { path: "/v1/law/world/intake", method: "POST" },
+  visit_practice_office: { path: "/v1/office/visit", method: "POST" },
   check_jp_cooling_off: { path: "/v1/consumer/jp", method: "POST" },
   check_uk_cancellation_period: { path: "/v1/consumer/uk", method: "POST" },
   check_fr_retractation: { path: "/v1/consumer/fr", method: "POST" },
@@ -1147,6 +1163,12 @@ export const COUNTRY_TAX_ENDPOINTS = {
   calculate_tw_labor_pension_voluntary: { path: "/v1/planning/tw/labor-pension-voluntary", method: "POST" },
   calculate_de_riester_ruerup: { path: "/v1/planning/de/riester-ruerup", method: "POST" },
   calculate_au_super_contribution_caps: { path: "/v1/planning/au/super-caps", method: "POST" },
+  estimate_kr_national_pension: { path: "/v1/planning/kr/national-pension-estimate", method: "POST" },
+  plan_kr_quit: { path: "/v1/planning/kr/quit", method: "POST" },
+  calculate_jp_furusato_limit: { path: "/v1/planning/jp/furusato-limit", method: "POST" },
+  check_uk_marriage_allowance: { path: "/v1/planning/uk/marriage-allowance", method: "POST" },
+  calculate_us_california_income_tax: { path: "/v1/planning/us/california-income-tax", method: "POST" },
+  find_kr_life_desk: { path: "/v1/kr/life-desk", method: "POST" },
 };
 
 // 재무설계 9개국 (2026-11-23, 세운 "재무설계까지 전문가 추가"): tools-oiyo country-pension-4·country-finance-2/3/5·pension-countries와 같은 계산.
@@ -1192,6 +1214,16 @@ export const PLANNING_TOOLS = [
     { vorjahresEinnahmen: num("Pension-insured earnings in the previous year (EUR)"), eigenbeitrag: num("Own Riester contribution this year (EUR)"), kinderVor2008: int("Children with Kindergeld born before 2008", 0, 10), kinderAb2008: int("Children with Kindergeld born 2008 or later", 0, 10), berufseinsteiger: { type: "boolean", description: "Under 25 and first contribution year (one-off 200 € bonus)" }, grenzsteuersatzPct: num("Marginal income tax rate %", 0, 45), basisrenteJahr: int("Basisrente year (2025 or 2026)", 2025, 2026), basisrenteBeitrag: num("Basisrente contribution (EUR)"), grvBeitraegeGesamt: num("Statutory pension contributions, employee + employer (EUR)"), zusammen: { type: "boolean", description: "Joint assessment" } }, ["vorjahresEinnahmen", "eigenbeitrag"]),
   fn("calculate_au_super_contribution_caps", `Australia super contributions (ATO): 12% super guarantee, concessional cap $30,000 (2025-26) / $32,500 (2026-27) with carry-forward if total super balance under $500,000, 15% contributions tax, Division 293 above $250,000, non-concessional cap $120,000 / $130,000, rough saving from salary sacrifice. ${PLAN}`,
     { year: pick(["2025-26", "2026-27"], "Financial year"), salary: num("Ordinary time earnings (AUD a year)"), salarySacrifice: num("Salary sacrifice (AUD)"), personalDeductible: num("Personal deductible contributions (AUD)"), unusedCarryForward: num("Unused concessional cap carried forward (AUD)"), tsbUnder500k: { type: "boolean", description: "Total super balance under $500,000 on 30 June of the previous year" }, div293Income: num("Income for Division 293 before super (AUD)"), nonConcessional: num("After-tax contributions (AUD)"), marginalRatePct: num("Marginal tax rate incl. Medicare levy %", 0, 60) }, ["year", "salary"]),
+  fn("estimate_kr_national_pension", `Korea 국민연금 노령연금 estimate in today's money with the NPS formula: period constants (2.4, 1.8, 1.5 falling 0.015 a year to 1.245 in 2025, 1.29 from 2026), A value 3,193,511 won, income floor/cap 410,000/6,590,000, +5% per year over 20 years, pay rate 50% at 10 years +5%/year, 부양가족연금 2026. Excludes revaluation, credits and indexation. ${PLAN}`,
+    { startYear: int("First contribution year", 1988, 2080), endYear: int("Last contribution year", 1988, 2080), monthlyIncome: num("Average monthly income in today's won"), gapMonths: int("Months not paid", 0, 1200), spouse: yes("Has a spouse"), dependents: int("Children under 19 or parents 60+", 0, 10) }, ["startYear", "endYear", "monthlyIncome"]),
+  fn("plan_kr_quit", `Korea leaving a job: 퇴직금 (average wage × 30 × years), 퇴직소득세, 구직급여 daily amount × days (고용보험법 제46조·별표1) and the deadlines (14 days to pay, 12 months to claim). ${PLAN}`,
+    { monthlyWage: num("Average monthly wage over the last 3 months (KRW)"), years: num("Years at this employer", 0, 60), annualBonus: num("Yearly bonus"), annualLeavePay: num("Yearly unused-leave pay"), insuredYears: num("Employment insurance years incl. earlier jobs", 0, 60), age50OrDisabled: yes("Aged 50+ or disabled"), involuntary: yes("Involuntary separation (dismissal, contract end, recommended resignation)") }, ["monthlyWage", "years", "insuredYears"]),
+  fn("calculate_jp_furusato_limit", `Japan ふるさと納税: the donation that keeps the cost at 2,000 yen (所得割額 × 0.2 ÷ (90% − 所得税率 × 1.021) + 2,000) and the split into 所得税, 住民税基本分 and 特例分 (capped at 20% of 所得割額). ${PLAN}`,
+    { residentIncomeLevy: num("住民税所得割額 (yen)"), incomeTaxRatePct: int("所得税率: 5, 10, 20, 23, 33, 40 or 45", 5, 45), donation: num("Planned donation (yen), optional") }, ["residentIncomeLevy", "incomeTaxRatePct"]),
+  fn("check_uk_marriage_allowance", `UK Marriage Allowance: transfer £1,260 of Personal Allowance to a basic-rate spouse or civil partner, saving up to £252 a year; Scottish starter/basic/intermediate rule; backdating to 2022 to 2023 (earlier-year amounts not computed). ${PLAN}`,
+    { lowerIncome: num("Lower earner's income (GBP)"), higherIncome: num("Partner's income (GBP)"), scotland: yes("Partner pays Scottish income tax"), married: yes("Married or in a civil partnership") }, ["lowerIncome", "higherIncome", "married"]),
+  fn("calculate_us_california_income_tax", `California income tax for tax year 2025 from taxable income with FTB Form 540 Schedules X (single) and Y (joint), 1% to 12.3%. Excludes the 1% Mental Health Services Tax and credits; 2026 schedules not yet confirmed. ${PLAN}`,
+    { taxableIncome: num("California taxable income (USD)"), filing: pick(["single", "mfj"], "single or married filing jointly") }, ["taxableIncome"]),
 ];
 
-export const COUNTRY_TAX_TOOLS = [...PLANNING_TOOLS, ...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...COURT_FEE_TOOLS, ...FRESH_START_TOOLS, ...WORLD_INTAKE_TOOLS];
+export const COUNTRY_TAX_TOOLS = [...PLANNING_TOOLS, ...JP_TAX_TOOLS, ...US_TAX_TOOLS, ...FR_TAX_TOOLS, ...ES_TAX_TOOLS, ...CN_TAX_TOOLS, ...UK_TAX_TOOLS, ...TW_TAX_TOOLS, ...LABOR_TOOLS, ...TENANCY_TOOLS, ...CONSUMER_TOOLS, ...INHERITANCE_TOOLS, ...LIMITATION_TOOLS, ...EMPLOYER_TOOLS, ...COMPANY_CALENDAR_TOOLS, ...EINVOICE_TOOLS, ...RESIDENCY_TOOLS, ...DE_SG_TOOLS, ...TAKE_HOME_TOOLS, ...WITHHOLDING_TOOLS, ...CORPORATE_TAX_TOOLS, ...HOME_PURCHASE_TOOLS, ...DE_LIFE_TOOLS, ...LATE_PAYMENT_TOOLS, ...PARENTAL_TOOLS, ...SMALL_VAT_TOOLS, ...LABOR_PRACTICE_TOOLS, ...COURT_FEE_TOOLS, ...FRESH_START_TOOLS, ...WORLD_INTAKE_TOOLS, ...OFFICE_TOOLS];

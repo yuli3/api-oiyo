@@ -240,3 +240,35 @@ export const JP_SCOPE = [
   { title: "罰則", body: "第52条違反は2年以下の拘禁刑又は100万円以下の罰金、第53条違反は100万円以下の罰金。", cite: "税理士法第59条・第61条" },
   { title: "無料で相談できる窓口", body: "税務署の電話相談センター（国税相談専用ダイヤル）、各地の税理士会の無料税務相談、確定申告期の申告相談会場。", cite: "国税庁・日本税理士会連合会" },
 ];
+
+// 2026-11-23 (new calc 5, CHOSEUN approved). Facts: notes/new-calc-5-facts-2026-11-23.md
+// ── 2. 일본 ふるさと納税 공제 상한 (総務省, 神戸市·川崎市 계산식) ──
+export const JP_FURUSATO_RATES = [5, 10, 20, 23, 33, 40, 45]         ;
+
+export function jpFurusatoLimit(x                                                                             ) {
+  if (!(x.residentIncomeLevy >= 0) || x.residentIncomeLevy > 1e10) throw new Error("residentIncomeLevy");
+  if (!(JP_FURUSATO_RATES                     ).includes(x.incomeTaxRatePct)) throw new Error("incomeTaxRatePct");
+  const r = x.incomeTaxRatePct / 100;
+  const specialRate = 0.9 - r * 1.021;
+  const limit = Math.floor((x.residentIncomeLevy * 0.2) / specialRate) + 2000;
+  let breakdown = null                                                                                                                     ;
+  if (x.donation !== undefined && x.donation > 0) {
+    const base = Math.max(0, x.donation - 2000);
+    const incomeTax = Math.floor(base * r * 1.021);
+    const residentBasic = Math.floor(base * 0.1);
+    const rawSpecial = base * specialRate;
+    const cap = x.residentIncomeLevy * 0.2;
+    const residentSpecial = Math.floor(Math.min(rawSpecial, cap));
+    breakdown = { incomeTax, residentBasic, residentSpecial, capped: rawSpecial > cap, selfBurden: x.donation - incomeTax - residentBasic - residentSpecial };
+  }
+  return {
+    limit,
+    coefficientPct: Math.floor((0.2 / specialRate) * 100000) / 1000,
+    breakdown,
+    notes: [
+      "上限は目安です。寄附する時点では所得割額と税率が確定していません（神戸市）。",
+      "所得税控除の上限（総所得金額等の40%）と住民税基本分の上限（30%）は考慮していません。",
+      "ワンストップ特例は確定申告が不要な給与所得者等で寄附先が5団体以内の場合です。",
+    ],
+  };
+}
