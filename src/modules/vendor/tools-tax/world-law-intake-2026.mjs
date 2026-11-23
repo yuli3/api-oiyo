@@ -130,6 +130,8 @@ export const WORLD_TOOLS               = [
   t("TW", "consumer", "check_tw_7day_cancellation", "zh/taiwan-7-day-cancellation", "七日解約權", ["七日鑑賞期", "鑑賞期", "七天", "退貨", "網購", "解約", "退款"]),
   t("JP", "labor", "calculate_jp_take_home", "ja/japan-salary-calculator", "給与の手取り（社会保険料・所得税・住民税）", ["手取り", "給料", "給与", "月給", "年収", "天引き", "take home", "net pay"]),
   t("UK", "labor", "calculate_uk_take_home", "en/uk-take-home-pay-calculator-2026", "Take-home pay 2026-27 (tax, NI, student loan)", ["take home", "take-home", "net pay", "salary after tax", "payslip", "how much will i get", "student loan"]),
+  t("US", "tax", "estimate_us_tax_refund_2026", "en/us-tax-refund-estimator-2026", "Tax refund estimate for 2026 (W-2 withholding vs tax)", ["refund", "tax refund", "w-2", "withheld", "withholding", "how much back", "child tax credit"]),
+  t("JP", "tax", "estimate_jp_kakutei_2026", "ja/kakutei-shinkoku-2027-calculator", "令和8年分 確定申告の還付・納付の目安", ["確定申告", "還付", "還付申告", "医療費控除", "ふるさと納税", "源泉徴収票", "令和8年分"]),
   t("US", "labor", "calculate_us_take_home", "en/us-take-home-pay-calculator-2026", "Take-home pay 2026 (federal tax and FICA)", ["take home", "take-home", "net pay", "paycheck", "after tax", "fica", "salary after tax"]),
   t("FR", "labor", "calculate_fr_take_home", "fr/france-salary-calculator", "Salaire net après impôt (brut en net)", ["brut en net", "salaire net", "net après impôt", "fiche de paie", "salaire brut", "combien je touche"]),
   t("ES", "labor", "calculate_es_take_home", "es/spain-salary-calculator", "Salario neto (bruto a neto, IRPF y cotizaciones)", ["salario neto", "bruto a neto", "nómina", "cuánto cobro", "sueldo neto", "neto"]),

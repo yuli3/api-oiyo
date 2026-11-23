@@ -18,6 +18,7 @@ import { homePurchaseTax } from "./vendor/tools-tax/world-home-purchase-2026.mjs
 import { corporateTax } from "./vendor/tools-tax/world-corporate-tax-2026.mjs";
 import { withholding } from "./vendor/tools-tax/world-withholding-2026.mjs";
 import { ukTakeHome, usTakeHome, jpTakeHome, frTakeHome, esTakeHome } from "./vendor/tools-tax/world-take-home-2026.mjs";
+import { usRefund2026, jpKakutei2026, caTakeHome2026, auTakeHome } from "./vendor/tools-tax/world-tax-season-2027.mjs";
 import { deEInvoice, deIncomeTax, deMinimumWage, deNoticePeriod, sgCpf, sgIncomeTax, sgNotice } from "./vendor/tools-tax/world-de-sg-pack-2026.mjs";
 import { esResidency, frResidency, jpResidency, twResidency, ukStatutoryResidence, usSubstantialPresence } from "./vendor/tools-tax/world-tax-residency-2026.mjs";
 import { esVerifactu, frEInvoice, jpInvoiceTransition } from "./vendor/tools-tax/world-einvoice-pack-2026.mjs";
@@ -127,6 +128,10 @@ export function makeCountryTaxHandlers() {
     "/v1/take-home/uk": (i) => ({ ...ukTakeHome(i), page: `${EN}uk-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/us": (i) => ({ ...usTakeHome(i), page: `${EN}us-take-home-pay-calculator-2026/`, note: TH_NOTE }),
     "/v1/take-home/jp": (i) => ({ ...jpTakeHome(i), page: `${JA}japan-salary-calculator/`, note: TH_NOTE }),
+    "/v1/tax-season/us-refund": (i) => ({ ...usRefund2026(i), page: `${EN}us-tax-refund-estimator-2026/`, note: TH_NOTE }),
+    "/v1/tax-season/jp-kakutei": (i) => ({ ...jpKakutei2026(i), page: `${JA}kakutei-shinkoku-2027-calculator/`, note: TH_NOTE }),
+    "/v1/take-home/ca": (i) => ({ ...caTakeHome2026(i), page: `${EN}canada-take-home-pay-calculator-2026/`, note: TH_NOTE }),
+    "/v1/take-home/au": (i) => ({ ...auTakeHome(i), page: `${EN}australia-take-home-pay-calculator-2026-27/`, note: TH_NOTE }),
     "/v1/take-home/fr": (i) => ({ ...frTakeHome(i), page: `${FRP}france-salary-calculator/`, note: TH_NOTE }),
     "/v1/take-home/es": (i) => ({ ...esTakeHome({ ...i, pagas: Number(i?.pagas) === 14 ? 14 : 12 }), page: `${ESP}spain-salary-calculator/`, note: TH_NOTE }),
     "/v1/de/income-tax": (i) => dsg(`${DEP}einkommensteuer-rechner-2026/`, deIncomeTax(i)),
