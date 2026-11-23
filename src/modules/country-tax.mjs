@@ -5,6 +5,7 @@ import { KR_DESKS, KR_DESKS_AS_OF, deskById, findDesks } from "./vendor/tools-ta
 import { EXPERTS, EXPERT_VISIT_AS_OF, expertById, findExpertNeeds } from "./vendor/tools-tax/expert-visit-2026.mjs";
 import { LETTER_TYPES, buildDemandLetter } from "./vendor/tools-tax/demand-letter-2026.mjs";
 import { householdCheckup } from "./vendor/tools-tax/household-checkup-2026.mjs";
+import { buildConsultMemo } from "./vendor/tools-tax/consult-memo-2026.mjs";
 import { JP_TAX_AS_OF, JP_TAX_NOTE, jpAppealDeadlines, jpBlueReturn, jpConsumptionTax, jpDepreciation, jpPenalty, jpTaxCalendar } from "./vendor/tools-tax/jp-tax-pack-2026.mjs";
 
 import { US_TAX_AS_OF, US_TAX_NOTE, usAppealDeadlines, usDepreciation, usEstimatedTax, usPenalty, usSelfEmployment, usTaxCalendar } from "./vendor/tools-tax/us-tax-pack-2026.mjs";
@@ -256,6 +257,10 @@ export function makeCountryTaxHandlers() {
     "/v1/kr/demand-letter": (i) => {
       if (!LETTER_TYPES.some((t) => t.id === i?.type)) return { error: "type must be one of " + LETTER_TYPES.map((t) => t.id).join(", ") };
       return { ...buildDemandLetter(i), page: `${T}/ko/demand-letter-builder/` };
+    },
+    "/v1/kr/consult-memo": (i) => {
+      if (!String(i?.situation ?? "").trim()) return { error: "situation is required" };
+      return { ...buildConsultMemo(i), page: `${T}/ko/consult-memo-builder/` };
     },
     "/v1/planning/kr/household-checkup": (i) => ({ ...householdCheckup(i), page: `${T}/ko/household-money-checkup/` }),
     "/v1/tenancy/jp": (i) => ten(JA, "japan-rental-deposit-notice-checker", jpTenancy(i)),

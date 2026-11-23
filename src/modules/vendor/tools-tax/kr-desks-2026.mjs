@@ -211,7 +211,7 @@ export const KR_DESKS         = [
       { when: "퇴직 후 14일 안", what: "임금·퇴직금을 정산받아요.", law: "근로기준법 제36조" },
       { when: "그다음", what: "비자발적 이직이면 구직급여를 신청해요." },
     ],
-    tools: [T("/ko/dismissal-notice-pay-calculator/", "해고예고수당"), T("/ko/appeal-deadline-calculator/", "불복 기한 계산"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/unemployment-benefits-calculator/", "실업급여"), T("/ko/labor-law-guide/", "노동 법령 길잡이")],
+    tools: [T("/ko/dismissal-notice-pay-calculator/", "해고예고수당"), T("/ko/appeal-deadline-calculator/", "불복 기한 계산"), T("/ko/free-expert-representation-check/", "무료 대리 자격 확인"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/unemployment-benefits-calculator/", "실업급여"), T("/ko/labor-law-guide/", "노동 법령 길잡이")],
     help: ["고용노동부 1350", "노동위원회 (무료 권리구제 대리인 제도)", "대한법률구조공단 132"],
   },
   {
@@ -274,7 +274,7 @@ export const KR_DESKS         = [
       { when: "고지(처분)를 안 날부터 90일 안", what: "이의신청·심사청구·심판청구 중 하나로 다툴 수 있어요.", law: "국세기본법 제61조·제66조·제68조" },
       { when: "세금을 더 냈다면 신고기한 후 5년 안", what: "경정청구로 돌려받을 수 있어요(빠뜨린 공제·감면).", law: "국세기본법 제45조의2" },
     ],
-    tools: [T("/ko/appeal-deadline-calculator/", "불복 기한 계산"), T("/ko/tax-penalty-calculator/", "가산세 계산"), T("/ko/dependent-deduction-checker/", "놓친 부양가족 공제"), T("/ko/tax-law-guide/", "세법 길잡이")],
+    tools: [T("/ko/free-expert-representation-check/", "국선대리인 요건 확인"), T("/ko/appeal-deadline-calculator/", "불복 기한 계산"), T("/ko/tax-penalty-calculator/", "가산세 계산"), T("/ko/dependent-deduction-checker/", "놓친 부양가족 공제"), T("/ko/tax-law-guide/", "세법 길잡이")],
     help: ["국세청 126", "국세청 납세자보호담당관(무료 영세납세자 국선대리인)"],
   },
   {
@@ -300,6 +300,72 @@ export const KR_DESKS         = [
     ],
     tools: [T("/ko/insurance-law-guide/", "보험 법령 길잡이"), T("/ko/silson-insurance-generation-calculator/", "실손 세대별 자기부담"), T("/ko/disability-fault-claim-calculator/", "장해·과실 보험금"), T("/ko/statute-limitations-calculator/", "소멸시효")],
     help: ["금융감독원 1332"],
+  },
+  // ── 상담을 많이 찾는 일 2 (2026-11-24, CHOSEUN "상담자 니즈에 따른 도구와 스킬 계속 추가") ──
+  {
+    id: "divorce", kind: "event", icon: "💔", title: "이혼할 때", who: "협의이혼이나 재판이혼을 생각하는 부부",
+    keywords: ["이혼", "협의이혼", "재산분할", "위자료", "양육비", "친권", "양육권"],
+    steps: [
+      { when: "협의이혼이면", what: "부부가 함께 가정법원에 협의이혼의사확인을 신청해요. 미성년 자녀가 있으면 양육자·양육비·면접교섭 협의서(또는 법원 심판)를 내요.", law: "민법 제836조의2" },
+      { when: "숙려기간", what: "미성년 자녀(임신 중 포함)가 있으면 3개월, 없으면 1개월이 지나야 의사확인을 받아요.", law: "민법 제836조의2②" },
+      { when: "확인받은 날부터 3개월 안", what: "시·구·읍·면에 이혼신고를 해요. 지나면 확인의 효력이 없어져요.", law: "가족관계등록법 제75조" },
+      { when: "이혼한 날부터 2년 안", what: "재산분할을 청구할 수 있어요. 지나면 청구할 수 없어요.", law: "민법 제839조의2③" },
+      { when: "안 날부터 3년 안", what: "위자료(정신적 손해배상)를 청구해요.", law: "민법 제843조·제806조·제766조" },
+    ],
+    tools: [T("/ko/divorce-family-law-guide/", "이혼·가족 법령 길잡이"), T("/ko/litigation-cost-calculator/", "소송 비용"), T("/ko/statute-limitations-calculator/", "소멸시효"), T("/ko/household-money-checkup/", "가계 재무 건강검진")],
+    help: ["대한법률구조공단 132", "가정법원 협의이혼 안내", "양육비이행관리원 1644-6621"],
+  },
+  {
+    id: "startbiz", kind: "event", icon: "🏪", title: "사업을 시작할 때", who: "개인사업자로 창업하거나 부업을 사업으로 키우는 사람",
+    keywords: ["창업", "사업자등록", "개업", "사업 시작", "가게 오픈", "부업", "간이과세"],
+    steps: [
+      { when: "사업을 시작한 날부터 20일 안", what: "사업장 관할 세무서나 홈택스에서 사업자등록을 신청해요. 시작 전에도 신청할 수 있어요.", law: "부가가치세법 제8조①" },
+      { when: "등록할 때", what: "간이과세와 일반과세 중 무엇이 맞는지 비교해요." },
+      { when: "직원을 뽑으면", what: "근로계약서를 써서 한 부를 내주고, 4대보험 취득신고를 해요.", law: "근로기준법 제17조" },
+      { when: "1·7월 25일 (간이는 1월 25일)", what: "부가가치세를 신고·납부해요.", law: "부가가치세법 제49조·제67조" },
+      { when: "다음 해 5월", what: "종합소득세를 신고해요. 장부를 쓸지 추계로 할지 미리 정해요.", law: "소득세법 제70조" },
+    ],
+    tools: [T("/ko/general-vs-simplified-vat-calculator/", "일반 vs 간이과세"), T("/ko/business-must-do-checklist/", "사업자 필수 할 일"), T("/ko/bookkeeping-vs-estimate-calculator/", "장부 vs 추계"), T("/ko/labor-cost-calculator/", "인건비"), T("/ko/incorporation-calculator/", "법인 전환 비교"), T("/ko/yellow-umbrella-deduction-calculator/", "노란우산 공제")],
+    help: ["국세상담센터 126", "소상공인시장진흥공단 1588-5302", "고용노동부 1350"],
+  },
+  {
+    id: "closebiz", kind: "event", icon: "🔒", title: "가게·사업을 접을 때", who: "폐업을 앞둔 개인사업자",
+    keywords: ["폐업", "가게 접", "사업 접", "장사 접", "폐업신고", "사업 정리"],
+    steps: [
+      { when: "폐업하면 바로", what: "세무서나 홈택스에 폐업신고를 해요(사업자등록증 반납).", law: "부가가치세법 제8조⑧" },
+      { when: "직원이 있다면 퇴직 후 14일 안", what: "임금·퇴직금을 정산하고 4대보험 상실신고를 해요.", law: "근로기준법 제36조" },
+      { when: "폐업한 달의 다음 달 25일까지", what: "부가가치세 확정신고를 해요. 남은 재고·설비도 신고 대상인지 확인해요.", law: "부가가치세법 제49조①·제5조③" },
+      { when: "다음 해 5월", what: "폐업한 해의 종합소득세를 신고해요.", law: "소득세법 제70조" },
+      { when: "그다음", what: "노란우산에 가입했다면 폐업 공제금을 청구하고, 폐업 소상공인 지원(재기·재취업)을 알아봐요." },
+    ],
+    tools: [T("/ko/vat-calculator/", "부가세 계산"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/yellow-umbrella-deduction-calculator/", "노란우산 공제"), T("/ko/comprehensive-income-tax-calculator/", "종합소득세"), T("/ko/benefit-finder/", "지원금 찾기")],
+    help: ["국세상담센터 126", "소상공인시장진흥공단 1588-5302", "고용노동부 1350"],
+  },
+  {
+    id: "injury", kind: "event", icon: "🦺", title: "일하다 다쳤을 때 (산재)", who: "업무 중이나 출퇴근길에 다치거나 병을 얻은 근로자",
+    keywords: ["산재", "산업재해", "일하다 다", "업무상", "출퇴근 사고", "요양급여", "휴업급여", "직업병"],
+    steps: [
+      { when: "다치면 바로", what: "치료부터 받고, 사고 경위·목격자·사진을 남겨요." },
+      { when: "치료를 받으면서", what: "근로복지공단에 요양급여를 신청해요. 회사가 확인해 주지 않아도 신청할 수 있어요.", law: "산업재해보상보험법 제41조" },
+      { when: "3일 넘게 쉬게 되면", what: "회사는 산업재해조사표를 내야 해요. 기한은 산재 보고 기한 도구로 확인해요.", law: "산업안전보건법 시행규칙 제73조" },
+      { when: "요양하는 동안과 그 뒤 30일", what: "회사는 이 기간에 해고할 수 없어요.", law: "근로기준법 제23조②" },
+      { when: "3년 안", what: "보험급여를 받을 권리는 3년이 지나면 소멸해요(장해·유족 급여 등은 5년).", law: "산업재해보상보험법 제112조" },
+    ],
+    tools: [T("/ko/industrial-accident-leave-pay-calculator/", "휴업급여"), T("/ko/industrial-injury-disability-calculator/", "장해급여"), T("/ko/industrial-accident-report-deadline/", "산재 보고 기한"), T("/ko/labor-law-guide/", "노동 법령 길잡이")],
+    help: ["근로복지공단 1588-0075", "고용노동부 1350", "대한법률구조공단 132"],
+  },
+  {
+    id: "refund", kind: "event", icon: "📦", title: "온라인 구매 환불을 거절당했을 때", who: "인터넷·홈쇼핑·방문판매로 산 물건을 돌려주려는 사람",
+    keywords: ["환불", "반품", "청약철회", "환불 거절", "교환", "쇼핑몰", "방문판매"],
+    steps: [
+      { when: "받은 날부터 7일 안", what: "통신판매(인터넷·홈쇼핑)는 이유 없이 청약을 철회할 수 있어요. 철회 의사를 문자·게시판 등 기록이 남게 보내요.", law: "전자상거래법 제17조①" },
+      { when: "광고와 다르면", what: "받은 날부터 3개월, 그 사실을 안 날부터 30일 안에 철회할 수 있어요.", law: "전자상거래법 제17조③" },
+      { when: "돌려보낸 뒤 3영업일", what: "판매자는 물건을 돌려받은 날부터 3영업일 안에 환급해야 해요.", law: "전자상거래법 제18조②" },
+      { when: "방문판매라면", what: "계약서를 받은 날부터 14일 안에 철회할 수 있어요.", law: "방문판매법 제8조" },
+      { when: "그래도 안 되면", what: "1372 소비자상담센터에 상담하고 한국소비자원 피해구제를 신청해요. 필요하면 내용증명을 보내요." },
+    ],
+    tools: [T("/ko/consumer-refund-law-guide/", "소비자 환불 법령 길잡이"), T("/ko/demand-letter-builder/", "내용증명 작성 도우미"), T("/ko/statute-limitations-calculator/", "소멸시효")],
+    help: ["1372 소비자상담센터", "한국소비자원 피해구제"],
   },
 ];
 

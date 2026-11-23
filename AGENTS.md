@@ -94,6 +94,7 @@
 - 1.73.0 한국 본관 새 방 4개(보험·부동산·창업경영·복지의료)를 `visit_practice_office`에 반영(해외 층은 다섯 방 그대로, 새 방 이름은 ko·en만), `find_kr_life_desk` 창구 4곳 추가(학원·과외 강사, 집주인, 집 사기, 교통사고). 새 계산 없음.
 - 1.73.1 `visit_practice_office`에 통관·무역실(`trade`, 모든 층; 소액 수입 점검은 KR·JP·UK·CA만 열림) 반영. 새 계산 없음(계산은 tools 페이지).
 - 1.74.0 전문가 상담 전 준비 `prepare_kr_expert_visit`, 내용증명 뼈대 `draft_kr_demand_letter`, 가계 재무 건강검진 `check_kr_household_finance`(어림 참고선, 세금 없음) 추가. `find_kr_life_desk`에 해고·임금체불·괴롭힘·빌려준 돈·보증금·세금 고지·영업정지·보험금 거절 창구.
+- 1.75.0 상담 메모 `draft_kr_consult_memo` 추가. `find_kr_life_desk`에 이혼·창업·폐업·산재·온라인 환불 창구. 실무 오피스에 무료 대리 자격·양도세 필요경비 점검 반영.
 - 1.71.0 재무설계 빈 나라 4종 (`/v1/planning/{kr/national-pension-timing,tw/labor-pension-voluntary,de/riester-ruerup,au/super-caps}`): 국민연금 조기·연기, 勞退自提, Riester·Rürup(2026 Basisrente 상한 미확인 → 미계산), 호주 super 한도·Division 293. 정본 tools `plan-gap-4-2026`.
 - 1.70.0 재무설계 9개국 16종 (`/v1/planning/{us,uk,jp,cn,fr,es,sg,ca}/*`): 401(k)·IRA·Roth, 전통 vs Roth, Social Security 수령 나이, PMI, UK 연금 세액공제·LISA·학자금, 新NISA·iDeCo·住宅ローン控除, 个人养老金·公积金组合贷, PER, plan de pensiones, CPF housing refund, 캐나다 스트레스 테스트. 정본 tools `country-pension-4`·`country-finance-2/3/5`·`pension-countries`(+ `comprehensive-income-tax-countries`·`year-end-settlement-countries`). 상품 추천 없음.
 - 1.68.0 해외 세금 시즌 4종 `estimate_us_tax_refund_2026` `estimate_jp_kakutei_2026` `calculate_ca_take_home` `calculate_au_take_home` (`/v1/tax-season/*`, `/v1/take-home/ca|au`). 정본 tools `world-tax-season-2027` (tools #202).
