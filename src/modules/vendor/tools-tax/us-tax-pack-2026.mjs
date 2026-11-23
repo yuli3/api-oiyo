@@ -264,3 +264,22 @@ export const US_SCOPE = [
   { title: "Free help: Taxpayer Advocate Service", body: "Helps when an IRS problem is causing financial hardship or is not resolved through normal channels.", cite: "irs.gov/advocate" },
   { title: "Free help: Low Income Taxpayer Clinics", body: "Represent low-income taxpayers in disputes with the IRS (usually under $50,000 in dispute), independent from the IRS.", cite: "IRS LITC page" },
 ];
+
+// 2026-11-23 (new calc 5, CHOSEUN approved). Facts: notes/new-calc-5-facts-2026-11-23.md
+// ── 5. California income tax, tax year 2025 (FTB 540 tax rate schedules) ──
+                                                          
+export const CA_2025                                              = {
+  single: [[0, 0, 1], [11079, 110.79, 2], [26264, 414.49, 4], [41452, 1022.01, 6], [57542, 1987.41, 8], [72724, 3201.97, 9.3], [371479, 30986.19, 10.3], [445771, 38638.27, 11.3], [742953, 72219.84, 12.3]],
+  mfj: [[0, 0, 1], [22158, 221.58, 2], [52528, 828.98, 4], [82904, 2044.02, 6], [115084, 3974.82, 8], [145448, 6403.94, 9.3], [742958, 61972.37, 10.3], [891542, 77276.52, 11.3], [1485906, 144439.65, 12.3]],
+  hoh: [],
+};
+
+export function caIncomeTax2025(x                                                     ) {
+  if (!(x.taxableIncome >= 0) || x.taxableIncome > 1e10) throw new Error("taxableIncome");
+  const table = CA_2025[x.filing];
+  if (!table || table.length === 0) throw new Error("filing");
+  let row = table[0];
+  for (const b of table) if (x.taxableIncome > b[0]) row = b;
+  const tax = Math.round((row[1] + ((x.taxableIncome - row[0]) * row[2]) / 100) * 100) / 100;
+  return { year: 2025, tax, marginalPct: row[2], averagePct: x.taxableIncome > 0 ? Math.round((tax / x.taxableIncome) * 10000) / 100 : 0, note: "Tax before credits. The 1% Mental Health Services Tax over $1,000,000 and 2026 schedules are not included." };
+}

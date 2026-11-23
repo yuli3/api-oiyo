@@ -1,4 +1,7 @@
 // 각국 세무·회계 현지판 핸들러 (2026-11-21, 1차 일본·2차 미국·3차 프랑스·4차 스페인·5차 중국·2차 영국·대만). 스키마: country-tax-spec.mjs. 계산은 tools-oiyo와 같은 vendored 파일이에요.
+import { PRACTICE_OFFICE } from "./vendor/practice-office.mjs";
+import { krPensionEstimate, krQuitPlan, jpFurusatoLimit, ukMarriageAllowance, caIncomeTax2025 } from "./vendor/tools-tax/new-calc-5-2026.mjs";
+import { KR_DESKS, KR_DESKS_AS_OF, deskById, findDesks } from "./vendor/tools-tax/kr-desks-2026.mjs";
 import { JP_TAX_AS_OF, JP_TAX_NOTE, jpAppealDeadlines, jpBlueReturn, jpConsumptionTax, jpDepreciation, jpPenalty, jpTaxCalendar } from "./vendor/tools-tax/jp-tax-pack-2026.mjs";
 
 import { US_TAX_AS_OF, US_TAX_NOTE, usAppealDeadlines, usDepreciation, usEstimatedTax, usPenalty, usSelfEmployment, usTaxCalendar } from "./vendor/tools-tax/us-tax-pack-2026.mjs";
@@ -49,6 +52,22 @@ const EN = "https://tools.oiyo.net/en/";
 const usToday = () => new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 10); // US Eastern (standard time) date
 const JA = "https://tools.oiyo.net/ja/";
 const jpToday = () => new Date(Date.now() + 9 * 3_600_000).toISOString().slice(0, 10); // 일본 날짜(JST = KST)
+
+// 실무 오피스 방문 (2026-11-23): tools.oiyo.net 오피스와 같은 층·방 데이터 (scripts/sync-practice-office.mjs).
+export function visitOffice(i) {
+  const O = PRACTICE_OFFICE;
+  const lang = O.langs[i?.lang] ? i.lang : "en";
+  const L = O.langs[lang];
+  const fl = O.floors[i?.country];
+  if (!fl) return { error: `country must be one of ${Object.keys(O.floors).join(", ")}` };
+  const page = `https://tools.oiyo.net/${lang}/${O.slugs[lang]}/`;
+  const base = { asOf: O.asOf, country: fl.id, floor: `${fl.flag} ${L.countries[fl.id]}`, page, mcpServer: fl.mcp, note: "General information only: no legal, tax or investment advice, representation or filing. Check the free official help for individual cases." };
+  if (!i?.room) return { ...base, rooms: fl.rooms.map((r) => ({ id: r.id, name: L.rooms[r.id], about: L.roomDesc[r.id], tools: r.tools.length, open: r.tools.length > 0 })) };
+  const r = fl.rooms.find((x) => x.id === i.room);
+  if (!r) return { ...base, error: `room must be one of ${O.rooms.join(", ")}` };
+  const tools = r.tools.filter((t) => !i?.audience || t.who === i.audience).map((t) => ({ title: t.title, url: `https://tools.oiyo.net${t.href}`, for: t.who === "pro" ? "practitioners" : "clients", ...(t.mcp ? { mcpTool: t.mcp } : {}) }));
+  return { ...base, room: r.id, name: L.rooms[r.id], about: L.roomDesc[r.id], intake: L.intake[r.id], tools, skills: r.skills.map((k) => ({ name: k.id, download: `https://tools.oiyo.net${k.zip}` })), freeHelp: r.help, open: tools.length > 0 };
+}
 
 export function makeCountryTaxHandlers() {
   const jp = (slug, body) => ({ asOf: JP_TAX_AS_OF, country: "JP", ...(Array.isArray(body) ? { deadlines: body } : body), page: `${JA}${slug}/`, note: JP_TAX_NOTE });
@@ -163,6 +182,11 @@ export function makeCountryTaxHandlers() {
     "/v1/planning/kr/national-pension-timing": (i) => pl("/ko/national-pension-early-deferred-calculator/", krNpsEarlyDefer({ birthYear: n(i?.birthYear), monthly: n(i?.monthly), mode: i?.mode === "defer" ? "defer" : "early", earlyYears: n(i?.earlyYears, 1), deferMonths: n(i?.deferMonths, 12), deferSharePct: n(i?.deferSharePct, 100), untilAge: n(i?.untilAge, 85) })),
     "/v1/planning/tw/labor-pension-voluntary": (i) => pl("/zh/taiwan-labor-pension-voluntary-contribution/", twLaborPensionVoluntary({ monthlyWage: n(i?.monthlyWage), voluntaryPct: n(i?.voluntaryPct, 6), marginalRatePct: n(i?.marginalRatePct, 5) })),
     "/v1/planning/de/riester-ruerup": (i) => pl("/de/riester-ruerup-rechner/", { riester: deRiester({ vorjahresEinnahmen: n(i?.vorjahresEinnahmen), eigenbeitrag: n(i?.eigenbeitrag), kinderVor2008: n(i?.kinderVor2008), kinderAb2008: n(i?.kinderAb2008), berufseinsteiger: i?.berufseinsteiger === true, grenzsteuersatzPct: n(i?.grenzsteuersatzPct, 30) }), basisrente: i?.basisrenteBeitrag === undefined ? null : deBasisrente({ jahr: n(i?.basisrenteJahr, 2026) === 2025 ? 2025 : 2026, beitrag: n(i?.basisrenteBeitrag), grvBeitraegeGesamt: n(i?.grvBeitraegeGesamt), zusammen: i?.zusammen === true, grenzsteuersatzPct: n(i?.grenzsteuersatzPct, 30) }) }),
+    "/v1/planning/kr/national-pension-estimate": (i) => pl("/ko/national-pension-estimate-calculator/", krPensionEstimate({ startYear: n(i?.startYear), endYear: n(i?.endYear), monthlyIncome: n(i?.monthlyIncome), gapMonths: n(i?.gapMonths), spouse: i?.spouse === true, dependents: n(i?.dependents) })),
+    "/v1/planning/kr/quit": (i) => pl("/ko/quit-one-stop-calculator/", krQuitPlan({ monthlyWage: n(i?.monthlyWage), years: n(i?.years), annualBonus: n(i?.annualBonus), annualLeavePay: n(i?.annualLeavePay), insuredYears: n(i?.insuredYears), age50OrDisabled: i?.age50OrDisabled === true, involuntary: i?.involuntary === true })),
+    "/v1/planning/jp/furusato-limit": (i) => pl("/ja/furusato-nozei-limit-calculator/", jpFurusatoLimit({ residentIncomeLevy: n(i?.residentIncomeLevy), incomeTaxRatePct: n(i?.incomeTaxRatePct, 10), donation: i?.donation === undefined ? undefined : n(i?.donation) })),
+    "/v1/planning/uk/marriage-allowance": (i) => pl("/en/uk-marriage-allowance-calculator/", ukMarriageAllowance({ lowerIncome: n(i?.lowerIncome), higherIncome: n(i?.higherIncome), scotland: i?.scotland === true, married: i?.married !== false })),
+    "/v1/planning/us/california-income-tax": (i) => pl("/en/california-income-tax-calculator-2025/", caIncomeTax2025({ taxableIncome: n(i?.taxableIncome), filing: i?.filing === "mfj" ? "mfj" : "single" })),
     "/v1/planning/au/super-caps": (i) => pl("/en/australia-super-contribution-caps-calculator/", auSuper({ year: i?.year === "2026-27" ? "2026-27" : "2025-26", salary: n(i?.salary), salarySacrifice: n(i?.salarySacrifice), personalDeductible: n(i?.personalDeductible), unusedCarryForward: n(i?.unusedCarryForward), tsbUnder500k: i?.tsbUnder500k === true, div293Income: n(i?.div293Income, n(i?.salary)), nonConcessional: n(i?.nonConcessional), marginalRatePct: n(i?.marginalRatePct) })),
     "/v1/take-home/es": (i) => ({ ...esTakeHome({ ...i, pagas: Number(i?.pagas) === 14 ? 14 : 12 }), page: `${ESP}spain-salary-calculator/`, note: TH_NOTE }),
     "/v1/de/income-tax": (i) => dsg(`${DEP}einkommensteuer-rechner-2026/`, deIncomeTax(i)),
@@ -208,6 +232,14 @@ export function makeCountryTaxHandlers() {
     "/v1/consumer/tw": (i) => con(ZHP, "taiwan-7-day-cancellation", twCoolingOff(i)),
     "/v1/consumer/us": (i) => con(EN, "ftc-cooling-off-rule-deadline", usCoolingOff(i)),
     "/v1/law/world/intake": (i) => ({ ...worldIntake(i), page: `${EN}world-law-guide/` }),
+    "/v1/office/visit": (i) => visitOffice(i),
+    "/v1/kr/life-desk": (i) => {
+      const full = (d) => ({ ...d, tools: d.tools.map((t) => ({ ...t, url: `${T}${t.href}` })) });
+      const kind = i?.kind === "job" || i?.kind === "event" ? i.kind : undefined;
+      if (i?.id) { const d = deskById(String(i.id)); return d ? { asOf: KR_DESKS_AS_OF, desk: full(d) } : { error: "unknown id" }; }
+      if (i?.question) return { asOf: KR_DESKS_AS_OF, matches: findDesks(String(i.question), kind).map(full), page: `${T}/ko/${kind === "event" ? "life-event-navigator" : "job-desk"}/` };
+      return { asOf: KR_DESKS_AS_OF, desks: KR_DESKS.filter((d) => !kind || d.kind === kind).map((d) => ({ id: d.id, kind: d.kind, title: d.title })) };
+    },
     "/v1/tenancy/jp": (i) => ten(JA, "japan-rental-deposit-notice-checker", jpTenancy(i)),
     "/v1/tenancy/uk": (i) => ten(EN, "england-tenancy-deposit-notice-checker", ukTenancy(i)),
     "/v1/tenancy/us": (i) => ten(EN, "california-new-york-security-deposit-notice", usTenancy(i)),

@@ -202,3 +202,19 @@ export const UK_SCOPE = [
   { title: "HMRC help", body: "Online forms, webchat, the HMRC app, phone and post. Self Assessment and Income Tax enquiries: 0300 200 3300 (Relay UK: 18001 then 0300 200 3300).", cite: "gov.uk Contact HMRC; Income Tax enquiries" },
   { title: "Free independent advice", body: "If HMRC cannot sort it out and you are on a low income (about £380 a week or less), you can get free professional advice, for example from TaxAid. HMRC also funds voluntary organisations such as Advice Direct Scotland and Advice NI.", cite: "gov.uk Get help with tax; voluntary and community sector organisations" },
 ];
+
+// 2026-11-23 (new calc 5, CHOSEUN approved). Facts: notes/new-calc-5-facts-2026-11-23.md
+// ── 4. 영국 Marriage Allowance (gov.uk) ──
+export const UK_MA = { transfer: 1260, saving: 252, personalAllowance: 12570, basicRateTop: 50270, scotlandTop: 43662, backdateFrom: "2022 to 2023" }         ;
+
+export function ukMarriageAllowance(x                                                                                    ) {
+  if (!(x.lowerIncome >= 0) || !(x.higherIncome >= 0)) throw new Error("income");
+  const top = x.scotland ? UK_MA.scotlandTop : UK_MA.basicRateTop;
+  const reasons           = [];
+  if (!x.married) reasons.push("You must be married or in a civil partnership; living together is not enough.");
+  if (x.lowerIncome > UK_MA.personalAllowance) reasons.push(`The lower earner's income must be under the Personal Allowance (usually £${UK_MA.personalAllowance.toLocaleString("en-GB")}).`);
+  if (x.higherIncome <= UK_MA.personalAllowance || x.higherIncome > top) reasons.push(`The partner must pay tax at the ${x.scotland ? "starter, basic or intermediate" : "basic"} rate (usually £12,571 to £${top.toLocaleString("en-GB")}).`);
+  const eligible = reasons.length === 0;
+  const maxRelief = Math.min(UK_MA.saving, Math.max(0, Math.floor((x.higherIncome - UK_MA.personalAllowance) * 0.2)));
+  return { eligible, reasons, transfer: UK_MA.transfer, yearlySaving: eligible ? maxRelief : 0, backdateFrom: UK_MA.backdateFrom, note: "Backdated years use each year's Personal Allowance; amounts for earlier years are not shown here." };
+}
