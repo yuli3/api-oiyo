@@ -58,15 +58,17 @@ export function visitOffice(i) {
   const O = PRACTICE_OFFICE;
   const lang = O.langs[i?.lang] ? i.lang : "en";
   const L = O.langs[lang];
+  // Korea-only rooms (insurance, realty, biz, welfare) are named in ko and en only.
+  const nm = (k, id) => L[k][id] ?? O.langs.en[k][id] ?? O.langs.ko[k][id];
   const fl = O.floors[i?.country];
   if (!fl) return { error: `country must be one of ${Object.keys(O.floors).join(", ")}` };
   const page = `https://tools.oiyo.net/${lang}/${O.slugs[lang]}/`;
   const base = { asOf: O.asOf, country: fl.id, floor: `${fl.flag} ${L.countries[fl.id]}`, page, mcpServer: fl.mcp, note: "General information only: no legal, tax or investment advice, representation or filing. Check the free official help for individual cases." };
-  if (!i?.room) return { ...base, rooms: fl.rooms.map((r) => ({ id: r.id, name: L.rooms[r.id], about: L.roomDesc[r.id], tools: r.tools.length, open: r.tools.length > 0 })) };
+  if (!i?.room) return { ...base, rooms: fl.rooms.map((r) => ({ id: r.id, name: nm("rooms", r.id), about: nm("roomDesc", r.id), tools: r.tools.length, open: r.tools.length > 0 })) };
   const r = fl.rooms.find((x) => x.id === i.room);
-  if (!r) return { ...base, error: `room must be one of ${O.rooms.join(", ")}` };
+  if (!r) return { ...base, error: `room must be one of ${fl.rooms.map((x) => x.id).join(", ")}` };
   const tools = r.tools.filter((t) => !i?.audience || t.who === i.audience).map((t) => ({ title: t.title, url: `https://tools.oiyo.net${t.href}`, for: t.who === "pro" ? "practitioners" : "clients", ...(t.mcp ? { mcpTool: t.mcp } : {}) }));
-  return { ...base, room: r.id, name: L.rooms[r.id], about: L.roomDesc[r.id], intake: L.intake[r.id], tools, skills: r.skills.map((k) => ({ name: k.id, download: `https://tools.oiyo.net${k.zip}` })), freeHelp: r.help, open: tools.length > 0 };
+  return { ...base, room: r.id, name: nm("rooms", r.id), about: nm("roomDesc", r.id), intake: nm("intake", r.id), tools, skills: r.skills.map((k) => ({ name: k.id, download: `https://tools.oiyo.net${k.zip}` })), freeHelp: r.help, open: tools.length > 0 };
 }
 
 export function makeCountryTaxHandlers() {
