@@ -1,0 +1,14 @@
+{
+  "name": "oiyo-korea-calculators-actor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Apify Actor wrapping the OIYO deterministic calculators MCP server (Korea + 10 countries).",
+  "main": "src/main.mjs",
+  "scripts": {
+    "start": "node src/main.mjs"
+  },
+  "dependencies": {
+    "apify": "^3.4.0"
+  }
+}

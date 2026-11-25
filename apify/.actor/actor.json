@@ -1,0 +1,33 @@
+{
+  "actorSpecification": 1,
+  "name": "korea-calculators",
+  "title": "Korea Salary, Tax & Holiday Calculators (OIYO)",
+  "description": "300+ deterministic calculators: South Korea net salary, 4 major insurances, severance, unemployment benefits, year-end tax, property and capital gains tax, public holidays and business days, plus take-home pay and tax tools for Japan, UK, US, France, Spain, Germany, China, Taiwan, Singapore, Canada and Australia. No LLM inside, same input gives the same output.",
+  "version": "1.0",
+  "buildTag": "latest",
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile",
+  "readme": "../README.md",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "title": "Calculation results",
+      "views": {
+        "overview": {
+          "title": "Results",
+          "transformation": { "fields": ["tool", "ok", "result", "error", "sourcePage"] },
+          "display": {
+            "component": "table",
+            "properties": {
+              "tool": { "label": "Tool", "format": "text" },
+              "ok": { "label": "OK", "format": "boolean" },
+              "result": { "label": "Result", "format": "object" },
+              "error": { "label": "Error", "format": "text" },
+              "sourcePage": { "label": "Interactive calculator", "format": "link" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

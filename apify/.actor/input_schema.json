@@ -1,0 +1,33 @@
+{
+  "title": "OIYO calculator input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "tool": {
+      "title": "Tool name",
+      "type": "string",
+      "description": "Calculator to run, for example calculate_net_salary, get_kr_holidays, check_kr_business_day, calculate_severance_pay, calculate_jp_take_home. Run once with 'List tools' on to get every tool name and its argument schemas (free).",
+      "editor": "textfield",
+      "prefill": "calculate_net_salary"
+    },
+    "arguments": {
+      "title": "Arguments",
+      "type": "object",
+      "description": "Arguments for the tool, as JSON. Example for calculate_net_salary: {\"salary\": 3500000}. Amounts are in the country's currency (KRW for Korea).",
+      "editor": "json",
+      "prefill": { "salary": 3500000 }
+    },
+    "calls": {
+      "title": "Batch calls (optional)",
+      "type": "array",
+      "description": "Run up to 50 calculations in one run: [{\"tool\": \"get_kr_holidays\", \"arguments\": {\"year\": 2027}}, ...]. When given, 'Tool name' and 'Arguments' are ignored.",
+      "editor": "json"
+    },
+    "listTools": {
+      "title": "List tools (free)",
+      "type": "boolean",
+      "description": "Output the full tool catalog with each tool's input schema instead of calculating. Not charged.",
+      "default": false
+    }
+  }
+}
