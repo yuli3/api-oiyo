@@ -47,6 +47,18 @@ function inputSchema(parameters) {
   return z.strictObject(shape);
 }
 
+// 2026-11-25 (RT-02): the Claude connector directory reads annotations.title as the listing name.
+const TITLE_WORDS = {
+  kr: "Korea", jp: "Japan", uk: "UK", us: "US", fr: "France", es: "Spain", de: "Germany", cn: "China",
+  tw: "Taiwan", sg: "Singapore", ca: "Canada", au: "Australia", world: "World",
+  vat: "VAT", gst: "GST", dcf: "DCF", cagr: "CAGR", swot: "SWOT", bcg: "BCG", hug: "HUG", mcp: "MCP", ai: "AI",
+};
+export function toolTitle(name) {
+  const words = name.split("_").map(word => TITLE_WORDS[word] ?? word);
+  words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+  return words.join(" ");
+}
+
 export function createCalculationServer(dispatch, medium = "unknown", profileName = null) {
   const profile = profileName ? MCP_PROFILES[profileName] : null;
   if (profileName && !profile) throw new Error("Unknown MCP profile");
@@ -57,9 +69,9 @@ export function createCalculationServer(dispatch, medium = "unknown", profileNam
     const endpoint = TOOL_ENDPOINTS[tool.name];
     if (!endpoint) throw new Error("Tool endpoint missing");
     server.registerTool(tool.name, {
-      title: tool.name.replaceAll("_", " "), description: tool.description,
+      title: toolTitle(tool.name), description: tool.description,
       inputSchema: inputSchema(tool.parameters),
-      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      annotations: { title: toolTitle(tool.name), readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     }, async (args) => {
       // 2026-10-25: route through the in-process REST dispatcher, never public HTTP,
       // so MCP cannot acquire a second formula or send birth/financial inputs elsewhere.
