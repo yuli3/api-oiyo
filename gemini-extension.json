@@ -1,0 +1,10 @@
+{
+  "name": "oiyo-calculations",
+  "version": "1.0.0",
+  "description": "300+ deterministic calculators: South Korea net salary, 4 major insurances, severance, unemployment benefits, year-end tax, property tax, public holidays and business days, plus take-home pay and tax tools for 11 other countries. No sign-in, read-only, no LLM inside.",
+  "mcpServers": {
+    "oiyo-calculations": {
+      "httpUrl": "https://api-oiyo.861106.workers.dev/mcp?ref=gemini"
+    }
+  }
+}

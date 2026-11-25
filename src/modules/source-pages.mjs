@@ -323,7 +323,7 @@ export const SOURCE_PAGES = Object.freeze({
 
 // Listings point at /mcp?ref=<registry>; only these values are trusted so the tag can't be abused.
 const REGISTRY_REFS = new Set([
-  "mcp-registry", "smithery", "glama", "cursor-directory", "pulsemcp", "mcp-so", "readme", "docs", "apify",
+  "mcp-registry", "smithery", "glama", "cursor-directory", "pulsemcp", "mcp-so", "readme", "docs", "apify", "gemini",
 ]);
 
 // Otherwise guess the client from the User-Agent. Unknown agents collapse to "other".

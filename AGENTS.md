@@ -143,3 +143,7 @@
 - 과금은 pay-per-event `calculation` 1건 = 성공한 계산 1건. 거부·오류·`listTools` 목록은 무료. 가격은 Apify Console(Publication → Monetization)에서 정한다(저장소 파일 없음).
 - 핵심 로직은 SDK 없는 `apify/src/core.mjs`, 루트 `test/apify-actor.test.mjs`가 실제 worker로 확인한다. 설명 문구는 "300+"로 두어 도구가 늘어도 고칠 일이 없다.
 - Apify 빌드는 GitHub 연결 시 저장소 `#main:apify` 폴더를 쓴다. 로컬 확인: `cd apify && npm i && ACTOR_TEST_PAY_PER_EVENT=true ACTOR_USE_CHARGING_LOG_DATASET=true npm start`.
+
+## AI 앱 디렉터리 준비 (2026-11-25, 싱크탱크 RT-02)
+- `/privacy`·`/terms`·`/support`(`src/modules/legal-pages.mjs`)는 Claude 커넥터 디렉터리·ChatGPT 앱 제출에 필요한 공개 페이지다. 계측(`usage.mjs`)·속도 제한·observability를 바꾸면 개인정보 문구도 같이 고친다(`test/legal-pages.test.mjs`가 IP 미기록을 확인). sitemap은 계속 /docs만 둔다.
+- `gemini-extension.json`은 Gemini CLI 확장 매니페스트(`?ref=gemini`). 도구는 원격으로 바로 반영되니 `version`은 매니페스트를 바꿀 때만 올린다. 갤러리 노출에는 저장소 토픽 `gemini-cli-extension`이 필요하다.

@@ -8,6 +8,7 @@ Deterministic calculators for South Korea: payroll and net salary, minimum wage,
 - **No LLM inside.** Results are plain code, so the same input always gives the same output.
 - REST + OpenAPI: <https://api.oiyo.net/docs> · [`openapi.json`](https://api.oiyo.net/openapi.json) · [`tools.json`](https://api.oiyo.net/tools.json) · [`llms.txt`](https://api.oiyo.net/llms.txt)
 - Official MCP Registry name: `io.github.yuli3/oiyo-calculations`
+- [Privacy policy](https://api.oiyo.net/privacy) · [Terms](https://api.oiyo.net/terms) · [Support](https://api.oiyo.net/support) (support@oiyo.net)
 - **Welfare & benefits only:** `https://api-oiyo.861106.workers.dev/mcp/welfare` (Registry `io.github.yuli3/oiyo-welfare`) serves 24 of the tools for people checking money they are owed: 근로·자녀장려금, 실업급여(자발적 퇴사 포함), 체불 대지급금, 산재 휴업급여, 휴업수당, 해고예고수당, 퇴직금·주휴·연장·연차, 출산휴가·육아기 단축 급여, 장기요양 본인부담, 건강보험료, 청년월세 지원, 정책 주거대출, 청약 특별공급, 전세보증 진단, 월세 세액공제, 부양가족 공제. Same formulas and results as `/mcp`.
 - **Outside Korea only:** `https://api-oiyo.861106.workers.dev/mcp/world` (Registry `io.github.yuli3/oiyo-world`) serves the 147 country tools for Japan, the UK, the US, France, Spain, Germany, China, Taiwan, Singapore and Canada: take-home pay, employer cost, income/corporate/inheritance tax, withholding, tax calendars and penalties, VAT/GST registration, notice periods and severance, tenancy deposits, cooling-off periods, limitation periods and small claims, court fees, parental pay, plus `start_world_law_intake`. Same formulas and results as `/mcp`.
 
@@ -37,6 +38,11 @@ Add to `.cursor/mcp.json` (or use the [`.mcp.json`](./.mcp.json) in this repo):
 
 ### ChatGPT
 With developer mode enabled: Settings → Apps & Connectors → **Create** → MCP server URL `https://api-oiyo.861106.workers.dev/mcp`, authentication **None**.
+
+### Gemini CLI
+```bash
+gemini extensions install https://github.com/yuli3/api-oiyo
+```
 
 ### Grok (xAI API)
 ```json

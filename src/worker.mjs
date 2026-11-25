@@ -52,6 +52,7 @@ import { handleToolFinder } from "./modules/tool-finder.mjs";
 import { mcpPeek, recordUsage } from "./modules/usage.mjs";
 import { checkRateLimit, rateLimitedResponse } from "./modules/rate-limit.mjs";
 import { mcpMedium } from "./modules/source-pages.mjs";
+import { PRIVACY_HTML, TERMS_HTML, SUPPORT_HTML } from "./modules/legal-pages.mjs";
 import {
   DOCS_HTML,
   ROBOTS_TXT,
@@ -250,6 +251,15 @@ async function route(request, env) {
       });
     }
 
+    // 2026-11-25 RT-02: privacy, terms and support pages for AI app directory listings.
+    const LEGAL_PAGES = { "/privacy": PRIVACY_HTML, "/terms": TERMS_HTML, "/support": SUPPORT_HTML };
+    if (LEGAL_PAGES[path] && (method === "GET" || method === "HEAD")) {
+      return new Response(method === "HEAD" ? null : LEGAL_PAGES[path], {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+      });
+    }
+
     // ads.txt
     if (path === "/ads.txt" && (method === "GET" || method === "HEAD")) {
       return new Response(method === "HEAD" ? null : ADS_TXT, {
@@ -313,6 +323,9 @@ async function route(request, env) {
         llms: "/llms.txt",
         llmsFull: "/llms-full.txt",
         sitemap: "/sitemap.xml",
+        privacy: "/privacy",
+        terms: "/terms",
+        support: "/support",
         endpoints: [
           "GET /health",
           "GET /docs",
