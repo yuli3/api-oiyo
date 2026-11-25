@@ -137,3 +137,9 @@
 ## 속도 제한·로그 (2026-11-23)
 - `wrangler.jsonc` `ratelimits` RATE_LIMITER: IP당 위치별 60초 300회(대략값). 넘으면 429 + `Retry-After: 60`(MCP는 JSON-RPC `-32029`). `/health`·robots·sitemap·favicon·glama.json·OPTIONS는 세지 않음. 바인딩이 없거나 오류면 막지 않음. 코드 `src/modules/rate-limit.mjs`.
 - observability 켜짐. 5xx와 429만 `console.log` 한 줄(경로·상태만, IP·본문 없음). 한도를 낮출 땐 MCP 공유 출구 IP(Claude·디렉터리 프록시)를 먼저 생각할 것.
+
+## Apify Actor (2026-11-25, 싱크탱크 RT-01 유료화 첫 시험)
+- `apify/`는 Apify 스토어용 Actor다(`apify/.actor/actor.json`, 입력 `input_schema.json`, Docker `apify/actor-node:22`). 공개 MCP `https://api-oiyo.861106.workers.dev/mcp?ref=apify`를 상태 없이 부르는 얇은 래퍼라 공식·도구 목록을 따로 고칠 필요가 없다. 새 도구는 자동으로 들어간다.
+- 과금은 pay-per-event `calculation` 1건 = 성공한 계산 1건. 거부·오류·`listTools` 목록은 무료. 가격은 Apify Console(Publication → Monetization)에서 정한다(저장소 파일 없음).
+- 핵심 로직은 SDK 없는 `apify/src/core.mjs`, 루트 `test/apify-actor.test.mjs`가 실제 worker로 확인한다. 설명 문구는 "300+"로 두어 도구가 늘어도 고칠 일이 없다.
+- Apify 빌드는 GitHub 연결 시 저장소 `#main:apify` 폴더를 쓴다. 로컬 확인: `cd apify && npm i && ACTOR_TEST_PAY_PER_EVENT=true ACTOR_USE_CHARGING_LOG_DATASET=true npm start`.
