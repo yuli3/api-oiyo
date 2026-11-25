@@ -38,3 +38,20 @@ test("gemini-extension.json is valid", () => {
   const url = manifest.mcpServers["oiyo-calculations"].httpUrl;
   assert.equal(mcpMedium(new Request(url)), "gemini");
 });
+
+test("every MCP tool has annotations.title (Claude directory listing name)", async () => {
+  const { toolTitle } = await import("../src/modules/mcp.mjs");
+  assert.equal(toolTitle("calculate_kr_year_end_settlement"), "Calculate Korea year end settlement");
+  assert.equal(toolTitle("compare_vat_tax"), "Compare VAT tax");
+  const body = { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} };
+  const response = await worker.fetch(new Request("https://api-oiyo.861106.workers.dev/mcp", {
+    method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify(body),
+  }), {}, ctx);
+  const text = await response.text();
+  const message = JSON.parse(text.trim().startsWith("{") ? text : text.split("\n").find(l => l.startsWith("data:")).slice(5));
+  assert.ok(message.result.tools.length >= 300);
+  for (const tool of message.result.tools) {
+    assert.ok(tool.annotations?.title, tool.name);
+    assert.equal(tool.annotations.readOnlyHint, true, tool.name);
+  }
+});
