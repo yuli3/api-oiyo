@@ -55,3 +55,7 @@ test("every MCP tool has annotations.title (Claude directory listing name)", asy
     assert.equal(tool.annotations.readOnlyHint, true, tool.name);
   }
 });
+
+test("Claude directory listing URL is tagged ref=claude-directory", () => {
+  assert.equal(mcpMedium(new Request("https://api-oiyo.861106.workers.dev/mcp?ref=claude-directory")), "claude-directory");
+});
