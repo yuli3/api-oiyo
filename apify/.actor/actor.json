@@ -2,7 +2,7 @@
   "actorSpecification": 1,
   "name": "korea-calculators",
   "title": "Korea Salary, Tax & Holiday Calculators (OIYO)",
-  "description": "300+ deterministic calculators: South Korea net salary, 4 major insurances, severance, unemployment benefits, year-end tax, property and capital gains tax, public holidays and business days, plus take-home pay and tax tools for Japan, UK, US, France, Spain, Germany, China, Taiwan, Singapore, Canada and Australia. No LLM inside, same input gives the same output.",
+  "description": "300+ deterministic calculators for South Korea: net salary, 4 major insurances, severance, unemployment benefits, year-end tax, property tax, holidays and business days. Plus take-home pay and tax for Japan, UK, US, Germany, France and more. No LLM inside: same input, same output.",
   "version": "1.0",
   "buildTag": "latest",
   "input": "./input_schema.json",
