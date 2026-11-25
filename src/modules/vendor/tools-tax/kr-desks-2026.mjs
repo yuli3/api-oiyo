@@ -173,7 +173,7 @@ export const KR_DESKS         = [
       { when: "건강보험", what: "지역가입자 보험료와 임의계속가입을 비교해요." },
       { when: "다음 해 5월 또는 새 회사 연말정산", what: "중도퇴사 연말정산을 마무리해요." },
     ],
-    tools: [T("/ko/severance-calculator/", "퇴직금 계산"), T("/ko/retirement-tax-calculator/", "퇴직소득세"), T("/ko/unemployment-benefits-calculator/", "실업급여"), T("/ko/voluntary-quit-unemployment-checker/", "자진 퇴사 실업급여"), T("/ko/health-insurance-leaver-settlement/", "퇴사 건강보험 정산"), T("/ko/midyear-leaver-year-end-settlement/", "중도퇴사 연말정산")],
+    tools: [T("/ko/job-exit-consult-prep/", "상담 준비서 만들기"), T("/ko/severance-calculator/", "퇴직금 계산"), T("/ko/retirement-tax-calculator/", "퇴직소득세"), T("/ko/unemployment-benefits-calculator/", "실업급여"), T("/ko/voluntary-quit-unemployment-checker/", "자진 퇴사 실업급여"), T("/ko/health-insurance-leaver-settlement/", "퇴사 건강보험 정산"), T("/ko/midyear-leaver-year-end-settlement/", "중도퇴사 연말정산")],
     help: ["고용노동부 1350", "국민건강보험공단 1577-1000"],
   },
   {
@@ -197,7 +197,7 @@ export const KR_DESKS         = [
       { when: "6개월 안(사망한 달의 말일부터)", what: "상속세를 신고·납부해요.", law: "상속세 및 증여세법 제67조" },
       { when: "그 뒤", what: "상속 부동산 등기와 상속분을 정리해요." },
     ],
-    tools: [T("/ko/after-death-checklist/", "사망 뒤 할 일 순서"), T("/ko/inheritance-gift-filing-deadline-calculator/", "상속·증여 신고 기한"), T("/ko/inheritance-share-calculator/", "법정 상속분·유류분"), T("/ko/inheritance-tax-calculator/", "상속세 계산"), T("/ko/self-registration-cost-calculator/", "셀프 등기 비용")],
+    tools: [T("/ko/inheritance-consult-prep/", "상담 준비서 만들기"), T("/ko/after-death-checklist/", "사망 뒤 할 일 순서"), T("/ko/inheritance-gift-filing-deadline-calculator/", "상속·증여 신고 기한"), T("/ko/inheritance-share-calculator/", "법정 상속분·유류분"), T("/ko/inheritance-tax-calculator/", "상속세 계산"), T("/ko/self-registration-cost-calculator/", "셀프 등기 비용")],
     help: ["정부24 안심상속", "대한법률구조공단 132", "국세청 126"],
   },
   // ── 전문가를 찾게 되는 일 (2026-11-23, CHOSEUN "사람들이 전문가를 찾아가는 니즈") ──
@@ -211,7 +211,7 @@ export const KR_DESKS         = [
       { when: "퇴직 후 14일 안", what: "임금·퇴직금을 정산받아요.", law: "근로기준법 제36조" },
       { when: "그다음", what: "비자발적 이직이면 구직급여를 신청해요." },
     ],
-    tools: [T("/ko/dismissal-notice-pay-calculator/", "해고예고수당"), T("/ko/appeal-deadline-calculator/", "불복 기한 계산"), T("/ko/free-expert-representation-check/", "무료 대리 자격 확인"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/unemployment-benefits-calculator/", "실업급여"), T("/ko/labor-law-guide/", "노동 법령 길잡이")],
+    tools: [T("/ko/job-exit-consult-prep/", "상담 준비서 만들기"), T("/ko/dismissal-notice-pay-calculator/", "해고예고수당"), T("/ko/appeal-deadline-calculator/", "불복 기한 계산"), T("/ko/free-expert-representation-check/", "무료 대리 자격 확인"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/unemployment-benefits-calculator/", "실업급여"), T("/ko/labor-law-guide/", "노동 법령 길잡이")],
     help: ["고용노동부 1350", "노동위원회 (무료 권리구제 대리인 제도)", "대한법률구조공단 132"],
   },
   {
@@ -224,7 +224,7 @@ export const KR_DESKS         = [
       { when: "회사가 못 주면", what: "체불 임금등 확인서를 받아 대지급금을 신청할 수 있는지 봐요." },
       { when: "3년 안", what: "임금채권은 3년이 지나면 소멸해요.", law: "근로기준법 제49조" },
     ],
-    tools: [T("/ko/unpaid-wage-guarantee-calculator/", "대지급금 계산"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/legal-interest-calculator/", "지연이자"), T("/ko/statute-limitations-calculator/", "소멸시효")],
+    tools: [T("/ko/job-exit-consult-prep/", "상담 준비서 만들기"), T("/ko/unpaid-wage-guarantee-calculator/", "대지급금 계산"), T("/ko/severance-calculator/", "퇴직금"), T("/ko/legal-interest-calculator/", "지연이자"), T("/ko/statute-limitations-calculator/", "소멸시효")],
     help: ["고용노동부 1350", "근로복지공단 1588-0075", "대한법률구조공단 132"],
   },
   {
@@ -250,19 +250,19 @@ export const KR_DESKS         = [
       { when: "다툼이 있으면", what: "소송(3천만 원 이하는 소액사건)이나 조정을 해요." },
       { when: "기한", what: "일반 대여금은 10년, 상사채권은 5년이 지나면 소멸해요.", law: "민법 제162조, 상법 제64조" },
     ],
-    tools: [T("/ko/demand-letter-builder/", "내용증명 작성 도우미"), T("/ko/legal-interest-calculator/", "지연이자"), T("/ko/statute-limitations-calculator/", "소멸시효"), T("/ko/litigation-cost-calculator/", "소송 비용")],
+    tools: [T("/ko/unpaid-loan-consult-prep/", "상담 준비서 만들기"), T("/ko/demand-letter-builder/", "내용증명 작성 도우미"), T("/ko/legal-interest-calculator/", "지연이자"), T("/ko/statute-limitations-calculator/", "소멸시효"), T("/ko/litigation-cost-calculator/", "소송 비용")],
     help: ["대한법률구조공단 132", "전자소송(ecfs.scourt.go.kr)"],
   },
   {
     id: "deposit", kind: "event", icon: "🏚️", title: "전세·월세 보증금을 못 돌려받을 때", who: "계약이 끝났는데 보증금을 못 받은 임차인",
     keywords: ["보증금 안", "보증금을 못", "못 받", "못 돌려", "전세금 반환", "임차권등기", "깡통", "전세사기", "보증금 반환"],
     steps: [
-      { when: "계약 끝나기 6개월~2개월 전", what: "갱신하지 않겠다는 뜻을 집주인에게 알려요(문자보다 내용증명이 확실해요).", law: "주택임대차보호법 제6조" },
+      { when: "계약 끝나기 2개월 전까지", what: "갱신하지 않겠다는 뜻을 집주인에게 알려요(문자보다 내용증명이 확실해요).", law: "주택임대차보호법 제6조" },
       { when: "계약이 끝났는데 못 받으면", what: "이사 가기 전에 임차권등기명령을 신청하고 등기가 된 것을 확인해요. 그래야 대항력·우선변제권이 유지돼요.", law: "주택임대차보호법 제3조의3" },
       { when: "보증보험에 들었다면", what: "보증기관에 이행청구를 해요." },
       { when: "그래도 안 되면", what: "보증금반환 지급명령이나 소송, 주택임대차분쟁조정을 신청해요." },
     ],
-    tools: [T("/ko/demand-letter-builder/", "내용증명 작성 도우미"), T("/ko/jeonse-guarantee-calculator/", "전세보증금 안전성"), T("/ko/auction-distribution-calculator/", "경매 배당 순서"), T("/ko/legal-interest-calculator/", "지연이자")],
+    tools: [T("/ko/deposit-return-consult-prep/", "상담 준비서 만들기"), T("/ko/demand-letter-builder/", "내용증명 작성 도우미"), T("/ko/jeonse-guarantee-calculator/", "전세보증금 안전성"), T("/ko/auction-distribution-calculator/", "경매 배당 순서"), T("/ko/legal-interest-calculator/", "지연이자")],
     help: ["주택도시보증공사 1566-9009", "대한법률구조공단 132 (주택임대차분쟁조정)", "전세피해지원센터"],
   },
   {
@@ -392,6 +392,20 @@ export const KR_DESKS         = [
     ],
     tools: [T("/ko/commercial-rent-increase-checker/", "상가 임대료 인상률 점검"), T("/ko/demand-letter-builder/", "내용증명 작성 도우미"), T("/ko/litigation-cost-calculator/", "소송 비용"), T("/ko/consult-memo-builder/", "상담 메모 만들기")],
     help: ["상가건물임대차분쟁조정위원회 (대한법률구조공단 132)", "소상공인시장진흥공단 1588-5302"],
+  },
+  {
+    id: "misreport", kind: "event", icon: "🧮", title: "회사가 내 소득을 3.3%(사업소득)로 신고했을 때", who: "직원처럼 일했는데 프리랜서로 신고됐거나, 근로·사업소득이 겹쳐 신고된 사람",
+    keywords: ["3.3%", "사업소득", "근로소득", "이중 신고", "잘못 신고", "지급명세서", "프리랜서 신고", "근로장려금"],
+    steps: [
+      { when: "먼저", what: "홈택스에서 내 이름으로 신고된 소득 자료를 확인해요. 같은 돈이 근로소득과 사업소득으로 두 번 잡혔는지, 소득 종류가 틀렸는지 봐요." },
+      { when: "근로자에 가깝다면", what: "근로자성 점검으로 지휘·감독, 출퇴근, 고정급 같은 사정을 정리하고 근로계약서·급여명세서·입금 내역을 모아 둬요." },
+      { when: "회사에 요청", what: "회사에 수정 지급명세서(와 원천징수이행상황신고서 수정) 제출을 요청해요. 요청은 문자·메일처럼 기록이 남게 해요." },
+      { when: "회사가 고쳐 주지 않으면", what: "법정신고기한이 지난 뒤 5년 안에 세무서에 경정청구를 할 수 있어요. 증빙 없이 주장만으로는 어려워요.", law: "국세기본법 제45조의2①" },
+      { when: "근로장려금·건강보험이 걸리면", what: "소득 종류가 바뀌면 장려금 심사와 건강보험료 정산이 달라질 수 있어요. 금액은 국세청 126과 건강보험공단에 확인해요." },
+      { when: "4대보험이 빠졌다면", what: "고용보험은 근로자가 직접 피보험자격 확인을 청구할 수 있어요.", law: "고용보험법 제17조" },
+    ],
+    tools: [T("/ko/worker-status-check/", "근로자성 점검 (프리랜서·3.3%)"), T("/ko/consult-memo-builder/", "상담 메모 만들기"), T("/ko/demand-letter-builder/", "내용증명 작성 도우미")],
+    help: ["국세청 126", "고용노동부 1350", "근로복지공단 1588-0075"],
   },
 ];
 

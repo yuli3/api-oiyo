@@ -4,6 +4,8 @@ import { analyzeEntries, claimPlain, claimResult, csmPlain, csmResult, dutyPlain
 import { GUIDES, guideBySlug, guideDeadlines, recordCheck, recordText } from "./vendor/tools-tax/pro-practice-guides-2026.mjs";
 import { PRIVACY_AS_OF, breachClock, checkPolicy, parseAt } from "./vendor/tools-tax/privacy-check-2026.mjs";
 import { CONTRACT_AS_OF, checkContract } from "./vendor/tools-tax/freelance-contract-check-2026.mjs";
+import { CHECKS_AS_OF, CLAUSES, contractCheck } from "./vendor/tools-tax/kr-office-checks-2026.mjs";
+import { MISTAKE_QUESTIONS, checkMistakes, isMistakeAnswer } from "./vendor/tools-tax/kr-income-tax-mistakes-2026.mjs";
 
 const TOOLS = "https://tools.oiyo.net/ko/";
 const NOTE = "정보·계산 도구예요. 과태료 부과, 품목분류, 책임준비금·지급여력 산출, 손해사정, 감사의견, 신고·서류 대리를 하지 않아요.";
@@ -77,7 +79,30 @@ export function makePracticeHandlers(InputError) {
     return { asOf: CONTRACT_AS_OF, ...r, page: `${TOOLS}freelance-contract-check/`, note: "읽기 보조예요. 계약서를 대신 쓰거나 고치지 않아요. 고칠 부분은 상대와 합의하세요. 문의: 대한법률구조공단 132." };
   }
 
+  function employmentContract(i) {
+    const kinds = ["regular", "fixedTerm", "partTime"];
+    const ids = CLAUSES.map((c) => c.id);
+    const bad = [];
+    if (!kinds.includes(i.kind)) bad.push("kind: regular | fixedTerm | partTime");
+    if (!Array.isArray(i.written) || i.written.some((w) => !ids.includes(w))) bad.push(`written: array of ${ids.join(", ")}`);
+    const hours = i.weeklyHours === undefined || i.weeklyHours === null ? undefined : Number(i.weeklyHours);
+    if (hours !== undefined && !(Number.isFinite(hours) && hours >= 0 && hours <= 80)) bad.push("weeklyHours: 0-80");
+    if (bad.length) throw new InputError(bad);
+    const r = contractCheck({ kind: i.kind, small: !!i.small, weeklyHours: hours, written: [...new Set(i.written)], handedOver: !!i.handedOver });
+    return { asOf: CHECKS_AS_OF, ...r, page: `${TOOLS}employment-contract-checker/`, note: "점검표예요. 계약서를 대신 쓰지 않아요. 표준근로계약서는 고용노동부 누리집에서 받을 수 있어요. 상담: 고용노동부 1350." };
+  }
+
+  function incomeTaxMistakes(i) {
+    const bad = MISTAKE_QUESTIONS.filter((q) => i[q.id] !== undefined && !isMistakeAnswer(i[q.id])).map((q) => `${q.id}: yes | no | unknown`);
+    if (bad.length) throw new InputError(bad);
+    const a = Object.fromEntries(MISTAKE_QUESTIONS.filter((q) => i[q.id] !== undefined).map((q) => [q.id, i[q.id]]));
+    const r = checkMistakes(a);
+    return { ...r, hits: r.hits.map((h) => ({ ...h, tools: (h.tools ?? []).map((t) => ({ ...t, href: `https://tools.oiyo.net${t.href}` })) })), page: `${TOOLS}income-tax-filing-mistake-check/`, note: "점검기예요. 세액을 계산하거나 신고를 대신하지 않아요. 문의: 국세상담센터 126." };
+  }
+
   return {
+    "/v1/labor/kr/employment-contract": employmentContract,
+    "/v1/tax/kr/income-tax-filing-mistakes": incomeTaxMistakes,
     "/v1/law/kr/freelance-contract": contract,
     "/v1/law/kr/privacy-check": privacy,
     "/v1/law/kr/fine-reduction": fine,
