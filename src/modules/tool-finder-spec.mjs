@@ -8,7 +8,7 @@ export const FINDER_TOOLS = [
     type: "function",
     function: {
       name: FINDER_TOOL_NAME,
-      description: "Start here when you are not sure which OIYO tool fits. Give the user's question in their own words (Korean or English). Returns the best-matching OIYO tools with their input fields, the terms that matched, and an answerability verdict: 'likely', 'partial' (some parts of the question have no tool) or 'none' (OIYO has no tool for it, so do not invent a number). Searches tool names and descriptions only; no calculation.",
+      description: "Finds which OIYO tool fits a question when the right one is unclear. Takes the user's question in their own words (Korean or English). Returns the best-matching OIYO tools with their input fields, the terms that matched, and an answerability verdict: 'likely', 'partial' (some parts of the question have no tool) or 'none' (OIYO has no tool for it). Searches tool names and descriptions only; no calculation.",
       parameters: {
         type: "object",
         properties: {
