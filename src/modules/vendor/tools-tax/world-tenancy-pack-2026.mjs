@@ -6,7 +6,7 @@
 // (e-Gov 法令検索, legislation.gov.uk / gov.uk, CA OAG / courts self-help / DRE guide, nysenate.gov / NY AG / NYC RGB,
 // service-public.gouv.fr / Légifrance / INSEE, BOE / INE, gov.cn reprints of 住房租赁条例 and 民法典, law.moj.gov.tw).
 // Not computed because not verified: CA AB 1482 sunset, Spain regional deposit lodging and RDL 29/2026 scope details,
-// Spain interés legal rate, France encadrement des loyers after 2026-11-24, NY Good Cause CPI after 2026-05, China city rules,
+// Spain interés legal rate, France encadrement des loyers after 2026-11-23 (Senate 1st reading 2026-10-21 extends 2 years; promulgation unconfirmed on official pages 2026-11-25), NY Good Cause CPI after 2026-05, China city rules,
 // Taiwan current 住宅租賃 standard terms, England deposit-scheme names.
 
 export const TENANCY_AS_OF = "2026-11-21";
@@ -182,7 +182,7 @@ export function frTenancy(x                                                     
     newRent = r2(rent * (1 + q.change / 100));
     items.push({ tone: "info", text: `Révision annuelle plafonnée par l'IRL (${x.quarter ?? "T3 2026"} : ${q.value}, +${q.change} % sur un an) : au plus ${newRent.toLocaleString("fr-FR")} € hors charges.`, cite: "Loi 89-462 art. 17-1 ; INSEE" });
   }
-  items.push({ tone: "info", text: "Encadrement des loyers (Paris, Lyon, Lille, Bordeaux, Montpellier…) : vérifiez le loyer de référence de votre ville ; les dates d'application sont à confirmer pour Paris, Est Ensemble et Plaine Commune après le 24 novembre 2026.", cite: "Loi ELAN art. 140" });
+  items.push({ tone: "info", text: "Encadrement des loyers (Paris, Lyon, Lille, Bordeaux, Montpellier…) : vérifiez le loyer de référence de votre ville ; l'expérimentation devait finir le 23 novembre 2026 ; une proposition de loi qui la prolonge de deux ans a été adoptée en première lecture par le Sénat le 21 octobre 2026. Vérifiez sur Légifrance si la loi est promulguée avant de vous appuyer sur le loyer de référence.", cite: "Loi ELAN art. 140 ; Sénat, PPL « rapports locatifs »" });
   return { cap, capMonths, due, late, penalty, newRent, items, dates };
 }
 

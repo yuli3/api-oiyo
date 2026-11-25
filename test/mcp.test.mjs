@@ -315,6 +315,8 @@ const fixtures = {
   compare_kr_bookkeeping_vs_estimate: { group: "c", prevRevenue: 80000000, revenue: 90000000, actualExpense: 30000000, simpleRate: 60, standardRate: 20, majorExpense: 20000000 },
   check_kr_exempt_business_report: { year: 2026, kind: "medical", unreported: 100000000, today: "2026-11-21" },
   compare_kr_private_pension_tax: { privatePension: 20000000, age: 66, publicPension: 12000000 },
+  check_kr_employment_contract: { kind: "partTime", written: ["wage", "hours"], handedOver: false, weeklyHours: 20 },
+  check_kr_income_tax_filing_mistakes: { wagePlus: "yes", dependentShared: "yes", rateChecked: "no" },
   check_kr_freelance_contract: { contractText: "대금은 고객사로부터 결제를 받은 후 지급한다.", amount: 1000000, creative: true },
   get_kr_practice_guide: { guide: "visa-stay-status-guide", case: "arrival", dates: { register: "2026-09-01" } },
   check_insurance_explanation_record: { date: "2026-11-17", delivered: "paper", confirm: "sign" },

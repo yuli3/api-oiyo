@@ -3,6 +3,8 @@
 // Data and formulas: tools-oiyo src/lib/pro-practice-2026.ts, pro-practice-guides-2026.ts (vendored by scripts/sync-tools-tax.mjs).
 // Information and calculation only: no fine decision, tariff classification, reserve certification, loss adjusting, audit opinion or filing.
 import { GUIDES } from "./vendor/tools-tax/pro-practice-guides-2026.mjs";
+import { MISTAKE_QUESTIONS } from "./vendor/tools-tax/kr-income-tax-mistakes-2026.mjs";
+import { CLAUSES } from "./vendor/tools-tax/kr-office-checks-2026.mjs";
 
 const fn = (name, description, properties, required = []) => ({ type: "function", function: { name, description, parameters: { type: "object", properties, required } } });
 const num = (description, minimum, maximum) => ({ type: "number", description, ...(minimum !== undefined ? { minimum } : {}), ...(maximum !== undefined ? { maximum } : {}) });
@@ -100,6 +102,19 @@ export const PRACTICE_TOOLS = [
       creative: yes("Deliverables are copyrightable: design, writing, video, photos, software"),
       registered: yes("The freelancer is a registered general VAT business"),
     }, ["contractText"]),
+  fn("check_kr_employment_contract",
+    "Korean employment contract (근로계약서) required-terms check for an employer or worker. Give the worker type (regular, fixed-term, part-time) and which terms the written contract contains; returns the missing required terms (근로기준법 제17조·시행령 제8조: wage, wage components/calculation/payment method, contracted hours, weekly holiday, annual leave, workplace and duties, work rules; fixed-term and part-time also need contract period and breaks (기간제법 제17조), part-time also working days and hours per day), whether a written copy was handed over, the fine/penalty exposure, and exceptions for workplaces under 5 employees or under 15 hours a week. Checklist only; never drafts the contract.",
+    {
+      kind: { type: "string", enum: ["regular", "fixedTerm", "partTime"], description: "regular = open-ended full-time, fixedTerm = fixed-term contract, partTime = short-time worker" },
+      written: { type: "array", maxItems: 10, items: { type: "string", enum: CLAUSES.map((c) => c.id) }, description: "Terms that ARE written in the contract: " + CLAUSES.map((c) => `${c.id} (${c.label})`).join(", ") },
+      handedOver: yes("A signed copy was handed to the worker"),
+      small: yes("Workplace has 4 or fewer regular employees"),
+      weeklyHours: num("Contracted weekly hours (for the under-15-hours exceptions)", 0, 80),
+    }, ["kind", "written"]),
+  fn("check_kr_income_tax_filing_mistakes",
+    "Pre-filing check for Korean comprehensive income tax (종합소득세, 2026 income filed in May 2027): 11 common mistake patterns, answered yes / no / unknown. Patterns: other income on top of year-end settled wages (소득세법 제70조·제73조), 3.3% withheld business income that must be filed to settle or refund (제127조), other income over KRW 3 million (제14조③8호), interest+dividends over KRW 20 million (제14조③6호), private pension over KRW 15 million (제64조의4), housing rental income (제64조의2), the same dependent claimed twice (시행령 제106조), dependents over the income limit (제50조), no-bookkeeping penalty 20% (제81조의5), simple expense rate eligibility (시행령 제143조), fixing past returns (국세기본법 제45조·제45조의2·제45조의3). Returns hit patterns with fixes, citations and OIYO calculators, unanswered items as unverified, the May deadline and local income tax note. Computes no tax amount; not tax representation.",
+    Object.fromEntries(MISTAKE_QUESTIONS.map((q) => [q.id, { type: "string", enum: ["yes", "no", "unknown"], description: q.label }])),
+  ),
   fn("get_kr_practice_guide",
     "Korean practice checklists for work next to licensed professions: business permit filings (restaurant/cafe, online retail, beauty), foreigner stay deadlines (registration 90 days, address change 15 days, extension window), public e-portals (Hometax, 4 social insurances/Work24, Internet Registry, e-Court, UNI-PASS, Patent-ro) and how to read professional documents (loss adjustment report, appraisal report, broker's confirmation statement, patent specification/claims, import declaration documents). Returns what to prepare, what to check (with statute citations), deadlines computed from given dates (first day excluded, holiday roll-over), official links and who may act as representative. Information only; no filing or drafting.",
     {
@@ -132,5 +147,7 @@ export const PRACTICE_ENDPOINTS = {
   check_kr_freelance_contract: { path: "/v1/law/kr/freelance-contract", method: "POST" },
   check_kr_privacy_breach_policy: { path: "/v1/law/kr/privacy-check", method: "POST" },
   get_kr_practice_guide: { path: "/v1/law/kr/practice-guide", method: "POST" },
+  check_kr_employment_contract: { path: "/v1/labor/kr/employment-contract", method: "POST" },
+  check_kr_income_tax_filing_mistakes: { path: "/v1/tax/kr/income-tax-filing-mistakes", method: "POST" },
   check_insurance_explanation_record: { path: "/v1/insurance/explanation-record", method: "POST" },
 };

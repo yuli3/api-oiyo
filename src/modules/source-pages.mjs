@@ -101,6 +101,8 @@ export const SOURCE_PAGES = Object.freeze({
   calculate_insurance_claim_payout: `${TOOLS}disability-fault-claim-calculator/`,
   check_kr_privacy_breach_policy: `${TOOLS}privacy-breach-policy-check/`,
   check_kr_freelance_contract: `${TOOLS}freelance-contract-check/`,
+  check_kr_employment_contract: `${TOOLS}employment-contract-checker/`,
+  check_kr_income_tax_filing_mistakes: `${TOOLS}income-tax-filing-mistake-check/`,
   calculate_kr_simplified_withholding_tax: `${TOOLS}simplified-withholding-tax-calculator/`,
   calculate_kr_join_leave_month_insurance: `${TOOLS}join-leave-month-insurance-calculator/`,
   estimate_kr_midyear_leaver_settlement: `${TOOLS}midyear-leaver-year-end-settlement/`,
