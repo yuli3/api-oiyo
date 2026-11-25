@@ -49,6 +49,7 @@ test("listTools returns the whole catalog; listings claim 300+", async () => {
   assert.ok(catalog.length >= 300);
   assert.ok(readme.includes("300+ deterministic calculators"));
   assert.ok(actor.description.startsWith("300+ deterministic calculators"));
+  assert.ok(actor.description.length <= 300, "Apify Store description limit is 300 characters");
 });
 
 test("README examples name real tools", () => {
